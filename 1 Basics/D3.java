@@ -8,21 +8,19 @@
 
 import java.util.Scanner;
 
-class Point {
-  double x, y;
-}
 
 public class D3 {
-  Point A, B, C;
+
+  static double x1, y1, x2, y2, x3, y3;
 
   static boolean oneLine() {
     if ((x1==x2)&&(x1==x3) || (y1==y2)&&(y1==y3)) {
       return true;
     } else {
-      double dx1 = x[2] - x[1];
-      double dx2 = x[3] - x[1];
-      double dy1 = y[2] - y[1];
-      double dy2 = y[3] - y[1];
+      double dx1 = x2 - x1;
+      double dx2 = x3 - x1;
+      double dy1 = y2 - y1;
+      double dy2 = y3 - y1;
       if (dx1*dy2 == dx2*dy1) {
         return true;
       } else {
@@ -36,19 +34,19 @@ public class D3 {
     Scanner in = new Scanner(System.in);
 
     System.out.print("Точка A(x, y): ");
-    x[1] = in.nextDouble();
-    y[1] = in.nextDouble();
+    x1 = in.nextDouble();
+    y1 = in.nextDouble();
 
     System.out.print("Точка B(x, y): ");
-    x[2] = in.nextDouble();
-    y[2] = in.nextDouble();
+    x2 = in.nextDouble();
+    y2 = in.nextDouble();
 
     System.out.print("Точка C(x, y): ");
-    x[2] = in.nextDouble();
-    y[2] = in.nextDouble();
+    x3 = in.nextDouble();
+    y3 = in.nextDouble();
 
     System.out.print("Точки ");
     if (!oneLine()) { System.out.print("не "); }
-    System.out.print("принадлежат одной прямой.");
+    System.out.println("принадлежат одной прямой.");
   }
 }
