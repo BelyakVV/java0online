@@ -20,7 +20,7 @@ public class C1 {
       System.exit(1);
     }
 
-    long S=0; // (n+1)*n%2;
+    long S=0; // (n+1)*n/2;
     while (n>0) S+=n--;
 
     System.out.println("Сумма: " + S);
