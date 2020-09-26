@@ -1,4 +1,7 @@
 *.class
 
+*.in
+*.IN
+
 *.pdf
 *.PDF
