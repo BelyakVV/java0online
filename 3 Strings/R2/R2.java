@@ -6,6 +6,7 @@
  * (открывающий тег, закрывающий тег, содержимое тега, тег без тела).
  * Пользоваться готовыми парсерами XML для решения данной задачи нельзя.
  **
+ *   Часть строки до первого и после последнего тегов отбрасывается
  *   Вход: файл "R2.xml"
  *   Выход: содержимое узлов xml-документа
  */
@@ -21,9 +22,30 @@ public class R2 {
     static final String FILE_NAME = "R2.xml";
 
     public static void main(String[] args) throws IOException {
-        String xmlDoc = fileRead(FILE_NAME); //Чтение документа из файла
-        XMLNode root = new XMLNode(xmlDoc); //Разбор
-        System.out.println(root.toString()); //Вывод
+        final String XML_TAG_PATTERN = "<(\\s*[^/]+?)>|</(.+?)>|<([^/]+?)/>";
+        Pattern tagSearch = Pattern.compile(XML_TAG_PATTERN, Pattern.DOTALL);
+        String xmlDoc = fileRead(FILE_NAME).strip(); //Чтение документа из файла
+        Matcher m = tagSearch.matcher(xmlDoc);
+        int pos = 0; //Позиция поиска в строке
+        while (m.find()) { //Пока есть теги
+            if (pos > 0) { //Содержимое строки до первого тега отбрасывается
+                //Содержимое тега
+                String inner = xmlDoc.substring(pos, m.start());
+                if (!inner.isBlank()) {
+                    inner = inner.strip().replaceAll("\\s+", " ");
+                    System.out.println("Содержимое тега: " + inner);
+                }
+            }
+            pos = m.end();
+            if (m.group(1) != null) {
+                System.out.print("Открывающий тег: ");
+            } else if (m.group(2) != null) {
+                System.out.print("Закрывающий тег: ");
+            } else {
+                System.out.print("Тег без тела: ");
+            }
+            System.out.println(m.group(0).replaceAll("\\s+", " "));
+        }
     }
 
     /** Чтение текстового файла целиком в одну строковую переменную */
@@ -37,103 +59,4 @@ public class R2 {
         }
         return result;
     }
-}
-
-/** Рекурсивный XML-парсер */
-class XMLNode {
-    static final String XML_TAG_PATTERN = "<(.+?)(\\s.+?)?>(.*?)</\\1>|<(.+?)/>";
-    static Pattern tagSearch = Pattern.compile(XML_TAG_PATTERN, Pattern.DOTALL);
-
-    /** Рекурсивное преобразование строки в дерево XML */
-    XMLNode(String xmlString) {
-        xmlString = xmlString.strip();
-        Matcher m = tagSearch.matcher(xmlString);
-        if (m.find()) { //В переданной строке есть XML-тег
-            name = m.group(1);
-            if (name != null) { //Имеется закрывающий тег
-                if (m.group(2) != null) params = m.group(2);
-                if (m.group(3) != null) { //Внутри текущего тега что-то есть
-                    hasInner = true;
-                    firstChild = new XMLNode(m.group(3));
-                    if (firstChild.name.isBlank() 
-                            && firstChild.nextSibling == null) {
-                        content = firstChild.content; //В содержимом нет XML-тегов
-                        firstChild = null;
-                        if (content.isBlank()) {
-                            hasInner = false;
-                            content = "";
-                        }
-                    } 
-                }
-                xmlString = xmlString.substring(m.end()); //Остаток строки               
-                if (!xmlString.isBlank()) { //Текущий тег занял не всю строку
-                    nextSibling = new XMLNode(xmlString);
-                }
-            } else { //Это одиночный тег
-                name = m.group(4);
-            }
-        } else { //В переданной строке нет XML-тегов, только текстовое содержимое
-            content = xmlString;
-            hasInner = true;
-        }
-    }
-    
-    /** Рекурсивный вывод содержимого дерева XML */
-    @Override
-    public String toString() {
-        return getOpeningTag() + getInner() + getClosingTag();
-    }
-    
-    /** Вывод открывающего тега (если он есть) для текущего узла */
-    public String getOpeningTag() {
-        if (name.isBlank()) return "";
-        String result;
-        if (hasInner) {
-            result = "Открывающий тег: ";
-        } else {
-            result = "Тег без тела: ";
-        }
-        result += "<" + name;
-        if (!params.isBlank()) result += params;
-        if (!hasInner) result += "/";
-        return result + ">\n";
-    }
-    
-    /** Вывод содержимого текущего узла */
-    public String getInner() {
-        if (!hasInner) return ""; //Пустой узел            
-        String result = "";
-        XMLNode child = firstChild;
-        if (child != null) { //Имеется поддерево
-            while (child != null) {
-                result += child.toString();
-                child = child.nextSibling;
-            }
-        } else { //Поддерева нет, только текстовое содержимое
-            result = "Содержимое тега: " + content + "\n";
-        }
-        return result;
-    }
-    
-    /** Вывод закрывающего тега (если он нужен) для текущего узла */
-    public String getClosingTag() {
-        if (name.isBlank() || !hasInner) {
-            return ""; //Если это одиночный тег либо только текстовое содержимое
-        } else {
-            return "Закрывающий тег: </" + name + ">\n";
-        }        
-    }
-    
-    /** Имя тега: <name params>content</name> */ 
-    private String name = "";
-    /** Параметры тега: <name params>content</name> */
-    private String params = "";
-    /** Текстовое содержимое тега: <name params>content</name> */
-    private String content = "";
-    /** Первый потомок */
-    private XMLNode firstChild;
-    /** Следующий сестринский элемент */
-    private XMLNode nextSibling;
-    /** Признак наличия поддерева и/или текстового содержимого */
-    private boolean hasInner;
 }
