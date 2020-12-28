@@ -27,3 +27,6 @@ hs_err_pid*
 
 *.pdf
 *.PDF
+/4 Classes/E1/nbproject/private/
+/4 Classes/E1/build/
+/4 Classes/E1/dist/
