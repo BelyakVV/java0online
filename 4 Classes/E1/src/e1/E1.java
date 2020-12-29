@@ -15,34 +15,34 @@ public class E1 {
     /** Command-line interface */
     static CLI cli = new CLI();
     
-    /** Изменение одного из значений */
-    static Option[] menuChangeAny = {
-        new Option("Изменить test1.a", () -> {
+    /** Меню: изменение одного из значений a или b */
+    static CLI.Option[] menuChangeAny = {
+        new CLI.Option("Изменить test1.a", () -> {
             test1.setA(cli.getInt("Введите новое значение"));
         }),
-        new Option("Изменить test1.b", () -> {
+        new CLI.Option("Изменить test1.b", () -> {
             test1.setB(cli.getInt("Введите новое значение"));
         }),
-        new Option("Отмена", () -> {})
+        new CLI.Option("Отмена", () -> {})
     };
     
     /** Главное меню */
-    static Option[] menuMain = {
-        new Option("Вывести значения полей", () -> {
+    static CLI.Option[] menuMain = {
+        new CLI.Option("Вывести значения полей", () -> {
             test1.print();
-            System.out.println();
+            //System.out.println();
         }),
-        new Option("Изменить значение одного из полей", () -> {
+        new CLI.Option("Изменить значение одного из полей", () -> {
             cli.getChoice(menuChangeAny);
-            System.out.println();
+            //System.out.println();
         }),
-        new Option("Вывести сумму значений полей", () -> {
-            System.out.println(test1.getSum() + "\n");
+        new CLI.Option("Вывести сумму значений полей", () -> {
+            System.out.println(test1.getSum());
         }),
-        new Option("Вывести наибольшее из значений полей", () -> {
-            System.out.println(test1.getMax() + "\n");
+        new CLI.Option("Вывести наибольшее из значений полей", () -> {
+            System.out.println(test1.getMax());
         }),        
-        new Option ("Выход", () -> System.exit(0))
+        new CLI.Option ("Выход", () -> System.exit(0))
     };
 
     /**
@@ -51,6 +51,8 @@ public class E1 {
     public static void main(String[] args) {
         do {            
             cli.getChoice(menuMain);
+            cli.waitForEnter();
+            System.out.println();
         } while (true);
     }
 

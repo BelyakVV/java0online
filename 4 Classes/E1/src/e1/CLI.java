@@ -48,4 +48,32 @@ public class CLI {
         }
         return in.nextInt();
     }
+    
+    /** Ожидание нажатия ENTER */
+    public void waitForEnter() {
+        System.out.print("Нажмите ВВОД для продолжения...");
+        in.nextLine();
+        //if (!in.hasNextLine()) 
+        //System.out.println(in.hasNextLine());
+        while (!in.hasNextLine());
+        //while (!in.hasNextLine()) in.nextLine();;
+    }
+    
+    /**
+     * Пункт меню для int getChoice(Option[] list)
+     */
+    public static class Option {
+        final String text;
+        final Runnable action;
+
+        /**
+         * Создать пункт меню
+         * @param text подсказка для пользователя
+         * @param action действие
+         */
+        public Option(String text, Runnable action) {
+            this.text = text;
+            this.action = action;
+        }
+    }
 }
