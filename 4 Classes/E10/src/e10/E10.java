@@ -40,11 +40,14 @@ public class E10 {
      * @throws java.io.FileNotFoundException
      */
     public static void main(String[] args) throws FileNotFoundException {
+        //Прочитать массив рейсов и справочники из файлов
         airlines = new Airlines("airlines.txt", 
                 "destinations.txt", "planes.txt");
+        //Запустить приложение
         cli.run();
     }
     
+    /** Вывести список рейсов для заданного пункта назначения */
     static void onlyDestination() {
         //Справочник пунктов назначения
         var refDest = airlines.destinations;
@@ -56,6 +59,7 @@ public class E10 {
         System.out.println(airlines.onlyDestination(destination));
     }
     
+    /** Вывести список рейсов для заданного дня недели */
     static void onlyDay() {
         //Меню выбора дня
         var menu = CLI.buildMenu(Airlines.Day.toStrings());
@@ -65,6 +69,10 @@ public class E10 {
         System.out.println(airlines.onlyDaysOfWeek(day));
     }
     
+    /**
+     * Вывести список рейсов для заданного дня недели, время вылета для которых 
+     * больше заданного
+     */
     static void onlyDayAfterTime() {
         //Меню выбора дня
         var menu = CLI.buildMenu(Airlines.Day.toStrings());

@@ -1,7 +1,7 @@
 package e10;
 
-import cli.CLI;
 import cli.Table;
+import static cli.Table.Align.*;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.Arrays;
@@ -20,10 +20,11 @@ import java.util.Scanner;
 public class Airlines {
     /** Массив авиарейсов */
     private Airline[] airlines;
+    
     /** Справочник пунктов назначения */
-    final RefArray destinations;
+    public final RefArray destinations;
     /** Справочник типов самолёта */
-    private RefArray planes;
+    public final RefArray planes;
 
     private Airlines(Airline[] airlines, RefArray destinations, RefArray planes) {
         this.airlines = airlines;
@@ -64,57 +65,47 @@ public class Airlines {
         planes = new RefArray(planesFileName, "Метла");
     }
 
-    static final String HEAD = "Рейс" + CLI.V_SEPARATOR 
-                             + "Пункт назначения" + CLI.V_SEPARATOR
-                             + "Вылет" + CLI.V_SEPARATOR
-                             + "Дни недели" + CLI.V_SEPARATOR
-                             + "Самолёт";
+    /** Шапка таблицы */
+    static final String[] HEAD = {"Рейс", "Пункт назначения", "Вылет",
+                                  "Дни недели", "Самолёт"};
     @Override
     public String toString() {
         if (airlines.length == 0) return "Ничего не найдено";
-//        String[] rows = new String[airlines.length + 1];
-//        rows[0] = HEAD;
-//        for (int i = 0; i < airlines.length; i++) {
-//            rows[i + 1] = formatAirline(airlines[i].toString());
-//        }
-//        CLI.formatTable(rows);
-//        var result = new StringBuilder();
-//        for (var row: rows) {
-//            result.append(row).append('\n');
-//        }
-//        return result.toString();
+        //Создать пустую таблицу с шапкой
         Table result = new Table(HEAD);
+        //Заполнить её
         for (var airline: airlines) {
-            result.addRow(formatAirline(airline.toString()));
-            //System.out.println(airline.toString());
+            result.addRow(formatAirline(airline));
         }
-        result.getCol(0).setAlign(CLI.Align.RIGHT);
+        //Выровнять вправо столбец с номерами рейсов
+        result.getCol(0).setAlign(RIGHT);
         return result.toString();
     }
     
-//    private String formatAirline(String str) {
-//        String[] fields = str.split(CLI.T_R_SPLIT_REGEX);
-//        StringBuilder result = new StringBuilder(fields[0]);
-//        result.append(CLI.V_SEPARATOR).append(
-//                destinations.getById(Integer.decode(fields[1])));
-//        result.append(CLI.V_SEPARATOR).append(
-//                formatTime(Integer.decode(fields[2])));
-//        result.append(CLI.V_SEPARATOR).append(
-//                formatDays(Integer.decode(fields[3])));
-//        result.append(CLI.V_SEPARATOR).append(
-//                planes.getById(Integer.decode(fields[4])));
-//        return result.toString();
-//    }
-    
-    private String[] formatAirline(String str) {
-        String[] result = str.split(CLI.T_R_SPLIT_REGEX);
-        result[1] = destinations.getById(Integer.decode(result[1]));
-        result[2] = formatTime(Integer.decode(result[2]));
-        result[3] = formatDays(Integer.decode(result[3]));
-        result[4] = planes.getById(Integer.decode(result[4]));
-        return result;
+    /**
+     * Форматирование полей Airline для табличного вывода
+     * @param airline
+     * @return 
+     */
+    private String[] formatAirline(Airline airline) {
+        return new String[]{
+            //Номер рейса
+            Integer.toString(airline.getFlight()),
+            //Пункт назначения
+            destinations.getById(airline.getDestination()),
+            //Время вылета
+            formatTime(airline.getDeparture()),
+            //Дни недели
+            formatDays(airline.getDaysOfWeek()),
+            //Тип самолёта
+            planes.getById(airline.getPlane())};
     }
 
+    /**
+     * Преобразование количества секунд после полуночи в часы и минуты
+     * @param time
+     * @return 
+     */
     private String formatTime(int time) {
         time = time / 60; //Игнорируем секунды
         String result = String.format("%02d", time % 60);
@@ -122,20 +113,35 @@ public class Airlines {
         return result;
     }
 
+    /**
+     * Преобразование дней недели, заданных в виде битового поля, где 
+     * 1 = понедельник, 64 = воскресенье, в перечисление кратких наименований
+     * этих дней (например, пн чт вс)
+     * @param days Битовое поле
+     * @return 
+     */
     private String formatDays(int days) {
         StringBuilder result = new StringBuilder();
+        //Перечисление всех возможных дней
         for (var day: Day.values()) {
-            if ((days & day.bitWeight) != 0) 
+            if ((days & day.bitWeight) != 0) //Этот день есть в поле
                 result.append(day.shortName).append(' ');
         }
-        if (result.length() > 0) {
-            result.setLength(result.length() - 1);
-        } else {
+        if (result.length() < 1) { //Ничего не найдено
             result.append("нет");
+        } else { //Что-то нашлось
+            //Обрезать последний пробел
+            result.setLength(result.length() - 1); 
         }
         return result.toString();
     }
     
+    /**
+     * Найти рейсы, вылетающие после указанного времени, и вернуть их в новом 
+     * экземпляре агрегатора
+     * @param time Время вылета
+     * @return 
+     */
     public Airlines afterTime(int time) {
         LinkedList<Airline> result = new LinkedList<>();
         for (var airline: airlines) {
@@ -144,7 +150,15 @@ public class Airlines {
         return new Airlines(result.toArray(new Airline[0]), destinations, planes);
     }
     
+    /**
+     * Найти рейсы с заданным пунктом назначения и вернуть их в новом экземпляре
+     * агрегатора
+     * @param destination id пункта назначения
+     * @return 
+     */
     public Airlines onlyDestination(int destination) {
+        if (!destinations.isValid(destination)) 
+            return onlyInvalidDestinations();
         LinkedList<Airline> result = new LinkedList<>();
         for (var airline: airlines) {
             if (airline.getDestination() == destination) result.add(airline);
@@ -152,6 +166,27 @@ public class Airlines {
         return new Airlines(result.toArray(new Airline[0]), destinations, planes);
     }
     
+    /**
+     * Найти рейсы, пункт назначения которых отсутствует в справочнике и вернуть
+     * их в новом экземпляре агрегатора
+     * @return 
+     */
+    public Airlines onlyInvalidDestinations() {
+        LinkedList<Airline> result = new LinkedList<>();
+        for (var airline: airlines) {
+            if (!destinations.isValid(airline.getDestination()))
+                result.add(airline);
+        }
+        return new Airlines(result.toArray(new Airline[0]), destinations, planes);
+    }
+    
+    /**
+     * Найти рейсы, курсирующие в любой из заданных дней недели, и вернуть их в
+     * новом экземпляре агрегатора
+     * @param daysOfWeek Дни недели в виде битового поля, где понедельник = 1,
+     * воскресенье = 64
+     * @return 
+     */
     public Airlines onlyDaysOfWeek(int daysOfWeek) {
         LinkedList<Airline> result = new LinkedList<>();
         for (var airline: airlines) {
@@ -165,9 +200,9 @@ public class Airlines {
      *    Агрегатор справочного массива с функциями загрузки из файла и поиска 
      * по id.
      */
-    static class RefArray {
+    public static class RefArray {
         /** Массив элементов справочника */
-        private final RefItem[] refArray;
+        private final RefItem[] items;
         /** Значение по умолчанию для отсутствующих в справочнике элементов */
         private final String defaultValue;
         
@@ -176,6 +211,7 @@ public class Airlines {
          * @param fileName Имя файла
          * @param defaultValue Значение по умолчанию для отсутствующих в 
          * справочнике элементов
+         * @throws java.io.FileNotFoundException
          */
         public RefArray(String fileName, String defaultValue) 
                 throws FileNotFoundException {
@@ -191,9 +227,9 @@ public class Airlines {
                     //Строки с ошибками пропускаем
                 }
             }
-            refArray = result.toArray(new RefItem[0]);
+            items = result.toArray(new RefItem[0]);
             //Отсортировать по алфавиту
-            Arrays.sort(refArray, 
+            Arrays.sort(items, 
                     (var i1, var i2) -> i1.value.compareToIgnoreCase(i2.value));
             this.defaultValue = defaultValue;
         }
@@ -203,23 +239,46 @@ public class Airlines {
          * @param id
          * @return 
          */
-        String getById(int id) {
-            for (var item: refArray) {
+        public String getById(int id) {
+            for (var item: items) {
                 if (item.id == id) return item.value;
             }
             return defaultValue;
         } 
         
-        int getId(int i) {
-            return (i < 0 || i >= refArray.length) ? -1 : refArray[i].id;
+        /**
+         * Возврат id по индексу в массиве или -1 в случае выхода за границы
+         * массива
+         * @param i Индекс в справочном массиве
+         * @return 
+         */
+        public int getId(int i) {
+            return (i < 0 || i >= items.length) ? -1 : items[i].id;
         }
         
-        String[] toStrings() {
-            String[] result = new String[refArray.length + 1];
-            for (int i = 0; i < refArray.length; i++) {
-                result[i] = refArray[i].value;
+        /**
+         * Проверить, содержится ли в справочнике элемент с данным id
+         * @param id
+         * @return 
+         */
+        public boolean isValid(int id) {
+            for (var item: items) {
+                if (item.id == id) return true;
             }
-            result[refArray.length] = defaultValue;
+            return false;
+        }
+        
+        /**
+         * Преобразование справочника в массив строк и добавление в него 
+         * последним элементом значения по умолчанию
+         * @return 
+         */
+        public String[] toStrings() {
+            String[] result = new String[items.length + 1];
+            for (int i = 0; i < items.length; i++) {
+                result[i] = items[i].value;
+            }
+            result[items.length] = defaultValue;
             return result;
         }
     }
@@ -235,14 +294,17 @@ public class Airlines {
          * Создание элемента справочника из строки текста
          * @param line 
          */
-        public RefItem(String line) {
+        RefItem(String line) {
             Scanner in = new Scanner(line).useDelimiter("\\s*;\\s*");
             this.id = in.nextInt();
             this.value = in.next();
         }        
     }
     
-    enum Day {
+    /**
+     * Дни недели
+     */
+    public enum Day {
         MONDAY  ("Понедельник", "пн"), 
         TUESDAY ("Вторник",     "вт"), 
         WEDNSDAY("Среда",       "ср"), 
@@ -251,11 +313,12 @@ public class Airlines {
         SATURDAY("Суббота",     "сб"), 
         SUNDAY  ("Воскресенье", "вс");
         
-        /** битовое поле, где понедельник = 1, воскресенье = 64 */
-        final int bitWeight;
+        /** Битовое поле, где понедельник = 1, воскресенье = 64 */
+        public final int bitWeight;
         /** Название дня недели */
-        final String name;
-        final String shortName;
+        public final String name;
+        /** Короткое наименование дня недели */
+        public final String shortName;
 
         private Day(String name, String shortName) {
             this.bitWeight = 1 << this.ordinal();
@@ -268,6 +331,10 @@ public class Airlines {
             return name;
         }   
         
+        /**
+         * Возврат списка дней недели в виде массива строк 
+         * @return 
+         */
         public static String[] toStrings() {
             Day[] values = Day.values();
             String[] result = new String[values.length];

@@ -3,5 +3,5 @@
 2;Embraer 195
 3;Boeing 737
 4;Airbus A320
-5;Airbus A321
+5;Boeing 747
 6;Embraer 175
