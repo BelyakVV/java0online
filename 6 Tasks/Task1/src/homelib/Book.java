@@ -16,6 +16,9 @@ public class Book {
     static final String A_DELIMITER = "\\s*,\\s*";
     static final Pattern F_DELIMITER = Pattern.compile("\\s*;\\s*");
     
+    static final String EMPTY_TITLE = "Название не может быть пустым";
+    static final String NOT_FOUND = "Нет такой книги";
+    
     Book(int id, Type type, String title, Author[] authors) {
         this.id = id;
         this.type = type;
@@ -30,6 +33,20 @@ public class Book {
         int[] authIds = toIntegers(in.next().split(A_DELIMITER));
         authors = library.getAuthors(authIds);
         type = Type.valueOf(in.next());
+    }
+
+    public void setAuthors(Author[] authors) {
+        this.authors = authors;
+    }
+    
+    public String getTitle() {
+        return title;
+    }
+
+    public void setTitle(String title) {
+            if (title.isBlank())
+                throw new IllegalArgumentException(EMPTY_TITLE);
+        this.title = title;
     }
 
     @Override
@@ -70,7 +87,11 @@ public class Book {
         final int id;
         String name;
 
+        public static final int INVALID_ID = -1;        
         public static final String UNKNOWN = "неизвестный автор";
+        static final String DUPLICATE = "Такой автор уже есть";
+        static final String EMPTY_NAME = "Имя автора не может быть пустым";
+        static final String NOT_FOUND = "Нет такого автора";
         
         Author(int id, String name) {
             this.id = id;
@@ -81,6 +102,16 @@ public class Book {
             Scanner in = new Scanner(line).useDelimiter(F_DELIMITER);
             id = in.nextInt();
             name = in.next();
+        }
+
+        public String getName() {
+            return name;
+        }
+
+        public void setName(String name) {
+            if (name.isBlank())
+                throw new IllegalArgumentException(EMPTY_NAME);
+            this.name = name.strip();
         }
     }
     
@@ -96,7 +127,7 @@ public class Book {
             this.shortName = shortName;
         }
         
-        public String[] getFullNames() {
+        public static String[] getFullNames() {
             Type[] values = values();
             String[] result = new String[values.length];
             for (int i = 0; i < values.length; i++) {

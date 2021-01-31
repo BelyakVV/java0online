@@ -6,6 +6,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.Scanner;
 
 /**
@@ -15,21 +16,33 @@ import java.util.Scanner;
 public final class Library {
     List<Book> books;
     int nextBookId = 0;
-    String booksFN = "books.txt";
+    String booksFN;
     List<Author> authors;
     int nextAuthorId = 0;
-    String authorsFN = "authors.txt";
+    String authorsFN;
     
     static final String BR = System.lineSeparator();
-    
-    public Library() {
-        loadOrCreateAll();
-    }
     
     public Library(String booksFN, String authorsFN) {
         this.authorsFN = authorsFN;
         this.booksFN = booksFN;
         loadOrCreateAll();
+    }
+    
+    public Author getAuthor(int id) {
+        for (var author: authors) {
+            if (author.id == id) return author;
+        }
+        throw new IllegalStateException(Author.NOT_FOUND);
+    }
+    
+    public int getAuthIndex(int id) {
+        int i = 0;
+        for (var author: authors) {
+            if (author.id == id) return i;
+            i++;
+        }
+        throw new IllegalStateException(Author.NOT_FOUND);
     }
     
     public List<String> getAuthorsList() {
@@ -40,40 +53,85 @@ public final class Library {
         return result;
     }
     
-    public Library addAuthor(String name) {
-        Author author = new Author(nextAuthorId++, name);
-        authors.add(author);
-        return this;
-    }
-    
-    public Library addBook(Book.Type type, String title, int[] authIndexes) {
-        Book book = new Book(nextBookId++, type, title, authorsByIndexes(authIndexes));
-        books.add(book);
-        return this;
-    }
-    
-    static final String[] HEAD = new String[]{"id", "Название", "Автор"};
-    
-    @Override
-    public String toString() {
-        if (books.size() < 1) return "Ничего нет.";
-        Table result = new Table(HEAD);
+    public String getAuthorsTable() {
+        if (authors.isEmpty()) return "Пусто.";
+        Table result = new Table(new String[]{"id", "Полное имя"});
         result.getCol(0).setAlign(Table.Align.RIGHT);
-        for (var book: books) {
+        for (var author: authors) {
             result.addRow(new String[]{
-                Integer.toString(book.id),
-                book.title,
-                book.authorsToString()
+                Integer.toString(author.id),
+                author.name
             });
         }
         return result.toString();
     }
     
-    Author getAuthor(int id) {
-        for (var author: authors) {
-            if (author.id == id) return author;
+    public Author addAuthor(String name) {
+        if (name.isBlank())
+            throw new IllegalArgumentException(Author.EMPTY_NAME);
+        if (getAuthorId(name) != Author.INVALID_ID) 
+            throw new IllegalStateException(Author.DUPLICATE);
+        int id = nextAuthorId;
+        Author author = new Author(id, name);
+        if (!authors.add(author)) 
+            throw new RuntimeException("Не удалось добавить автора в список");
+        nextAuthorId++; 
+        authors.sort((a1, a2) -> a1.name.compareToIgnoreCase(a2.name));
+        return author;
+    }
+    
+    Library addBook(Book book) {
+        if (!books.add(book))
+            throw new RuntimeException("Не удалось добавить книгу в библиотеку");
+        return this;
+    }
+    
+    public Book addBook(Book.Type type, String title, Author[] authors) {
+        int id = nextBookId;
+        Book book = new Book(id, type, title, authors);
+        books.add(book);
+        nextBookId++;
+        return book;
+    }
+    
+    public Book addBook(Book.Type type, String title, int[] authIndexes) {
+        return addBook(type, title, authorsByIndexes(authIndexes));
+    }
+    
+    public Book getBook(int id) {
+        for (var book: books) {
+            if (book.id == id)
+                return book;
         }
-        return null;
+        throw new NoSuchElementException(Book.NOT_FOUND);
+    }
+    
+    public Book removeBook(int id) {
+        int i = 0;
+        for (var book: books) {
+            if (book.id == id)
+                return books.remove(i);
+            i++;
+        }
+        throw new NoSuchElementException(Book.NOT_FOUND);
+    }
+    
+    static final String[] HEAD = new String[]{"id", "Тип", "Название", "Автор"};
+    
+    @Override
+    public String toString() {
+        if (books.isEmpty()) return "Ничего нет.";
+        Table result = new Table(HEAD);
+        result.getCol(0).setAlign(Table.Align.RIGHT);
+        for (var book: books) {
+            result.addRow(new String[]{
+                Integer.toString(book.id),
+                book.type.shortName,
+                book.title,
+                book.authorsToString()
+            });
+        }
+        return result.toString();
     }
     
     Author[] getAuthors(int[] ids) {
@@ -83,8 +141,17 @@ public final class Library {
         }
         return result;
     }
+    
+    int getAuthorId(String name) {
+        if (name.isBlank()) return Author.INVALID_ID;
+        for (var author: authors) {
+            if (author.name.equalsIgnoreCase(name))
+                return author.id;
+        }
+        return Author.INVALID_ID;
+    }
 
-    Author[] authorsByIndexes(int[] indexes) {
+    public Author[] authorsByIndexes(int[] indexes) {
         Author[] result = new Author[indexes.length];
         for (int i = 0; i < indexes.length; i++) {
             result[i] = authors.get(i);
@@ -118,6 +185,7 @@ public final class Library {
                 //Строки с ошибками пропускаем
             }
         }
+        authors.sort((a1, a2) -> a1.name.compareToIgnoreCase(a2.name));
     }
     
     void loadBooks() throws FileNotFoundException {

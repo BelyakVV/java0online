@@ -1,6 +1,7 @@
 package cli;
 
 import static cli.Table.BR;
+import java.util.List;
 import java.util.Scanner;
 
 /**
@@ -47,10 +48,10 @@ public final class CLI {
             }
             //Ввод ответа
             try {
-                result = in.nextInt() - 1;
+                result = Integer.parseInt(in.nextLine()) - 1;
             } catch (Exception e) {
                 result = -1;
-                in.next();
+                //in.next();
             }
             //Валидация результата
             if (result < 0 || result >= options.length) { 
@@ -77,7 +78,7 @@ public final class CLI {
             if (!hint.isBlank()) System.out.print(hint + ": ");
         }
         try {
-            return in.nextInt();
+            return Integer.parseInt(in.nextLine());
         } catch (Exception e) {
             return 0;
         }
@@ -93,19 +94,40 @@ public final class CLI {
             if (!hint.isBlank()) System.out.print(hint + ": ");
         }
         try {
-            return in.nextLong();
+            return Long.parseLong(in.nextLine());
         } catch (Exception e) {
             return 0;
         }
     }
     
+    /**
+     * Ввод значения типа String
+     * @param hint Текстовая подсказка
+     * @return Введённое значение
+     */
+    public String getString(String hint) {
+        if (hint != null) {
+            if (!hint.isBlank()) System.out.print(hint + ": ");
+        }
+        return in.nextLine();
+    }
+            
     /** Ожидание нажатия ENTER */
     public void waitForEnter() {
         System.out.print("Нажмите ВВОД для продолжения...");
         in.nextLine();
-        while (!in.hasNextLine());
+       // while (!in.hasNextLine());
     }
  
+    public static Option[] buildMenu(List<String> strings) {
+        Option[] result = new Option[strings.size()];
+        int i = 0;
+        for (var string: strings) {
+            result[i++] = new Option(string);
+        }
+        return result;
+    }
+    
     /**
      * Создать из массива строк меню для int getChoice(Option[] list).
      * @param strings Массив строк
