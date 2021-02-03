@@ -18,6 +18,7 @@ public class Task1 {
     
     static CLI cli = new CLI(new Option[]{
         new Option("Показать все книги", Task1::printAll),
+        new Option("Найти книгу", Task1::searchBook),
         new Option("Изменить информацию о книге", Task1::modifyBook),
         new Option("Добавить книгу", Task1::addBook),
         new Option("Удалить книгу", Task1::removeBook),
@@ -36,6 +37,17 @@ public class Task1 {
     
     static void printAll() {
         System.out.println(library);        
+    }
+    
+    static void searchBook() {
+        String title = cli.getString("Название содержит (пустая строка - игнорировать название)");
+        Library search = library.onlyTitle(title);
+        List<String> authors = library.getAuthorsList();
+        authors.add("Любой автор");
+        int authIndex = cli.getChoice(buildMenu(authors));
+        if (authIndex < authors.size() - 1)
+            search = search.onlyAuthor(library.authorsByIndexes(new int[]{authIndex})[0]);
+        System.out.println(search);
     }
     
     static void modifyBook() {

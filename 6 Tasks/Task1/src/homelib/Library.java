@@ -8,6 +8,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Scanner;
+import java.util.regex.Pattern;
 
 /**
  *
@@ -22,6 +23,13 @@ public final class Library {
     String authorsFN;
     
     static final String BR = System.lineSeparator();
+
+    Library(List<Book> books, String booksFN, List<Author> authors, String authorsFN) {
+        this.books = books;
+        this.booksFN = booksFN;
+        this.authors = authors;
+        this.authorsFN = authorsFN;
+    }
     
     public Library(String booksFN, String authorsFN) {
         this.authorsFN = authorsFN;
@@ -157,6 +165,33 @@ public final class Library {
             result[i] = authors.get(i);
         }
         return result;
+    }
+    
+    public Library onlyAuthor(Author subject) {
+        if (subject == null) return this;
+        List<Book> result = new LinkedList<>();
+        int authId = subject.id;
+        for (var book: books) {
+            for (var author: book.authors) {
+                if (author.id == authId) {
+                    result.add(book);
+                    break;
+                }
+            }
+        }
+        return new Library(result, booksFN, authors, authorsFN);
+    }
+    
+    public Library onlyTitle(String subject) {
+        if (subject.isBlank()) return this;
+        subject = subject.strip().toUpperCase();
+        List<Book> result = new LinkedList<>();
+        for (var book: books) {
+            if (book.title.toUpperCase().contains(subject)) {
+                result.add(book);
+            }
+        }
+        return new Library(result, booksFN, authors, authorsFN);
     }
     
     void loadOrCreateAll() {
