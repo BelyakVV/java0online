@@ -41,7 +41,7 @@ public final class Library {
         for (var author: authors) {
             if (author.id == id) return author;
         }
-        throw new IllegalStateException(Author.NOT_FOUND);
+        throw new NoSuchElementException(Author.NOT_FOUND);
     }
     
     public int getAuthIndex(int id) {
@@ -50,7 +50,7 @@ public final class Library {
             if (author.id == id) return i;
             i++;
         }
-        throw new IllegalStateException(Author.NOT_FOUND);
+        throw new NoSuchElementException(Author.NOT_FOUND);
     }
     
     public List<String> getAuthorsList() {
@@ -193,6 +193,9 @@ public final class Library {
         }
         return new Library(result, booksFN, authors, authorsFN);
     }
+
+    static final String A_DELIMITER = "\\s*,\\s*";
+    static final Pattern F_DELIMITER = Pattern.compile("\\s*;\\s*");
     
     void loadOrCreateAll() {
         try {

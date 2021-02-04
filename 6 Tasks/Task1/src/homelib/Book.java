@@ -1,5 +1,7 @@
 package homelib;
 
+import static homelib.Library.A_DELIMITER;
+import static homelib.Library.F_DELIMITER;
 import java.util.Scanner;
 import java.util.regex.Pattern;
 
@@ -12,9 +14,6 @@ public class Book {
     final Type type;
     String title;
     Author[] authors;
-
-    static final String A_DELIMITER = "\\s*,\\s*";
-    static final Pattern F_DELIMITER = Pattern.compile("\\s*;\\s*");
     
     static final String EMPTY_TITLE = "Название не может быть пустым";
     static final String NOT_FOUND = "Нет такой книги";

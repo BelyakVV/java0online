@@ -111,7 +111,14 @@ public final class CLI {
         }
         return in.nextLine();
     }
-            
+    
+    public String getPass(String hint) {
+        if (hint != null) {
+            if (!hint.isBlank()) System.out.print(hint + ": ");
+        }
+        return in.nextLine();
+    }
+    
     /** Ожидание нажатия ENTER */
     public void waitForEnter() {
         System.out.print("Нажмите ВВОД для продолжения...");
