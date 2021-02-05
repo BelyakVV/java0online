@@ -8,12 +8,7 @@ import homelib.Book.Author;
 import homelib.Library;
 import homelib.User;
 import homelib.Users;
-import java.io.FileNotFoundException;
-import java.security.NoSuchAlgorithmException;
-import java.security.spec.InvalidKeySpecException;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  *
@@ -23,7 +18,7 @@ public class Task1 {
     
     static Library library = new Library("books.txt", "authors.txt");
     
-    static Users users;
+    static Users users = new Users("users.txt");
     
     static CLI cli = new CLI(new Option[]{
         new Option("Показать все книги", Task1::printAll),
@@ -49,11 +44,6 @@ public class Task1 {
      * @param args the command line arguments
      */
     public static void main(String[] args) {
-        try {
-            users = new Users("users.txt");
-        } catch (FileNotFoundException ex) {
-            users = new Users();
-        }
         if (users.size() < 1) {
             System.out.println("Не удалось загрузить список пользователей. Создаём учётную запись администратора...");
             if (!addUser()) System.exit(1);
@@ -61,7 +51,7 @@ public class Task1 {
             user.setAdmin(true);
             users.login(user);
         } else if (!users.login(cli.getString("Введите логин"), cli.getPass("Введите пароль"))) {
-            System.out.println("Неверный пароль");
+            System.out.println("Неверный логин или пароль");
             System.exit(1);
         }
         cli.run();
@@ -214,7 +204,8 @@ public class Task1 {
             if (result) System.out.println("Пользователь успешно добавлен.");
             return result;
         } catch (Exception e) {
-            System.out.println("Ошибка: " + e.getMessage());
+            System.out.println("11Ошибка: " + e.getMessage());
+            e.printStackTrace();
             return false;
         }
     }
@@ -270,6 +261,21 @@ public class Task1 {
     }
     
     static void exit() {
+        try {
+            library.saveAuthors();            
+        } catch (Exception e) {
+            System.out.println("Ошибка: " + e.getMessage());
+        }
+        try {
+            library.saveBooks();            
+        } catch (Exception e) {
+            System.out.println("Ошибка: " + e.getMessage());
+        }
+        try {
+            users.save();            
+        } catch (Exception e) {
+            System.out.println("Ошибка: " + e.getMessage());
+        }
         System.exit(0);
     }
 }

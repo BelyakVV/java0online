@@ -4,6 +4,8 @@ import cli.Table;
 import homelib.Book.Author;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.PrintStream;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.NoSuchElementException;
@@ -18,9 +20,11 @@ public final class Library {
     List<Book> books;
     int nextBookId = 0;
     String booksFN;
+    boolean booksChanged = true;
     List<Author> authors;
     int nextAuthorId = 0;
     String authorsFN;
+    boolean authorsChanged = true;
     
     static final String BR = System.lineSeparator();
 
@@ -80,26 +84,31 @@ public final class Library {
         if (getAuthorId(name) != Author.INVALID_ID) 
             throw new IllegalStateException(Author.DUPLICATE);
         int id = nextAuthorId;
-        Author author = new Author(id, name);
+        Author author = new Author(id, name, this);
         if (!authors.add(author)) 
             throw new RuntimeException("Не удалось добавить автора в список");
         nextAuthorId++; 
         authors.sort((a1, a2) -> a1.name.compareToIgnoreCase(a2.name));
+        authorsChanged = true;
         return author;
     }
     
-    Library addBook(Book book) {
-        if (!books.add(book))
-            throw new RuntimeException("Не удалось добавить книгу в библиотеку");
-        return this;
-    }
+//    Library addBook(Book book) {
+//        if (!books.add(book))
+//            throw new RuntimeException("Не удалось добавить книгу в библиотеку");
+//        booksChanged = true;
+//        return this;
+//    }
     
     public Book addBook(Book.Type type, String title, Author[] authors) {
         int id = nextBookId;
-        Book book = new Book(id, type, title, authors);
-        books.add(book);
-        nextBookId++;
-        return book;
+        Book book = new Book(id, type, title, authors, this);
+        if (books.add(book)) {
+            nextBookId++;
+            booksChanged = true;
+            return book;
+        }
+        throw new RuntimeException("Не удалось добавить книгу в библиотеку");
     }
     
     public Book addBook(Book.Type type, String title, int[] authIndexes) {
@@ -117,8 +126,12 @@ public final class Library {
     public Book removeBook(int id) {
         int i = 0;
         for (var book: books) {
-            if (book.id == id)
-                return books.remove(i);
+            if (book.id == id) {
+                if (books.remove(i) != null) {
+                    booksChanged = true;
+                    return book;                        
+                }
+            }
             i++;
         }
         throw new NoSuchElementException(Book.NOT_FOUND);
@@ -194,8 +207,10 @@ public final class Library {
         return new Library(result, booksFN, authors, authorsFN);
     }
 
-    static final String A_DELIMITER = "\\s*,\\s*";
-    static final Pattern F_DELIMITER = Pattern.compile("\\s*;\\s*");
+    static final char ARR_DLM = ',';
+    static final String ARR_DLM_REGEX = "\\s*" + ARR_DLM + "\\s*";
+    static final char FLD_DLM = ';';
+    static final Pattern FLD_DLM_PTTRN = Pattern.compile("\\s*" + FLD_DLM + "\\s*");
     
     void loadOrCreateAll() {
         try {
@@ -216,7 +231,7 @@ public final class Library {
         nextAuthorId = 0;
         while (file.hasNextLine()) {
             try {
-                Author author = new Author(file.nextLine());
+                Author author = new Author(file.nextLine(), this);
                 if (author.id >= nextAuthorId) nextAuthorId = author.id + 1;
                 authors.add(author);
             } catch (Exception e) {
@@ -224,6 +239,7 @@ public final class Library {
             }
         }
         authors.sort((a1, a2) -> a1.name.compareToIgnoreCase(a2.name));
+        authorsChanged = false;
     }
     
     void loadBooks() throws FileNotFoundException {
@@ -238,6 +254,32 @@ public final class Library {
             } catch (Exception e) {
                 //Строки с ошибками пропускаем
             }
-        }        
+        }
+        booksChanged = false;
+    }
+
+    public void saveAuthors() throws IOException {
+        if (!authorsChanged) return;
+        File file = new File(authorsFN);
+        if (!file.exists()) file.createNewFile();
+        try (PrintStream out = new PrintStream(file)) {
+            for (var author: authors) {
+                out.println(author);
+            }
+            authorsChanged = false;
+        }
+    }
+
+    public void saveBooks() throws IOException {
+        if (!booksChanged) return;
+        File file = new File(booksFN);
+        if (!file.exists()) file.createNewFile();
+        try (PrintStream out = new PrintStream(file)) {
+            for (var book: books) {
+                out.println(book);
+            }
+            booksChanged = false;
+        }
+        
     }
 }
