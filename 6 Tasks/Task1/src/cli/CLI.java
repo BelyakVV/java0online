@@ -11,22 +11,25 @@ import java.util.Scanner;
  */
 public final class CLI {
     /** Главное меню приложения */
-    private final Option[] menu;
+    private Option[] menu;
     
     static final Console CON = System.console();
     static final Scanner IN = new Scanner(System.in);
-    
+
+    public CLI() {        
+    }
 
     /**
      * Инициализация приложения
      * @param menu Главное меню приложения
      */
     public CLI(Option[] menu) {
-        this.menu = menu;
+        setMenu(menu);
     }
     
     /** Запуск приложения */
     public void run() {
+        if (menu == null) return;
         while (true) {
             getChoice(menu);
             waitForEnter();
@@ -107,6 +110,10 @@ public final class CLI {
     
     public char[] getPass(String hint) {
         return readPassword(hint);
+    }
+    
+    public void setMenu(Option[] menu) {
+        this.menu = menu;
     }
     
     public String readLine() {

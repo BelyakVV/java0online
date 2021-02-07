@@ -94,6 +94,10 @@ public final class Users {
         }
     }
     
+    public User getLogged() {
+        return loggedUser;
+    }
+    
     public int size() {
         return users.size();
     }

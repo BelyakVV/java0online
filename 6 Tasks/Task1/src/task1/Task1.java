@@ -21,25 +21,35 @@ public class Task1 {
     
     static Users users = new Users("users.txt");
     
-    static CLI cli = new CLI(new Option[]{
+    static CLI cli = new CLI();
+    
+    static final Option[] ADMIN_MENU = new Option[]{
+        new Option("Показать все книги", Task1::printAll),
+        new Option("Найти книгу", Task1::searchBook),        
+        new Option("Управление книгами", new Option[]{
+            new Option("Изменить информацию о книге", Task1::modifyBook),
+            new Option("Добавить книгу", Task1::addBook),
+            new Option("Удалить книгу", Task1::removeBook)
+        }),
+        new Option("Управление списком авторов", new Option[]{
+            new Option("Показать список авторов", Task1::printAuthors),
+            new Option("Изменить имя автора", Task1::editAuthor),
+            new Option("Добавить автора", Task1::addAuthor),
+        }),
+        new Option("Управление списком пользователей", new Option[]{
+            new Option("Показать список пользователей", Task1::printUsers),
+            new Option("Редактировать учётную запись пользователя", Task1::editUser),
+            new Option("Добавить пользователя", Task1::addUser),
+            new Option("Удалить пользователя", Task1::removeUser),
+        }),        
+        new Option("Выход", Task1::exit)
+    };
+    
+    static final Option[] USER_MENU = new Option[]{
         new Option("Показать все книги", Task1::printAll),
         new Option("Найти книгу", Task1::searchBook),
-        
-        new Option("Изменить информацию о книге", Task1::modifyBook),
-        new Option("Добавить книгу", Task1::addBook),
-        new Option("Удалить книгу", Task1::removeBook),
-        
-        new Option("Показать список авторов", Task1::printAuthors),
-        new Option("Изменить имя автора", Task1::editAuthor),
-        new Option("Добавить автора", Task1::addAuthor),
-        
-        new Option("Показать список пользователей", Task1::printUsers),
-        new Option("Редактировать учётную запись пользователя", Task1::editUser),
-        new Option("Добавить пользователя", Task1::addUser),
-        new Option("Удалить пользователя", Task1::removeUser),
-        
         new Option("Выход", Task1::exit)
-    });
+    };
 
     /**
      * @param args the command line arguments
@@ -54,6 +64,11 @@ public class Task1 {
         } else if (!users.login(cli.getString("Введите логин"), cli.getPass("Введите пароль"))) {
             System.out.println("Неверный логин или пароль");
             System.exit(1);
+        }
+        if (users.getLogged().isAdmin()) {
+            cli.setMenu(ADMIN_MENU);
+        } else {
+            cli.setMenu(USER_MENU);
         }
         cli.run();
     }
