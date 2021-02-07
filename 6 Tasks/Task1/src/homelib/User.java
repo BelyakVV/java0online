@@ -32,7 +32,7 @@ public final class User implements Comparable {
     public static final String EMPTY_NAME = "Имя пользователя не может быть пустым";
     public static final String NOT_FOUND = "Нет такого пользователя";
     
-    User(String name, String password, Users users) 
+    User(String name, char[] password, Users users) 
             throws NoSuchAlgorithmException, InvalidKeySpecException {
         this.users = users;
         this.name = "";
@@ -68,19 +68,19 @@ public final class User implements Comparable {
         users.changed = true;
     }
     
-    public void setPassword(String password) throws NoSuchAlgorithmException, InvalidKeySpecException {
+    public void setPassword(char[] password) throws NoSuchAlgorithmException, InvalidKeySpecException {
         SecureRandom random = new SecureRandom();
         random.nextBytes(salt);
         hash = createHash(password);
         users.changed = true;
     }
     
-    public boolean isValidPassword(String password) throws NoSuchAlgorithmException, InvalidKeySpecException {
+    public boolean isValidPassword(char[] password) throws NoSuchAlgorithmException, InvalidKeySpecException {
         return Arrays.equals(hash, createHash(password));
     }
     
-    byte[] createHash(String password) throws NoSuchAlgorithmException, InvalidKeySpecException {
-        PBEKeySpec spec = new PBEKeySpec(password.toCharArray(), salt, ITERATIONS, KEY_LENGTH);
+    byte[] createHash(char[] password) throws NoSuchAlgorithmException, InvalidKeySpecException {
+        PBEKeySpec spec = new PBEKeySpec(password, salt, ITERATIONS, KEY_LENGTH);
         SecretKeyFactory factory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA1");
         return factory.generateSecret(spec).getEncoded();
     }

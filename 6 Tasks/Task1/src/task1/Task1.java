@@ -8,6 +8,7 @@ import homelib.Book.Author;
 import homelib.Library;
 import homelib.User;
 import homelib.Users;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -189,12 +190,12 @@ public class Task1 {
             System.out.println("Ошибка: такое имя пользователя уже есть");
             return false;
         }
-        String pass = cli.getPass("Введите пароль нового пользователя");
-        if (pass.isEmpty()) {
+        char[] pass = cli.getPass("Введите пароль нового пользователя");
+        if (pass.length < 1) {
             System.out.println("Ошибка: пароль не может быть пустым");
             return false;
         }
-        if (!pass.contentEquals(cli.getPass("Повторите пароль"))) {
+        if (!Arrays.equals(pass, cli.getPass("Повторите пароль"))) {
             System.out.println("Ошибка: введённые пароли не совпадают");
             return false;
         }
@@ -223,9 +224,9 @@ public class Task1 {
                 System.out.println("Ошибка: такое имя пользователя уже есть");
             }
         }
-        String pass = cli.getPass("Введите новый пароль (пустая строка - оставить без изменений)");
-        if (!pass.isEmpty()) {
-            if (pass.contentEquals(cli.getPass("Повторите пароль"))) {
+        char[] pass = cli.getPass("Введите новый пароль (пустая строка - оставить без изменений)");
+        if (pass.length > 0) {
+            if (Arrays.equals(pass, cli.getPass("Повторите пароль"))) {
                 try {
                     user.setPassword(pass);
                     changed = true;

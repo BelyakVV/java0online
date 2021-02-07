@@ -36,7 +36,7 @@ public final class Users {
         }
     }
     
-    public boolean add(String name, String password) 
+    public boolean add(String name, char[] password) 
             throws NoSuchAlgorithmException, InvalidKeySpecException {        
         boolean result = users.add(new User(name, password, this));
         if (result) {
@@ -83,7 +83,7 @@ public final class Users {
         loggedUser = user;
     }
     
-    public boolean login(String userName, String password) {
+    public boolean login(String userName, char[] password) {
         try {
             User user = get(userName);
             boolean result = user.isValidPassword(password);

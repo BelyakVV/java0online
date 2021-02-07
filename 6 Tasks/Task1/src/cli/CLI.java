@@ -1,6 +1,7 @@
 package cli;
 
 import static cli.Table.BR;
+import java.io.Console;
 import java.util.List;
 import java.util.Scanner;
 
@@ -12,14 +13,15 @@ public final class CLI {
     /** Главное меню приложения */
     private final Option[] menu;
     
-    private final Scanner in;    
+    static final Console CON = System.console();
+    static final Scanner IN = new Scanner(System.in);
+    
 
     /**
      * Инициализация приложения
      * @param menu Главное меню приложения
      */
     public CLI(Option[] menu) {
-        in = new Scanner(System.in);
         this.menu = menu;
     }
     
@@ -48,7 +50,7 @@ public final class CLI {
             }
             //Ввод ответа
             try {
-                result = Integer.parseInt(in.nextLine()) - 1;
+                result = Integer.parseInt(readLine()) - 1;
             } catch (Exception e) {
                 result = -1;
                 //in.next();
@@ -74,11 +76,8 @@ public final class CLI {
      * @return введённое значение
      */
     public int getInt(String hint) {
-        if (hint != null) {
-            if (!hint.isBlank()) System.out.print(hint + ": ");
-        }
         try {
-            return Integer.parseInt(in.nextLine());
+            return Integer.parseInt(readLine(hint));
         } catch (Exception e) {
             return 0;
         }
@@ -90,11 +89,8 @@ public final class CLI {
      * @return введённое значение
      */
     public long getLong(String hint) {
-        if (hint != null) {
-            if (!hint.isBlank()) System.out.print(hint + ": ");
-        }
         try {
-            return Long.parseLong(in.nextLine());
+            return Long.parseLong(readLine(hint));
         } catch (Exception e) {
             return 0;
         }
@@ -106,26 +102,46 @@ public final class CLI {
      * @return Введённое значение
      */
     public String getString(String hint) {
-        if (hint != null) {
-            if (!hint.isBlank()) System.out.print(hint + ": ");
-        }
-        return in.nextLine();
+        return readLine(hint);
     }
     
-    public String getPass(String hint) {
+    public char[] getPass(String hint) {
+        return readPassword(hint);
+    }
+    
+    public String readLine() {
+        if (CON != null) return CON.readLine();
+        return IN.nextLine();
+    }
+    
+    public String readLine​(String hint) {
+        printHint(hint);
+        return readLine();
+    }
+    
+    public char[] readPassword() {
+        if (CON != null) return CON.readPassword();
+        return IN.nextLine().toCharArray();
+    }
+    
+    public char[] readPassword(String hint) {
+        printHint(hint);
+        return readPassword();
+    }
+    
+    void printHint(String hint) {
         if (hint != null) {
             if (!hint.isBlank()) System.out.print(hint + ": ");
         }
-        return in.nextLine();
     }
     
     /** Ожидание нажатия ENTER */
     public void waitForEnter() {
         System.out.print("Нажмите ВВОД для продолжения...");
-        in.nextLine();
+        readLine();
        // while (!in.hasNextLine());
-    }
- 
+    }    
+    
     public static Option[] buildMenu(List<String> strings) {
         Option[] result = new Option[strings.size()];
         int i = 0;
@@ -146,6 +162,24 @@ public final class CLI {
             result[i] = new Option(strings[i]);
         }
         return result;
+    }
+    
+    static final String RESTART_FLAG = "RESTART_WITH_CONSOLE";
+    
+    static void restartWithConsole(String[] args) throws ClassNotFoundException {
+        //System.getProperties().list(System.out);
+//        System.out.println(System.getProperty("java.class.path"));
+//        System.out.println(System.getProperty("jdk.module.path"));
+//        System.out.println(System.getProperty("sun.java.command"));
+//        System.out.println(System.getProperty("user.dir"));
+        //System.out.println(CLI.class.getProtectionDomain().getCodeSource().getLocation());
+        StackTraceElement[] trace = Thread.currentThread().getStackTrace();
+        System.out.println(Class.forName(trace[trace.length - 1].getClassName()).getProtectionDomain().getCodeSource().getLocation());
+        System.exit(0);
+        if (System.console() != null) return;
+        if (args.length > 0) 
+            if (args[0].contentEquals(RESTART_FLAG)) return;
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.        
     }
     
     /**

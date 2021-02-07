@@ -2,7 +2,6 @@ package homelib;
 
 import static homelib.Library.ARR_DLM;
 import java.util.Scanner;
-import java.util.regex.Pattern;
 import static homelib.Library.ARR_DLM_REGEX;
 import static homelib.Library.FLD_DLM;
 import static homelib.Library.FLD_DLM_PTTRN;
