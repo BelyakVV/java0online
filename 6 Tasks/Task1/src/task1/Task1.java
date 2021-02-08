@@ -55,21 +55,22 @@ public class Task1 {
      * @param args the command line arguments
      */
     public static void main(String[] args) {
-        if (users.size() < 1) {
-            System.out.println("Не удалось загрузить список пользователей. Создаём учётную запись администратора...");
-            if (!addUser()) System.exit(1);
-            User user = users.get(0);
-            user.setAdmin(true);
-            users.login(user);
-        } else if (!users.login(cli.getString("Введите логин"), cli.getPass("Введите пароль"))) {
-            System.out.println("Неверный логин или пароль");
-            System.exit(1);
-        }
-        if (users.getLogged().isAdmin()) {
-            cli.setMenu(ADMIN_MENU);
-        } else {
-            cli.setMenu(USER_MENU);
-        }
+//        if (users.size() < 1) {
+//            System.out.println("Не удалось загрузить список пользователей. Создаём учётную запись администратора...");
+//            if (!addUser()) System.exit(1);
+//            User user = users.get(0);
+//            user.setAdmin(true);
+//            users.login(user);
+//        } else if (!users.login(cli.getString("Введите логин"), cli.getPass("Введите пароль"))) {
+//            System.out.println("Неверный логин или пароль");
+//            System.exit(1);
+//        }
+//        if (users.getLogged().isAdmin()) {
+//            cli.setMenu(ADMIN_MENU);
+//        } else {
+//            cli.setMenu(USER_MENU);
+//        }
+        cli.setMenu(ADMIN_MENU);
         cli.run();
     }
     

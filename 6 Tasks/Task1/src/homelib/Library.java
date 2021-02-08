@@ -175,7 +175,7 @@ public final class Library {
     public Author[] authorsByIndexes(int[] indexes) {
         Author[] result = new Author[indexes.length];
         for (int i = 0; i < indexes.length; i++) {
-            result[i] = authors.get(i);
+            result[i] = authors.get(indexes[i]);
         }
         return result;
     }
