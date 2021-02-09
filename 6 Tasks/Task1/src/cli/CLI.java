@@ -2,8 +2,11 @@ package cli;
 
 import static cli.Table.BR;
 import java.io.Console;
+import java.io.IOException;
 import java.util.List;
 import java.util.Scanner;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  *   Интерфейс командной строки
@@ -15,6 +18,8 @@ public final class CLI {
     
     static final Console CON = System.console();
     static final Scanner IN = new Scanner(System.in);
+    
+    boolean justHitEnter = false;
 
     public CLI() {        
     }
@@ -46,10 +51,10 @@ public final class CLI {
         if (options.length < 1) return -1; //Пустой список
         int result;
         while (true) {
-            System.out.println("Выберите:" + BR + "---------");
+            println("Выберите:" + BR + "---------");
             //Вывод списка вариантов
             for (int i = 0; i < options.length; i++) {
-                System.out.println((i + 1) + " - " + options[i].text);
+                println((i + 1) + " - " + options[i].text);
             }
             //Ввод ответа
             try {
@@ -60,10 +65,10 @@ public final class CLI {
             }
             //Валидация результата
             if (result < 0 || result >= options.length) { 
-                System.out.println("Нет такого варианта.");
+                println("Нет такого варианта.");
             } else break; //Валидный результат
         }
-        System.out.println("Выбрано: " + options[result].text);
+        println("Выбрано: " + options[result].text);
         //Запуск связанного действия, если задано
         if (options[result].action != null)
             options[result].action.run();
@@ -117,6 +122,7 @@ public final class CLI {
     }
     
     public String readLine() {
+        justHitEnter = false;
         if (CON != null) return CON.readLine();
         return IN.nextLine();
     }
@@ -142,12 +148,103 @@ public final class CLI {
         }
     }
     
+    public void println(String string) {
+        String[] lines = string.split(BR);
+        int row = getRows();
+        if (lines.length >= row) {
+            int line = 0;
+            while (line < lines.length) {
+                while (row > 0 && line < lines.length) {
+                    System.out.println(lines[line++]);
+                    row--;
+                }
+                justHitEnter = false;
+                waitForEnter();
+                row = getRows();
+            }
+        } else {
+            System.out.println(string);
+            justHitEnter = false;
+        }        
+    }
+    
     /** Ожидание нажатия ENTER */
     public void waitForEnter() {
+        if (justHitEnter) return;
         System.out.print("Нажмите ВВОД для продолжения...");
         readLine();
-       // while (!in.hasNextLine());
+        justHitEnter = true;
     }    
+    
+    static final int DEFAULT_ROWS = 25;
+    static final int MAX_COLS = 10000;
+    static final int MAX_ROWS = 10000;
+    
+    public int getRows() {
+        //if (CON == null) 
+            return DEFAULT_ROWS;
+//        saveCP();
+//        gotoXY(MAX_COLS, MAX_ROWS);
+//        Position position = getCP();
+//        restoreCP();
+//        return position.y + 1;
+    }
+    
+    static final String CSI = "\u001b[";
+    
+    static final String SCP = CSI + 's';
+    
+    public void saveCP() {
+        System.out.print(SCP);
+    }
+    
+    static final String RCP = CSI + 'u';
+    
+    public void restoreCP() {
+        System.out.print(RCP);
+    }
+    
+    static final String DSR = CSI + "6n";
+    static final Pattern DSR_PTRN = Pattern.compile("(\\d+);(\\d+)R");
+    
+    static final String NO_DSR = "Функция определения координат курсора не поддерживается.";
+    
+    public Position getCP() {
+        //if (System.in.available() > 0) System.in.readAllBytes();
+        System.out.print(DSR);
+        try {
+            if (System.in.available() < 1)
+                throw new RuntimeException(NO_DSR);
+        } catch (IOException ex) {
+            throw new RuntimeException(NO_DSR);
+        }
+        //Scanner in = new Scanner(System.in);
+        Matcher matcher = DSR_PTRN.matcher(IN.nextLine());
+        //Matcher matcher = DSR_PTRN.matcher("");
+        if (!matcher.find())
+            throw new RuntimeException(NO_DSR);
+        int x = Integer.parseInt(matcher.group(1)) - 1;
+        int y = Integer.parseInt(matcher.group(2)) - 1;
+        //System.out.println("x = " + x + "; y = " + y);
+        return new Position(x, y);
+    }
+    
+    public void gotoXY(int x, int y) {
+        x = Math.max(1, x + 1);
+        y = Math.max(1, y + 1);
+        String cup = CSI + Integer.toString(x) + ';' + Integer.toString(y) + 'H';
+        System.out.print(cup);
+    }
+    
+    public class Position {
+        public int x;
+        public int y;
+
+        public Position(int x, int y) {
+            this.x = x;
+            this.y = y;
+        }
+    }
     
     public static Option[] buildMenu(List<String> strings) {
         Option[] result = new Option[strings.size()];

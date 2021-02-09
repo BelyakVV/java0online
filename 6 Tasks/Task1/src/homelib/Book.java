@@ -34,7 +34,7 @@ public class Book {
         title = in.next();
         int[] authIds = toIntegers(in.next().split(ARR_DLM_REGEX));
         authors = library.getAuthors(authIds);
-        type = Type.valueOf(in.next());
+        type = Type.valueOf(in.next().strip());
         this.library = library;
     }
 

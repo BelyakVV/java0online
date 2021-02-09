@@ -55,27 +55,26 @@ public class Task1 {
      * @param args the command line arguments
      */
     public static void main(String[] args) {
-//        if (users.size() < 1) {
-//            System.out.println("Не удалось загрузить список пользователей. Создаём учётную запись администратора...");
-//            if (!addUser()) System.exit(1);
-//            User user = users.get(0);
-//            user.setAdmin(true);
-//            users.login(user);
-//        } else if (!users.login(cli.getString("Введите логин"), cli.getPass("Введите пароль"))) {
-//            System.out.println("Неверный логин или пароль");
-//            System.exit(1);
-//        }
-//        if (users.getLogged().isAdmin()) {
-//            cli.setMenu(ADMIN_MENU);
-//        } else {
-//            cli.setMenu(USER_MENU);
-//        }
-        cli.setMenu(ADMIN_MENU);
+        if (users.size() < 1) {
+            errorMsg("Не удалось загрузить список пользователей. Создаём учётную запись администратора...");
+            if (!addUser()) System.exit(1);
+            User user = users.get(0);
+            user.setAdmin(true);
+            users.login(user);
+        } else if (!users.login(cli.getString("Введите логин"), cli.getPass("Введите пароль"))) {
+            errorMsg("Неверный логин или пароль");
+            System.exit(1);
+        }
+        if (users.getLogged().isAdmin()) {
+            cli.setMenu(ADMIN_MENU);
+        } else {
+            cli.setMenu(USER_MENU);
+        }
         cli.run();
     }
     
     static void printAll() {
-        System.out.println(library);        
+        cli.println(library.toString());        
     }
     
     static void searchBook() {
@@ -86,14 +85,14 @@ public class Task1 {
         int authIndex = cli.getChoice(buildMenu(authors));
         if (authIndex < authors.size() - 1)
             search = search.onlyAuthor(library.authorsByIndexes(new int[]{authIndex})[0]);
-        System.out.println(search);
+        cli.println(search.toString());
     }
     
     static void modifyBook() {
         int id = cli.getInt("Введите id книги");
         try {
             Book book = library.getBook(id);
-            System.out.println("Название: " + book.getTitle());
+            cli.println("Название: " + book.getTitle());
             String title = cli.getString("Введите новое название (пустая строка - оставить без изменений)");
             boolean changed = false;
             if (!title.isBlank()) {
@@ -102,19 +101,19 @@ public class Task1 {
             }
             List<String> authors = library.getAuthorsList();
             authors.add("Оставить без изменений");
-            System.out.println("Авторы: " + book.authorsToString());
+            cli.println("Авторы: " + book.authorsToString());
             int authIndex = cli.getChoice(buildMenu(authors));
             if (authIndex != authors.size() - 1) {
                 book.setAuthors(library.authorsByIndexes(new int[]{authIndex}));
                 changed = true;
             }
             if (changed) {
-                System.out.println("Информация о книге успешно изменена.");
+                cli.println("Информация о книге успешно изменена.");
             } else {
-                System.out.println("Информация осталась без изменений.");
+                cli.println("Информация осталась без изменений.");
             }
         } catch (Exception e) {
-            System.out.println("Ошибка: " + e.getMessage());
+            cli.println("Ошибка: " + e.getMessage());
         }
     }
     
@@ -123,7 +122,7 @@ public class Task1 {
         Book.Type type = Book.Type.values()[cli.getChoice(menu)];
         String title = cli.getString("Введите название");
         if (title.isBlank()) {
-            System.out.println("Ошибка: пустое название");
+            cli.println("Ошибка: пустое название");
             return;
         }
         List<String> authors = library.getAuthorsList();
@@ -137,9 +136,9 @@ public class Task1 {
             } else {
                 library.addBook(type, title, new int[]{authIndex});
             }
-            System.out.println("Книга успешно добавлена.");
+            cli.println("Книга успешно добавлена.");
         } catch (Exception e) {
-            System.out.println("Ошибка: " + e.getMessage());
+            cli.println("Ошибка: " + e.getMessage());
         }
     }
     
@@ -147,27 +146,27 @@ public class Task1 {
         int id = cli.getInt("Введите id книги");
         try {
             library.removeBook(id);
-            System.out.println("Книга успешно удалена.");
+            cli.println("Книга успешно удалена.");
         } catch (Exception e) {
-            System.out.println("Ошибка: " + e.getMessage());
+            cli.println("Ошибка: " + e.getMessage());
         }
     }
     
     static void printAuthors() {
-        System.out.println(library.getAuthorsTable());
+        cli.println(library.getAuthorsTable());
     }
     
     static void editAuthor() {
         int id = cli.getInt("Введите id автора");
         try {
             Author author = library.getAuthor(id);
-            System.out.println(author.getName());
+            cli.println(author.getName());
             String name = cli.getString("Введите новое имя (пустая строка - оставить без изменений)");
             if (name.isBlank()) return;
             author.setName(name);
-            System.out.println("Имя автора успешно изменено.");
+            cli.println("Имя автора успешно изменено.");
         } catch (Exception e) {
-            System.out.println("Ошибка: " + e.getMessage());
+            cli.println("Ошибка: " + e.getMessage());
         }
     }
     
@@ -179,16 +178,16 @@ public class Task1 {
         String name = cli.getString("Введите полное имя");
         try {
             Author author =  library.addAuthor(name);
-            System.out.println("Автор успешно добавлен.");
+            cli.println("Автор успешно добавлен.");
             return author;
         } catch (Exception e) {
-            System.out.println("Ошибка: " + e.getMessage());
+            cli.println("Ошибка: " + e.getMessage());
             return null;
         }
     }
     
     static void printUsers() {
-        System.out.println(users);
+        cli.println(users.toString());
     }
     
     static final Option[] ADMIN_OR_USER = new Option[]{
@@ -199,30 +198,29 @@ public class Task1 {
     static boolean addUser() {
         String name = cli.getString("Введите имя нового пользователя").strip();
         if (name.isBlank()) {
-            System.out.println("Ошибка: " + User.EMPTY_NAME);
+            cli.println("Ошибка: " + User.EMPTY_NAME);
             return false;
         }
         if (!users.nameIsFree(name)) {
-            System.out.println("Ошибка: такое имя пользователя уже есть");
+            cli.println("Ошибка: такое имя пользователя уже есть");
             return false;
         }
         char[] pass = cli.getPass("Введите пароль нового пользователя");
         if (pass.length < 1) {
-            System.out.println("Ошибка: пароль не может быть пустым");
+            cli.println("Ошибка: пароль не может быть пустым");
             return false;
         }
         if (!Arrays.equals(pass, cli.getPass("Повторите пароль"))) {
-            System.out.println("Ошибка: введённые пароли не совпадают");
+            cli.println("Ошибка: введённые пароли не совпадают");
             return false;
         }
 //        boolean admin = cli.getChoice(ADMIN_OR_USER) == 0;
         try {
             boolean result =  users.add(name, pass);
-            if (result) System.out.println("Пользователь успешно добавлен.");
+            if (result) cli.println("Пользователь успешно добавлен.");
             return result;
         } catch (Exception e) {
-            System.out.println("11Ошибка: " + e.getMessage());
-            e.printStackTrace();
+            cli.println("Ошибка: " + e.getMessage());
             return false;
         }
     }
@@ -237,7 +235,7 @@ public class Task1 {
                 user.setName(name);
                 changed = true;
             } else {
-                System.out.println("Ошибка: такое имя пользователя уже есть");
+                cli.println("Ошибка: такое имя пользователя уже есть");
             }
         }
         char[] pass = cli.getPass("Введите новый пароль (пустая строка - оставить без изменений)");
@@ -247,10 +245,10 @@ public class Task1 {
                     user.setPassword(pass);
                     changed = true;
                 } catch (Exception e) {
-                    System.out.println("Ошибка: " + e.getMessage());
+                    cli.println("Ошибка: " + e.getMessage());
                 }
             } else {
-                System.out.println("Ошибка: введённые пароли не совпадают");
+                cli.println("Ошибка: введённые пароли не совпадают");
             }
         }
         if (users.canDelete(user)) {
@@ -261,9 +259,9 @@ public class Task1 {
             }
         }
         if (changed) {
-            System.out.println("Учётная запись пользователя " + user.getName() + " успешна изменена.");
+            cli.println("Учётная запись пользователя " + user.getName() + " успешна изменена.");
         } else {
-            System.out.println("Учётная запись пользователя " + user.getName() + " осталась без изменений.");
+            cli.println("Учётная запись пользователя " + user.getName() + " осталась без изменений.");
         }
     }
     
@@ -271,9 +269,9 @@ public class Task1 {
         var usersList = buildMenu(users.getList());        
         try {
             users.remove(cli.getChoice(usersList));
-            System.out.println("Учётная запись пользователя успешно удалена.");
+            cli.println("Учётная запись пользователя успешно удалена.");
         } catch (Exception e) {
-            System.out.println("Ошибка: " + e.getMessage());
+            cli.println("Ошибка: " + e.getMessage());
         }
     }
     
@@ -281,18 +279,22 @@ public class Task1 {
         try {
             library.saveAuthors();            
         } catch (Exception e) {
-            System.out.println("Ошибка: " + e.getMessage());
+            cli.println("Ошибка: " + e.getMessage());
         }
         try {
             library.saveBooks();            
         } catch (Exception e) {
-            System.out.println("Ошибка: " + e.getMessage());
+            cli.println("Ошибка: " + e.getMessage());
         }
         try {
             users.save();            
         } catch (Exception e) {
-            System.out.println("Ошибка: " + e.getMessage());
+            cli.println("Ошибка: " + e.getMessage());
         }
         System.exit(0);
+    }
+    
+    static void errorMsg(String msg) {
+        cli.println("Ошибка: " + msg);
     }
 }
