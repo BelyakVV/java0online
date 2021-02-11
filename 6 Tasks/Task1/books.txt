@@ -30,3 +30,6 @@
 30;Вот какой рассеянный;10;ELECTRONIC
 31;31 июня;1;ELECTRONIC
 32;Багаж;10;PAPER
+33;Дубровский;2;ELECTRONIC
+34;Пётр Первый;5;ELECTRONIC
+35;Казка пра цара Зубра;3;ELECTRONIC

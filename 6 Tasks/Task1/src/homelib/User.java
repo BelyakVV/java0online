@@ -10,6 +10,9 @@ import java.util.Scanner;
 import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.PBEKeySpec;
 import static homelib.Library.FLD_DLM_PTTRN;
+import jakarta.mail.Address;
+import jakarta.mail.internet.AddressException;
+import jakarta.mail.internet.InternetAddress;
 
 /**
  *
@@ -20,7 +23,7 @@ public final class User implements Comparable {
     String name;
     byte[] hash;
     byte[] salt = new byte[SALT_LENGTH];
-    String email;
+    Address email;
     boolean admin;
     
     Users users;
@@ -32,10 +35,11 @@ public final class User implements Comparable {
     public static final String EMPTY_NAME = "Имя пользователя не может быть пустым";
     public static final String NOT_FOUND = "Нет такого пользователя";
     
-    User(String name, char[] password, Users users) 
+    User(String name, char[] password, Address email, Users users) 
             throws NoSuchAlgorithmException, InvalidKeySpecException {
         this.users = users;
         this.name = "";
+        this.email = email;
         setName(name);
         setPassword(password);        
     }
@@ -48,7 +52,13 @@ public final class User implements Comparable {
         hash = new byte[saltAndHash.length - SALT_LENGTH];
         System.arraycopy(saltAndHash, SALT_LENGTH, hash, 0, hash.length);
         admin = in.nextInt() == 1;
-        email = in.next();
+        if (in.hasNext()) {
+            try {
+                email = new InternetAddress(in.next());
+            } catch (AddressException ex) {
+                email = null;
+            }
+        }
         this.users = users;
     }
     
@@ -85,6 +95,16 @@ public final class User implements Comparable {
         return factory.generateSecret(spec).getEncoded();
     }
     
+    public Address getEmail() {
+        return email;
+    }
+    
+    public void setEmail(Address email) {
+        if (email.equals(this.email)) return;
+        this.email = email;
+        users.changed = true;
+    }
+    
     public boolean isAdmin() {
         return admin;
     }
@@ -108,8 +128,9 @@ public final class User implements Comparable {
         System.arraycopy(salt, 0, saltAndHash, 0, salt.length);
         System.arraycopy(hash, 0, saltAndHash, salt.length, hash.length);
         result.append(Base64.getEncoder().encodeToString(saltAndHash)).append(FLD_DLM);
-        result.append(admin ? '1' : '0').append(FLD_DLM);
-        result.append(email);
+        result.append(admin ? '1' : '0');
+        if (email != null) 
+            result.append(FLD_DLM).append(email);
         return result.toString();
     }
 }

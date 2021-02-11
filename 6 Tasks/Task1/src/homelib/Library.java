@@ -163,6 +163,10 @@ public final class Library {
         return result;
     }
     
+    public Author getAuthorByIndex(int i) {
+        return authors.get(i);
+    }
+    
     int getAuthorId(String name) {
         if (name.isBlank()) return Author.INVALID_ID;
         for (var author: authors) {

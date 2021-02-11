@@ -8,8 +8,20 @@ import homelib.Book.Author;
 import homelib.Library;
 import homelib.User;
 import homelib.Users;
+import jakarta.mail.Address;
+import jakarta.mail.Authenticator;
+import jakarta.mail.Message;
+import jakarta.mail.MessagingException;
+import jakarta.mail.PasswordAuthentication;
+import jakarta.mail.Session;
+import jakarta.mail.Transport;
+import jakarta.mail.internet.AddressException;
+import jakarta.mail.internet.InternetAddress;
+import jakarta.mail.internet.MimeMessage;
+import java.io.UnsupportedEncodingException;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Properties;
 
 /**
  *
@@ -48,6 +60,7 @@ public class Task1 {
     static final Option[] USER_MENU = new Option[]{
         new Option("Показать все книги", Task1::printAll),
         new Option("Найти книгу", Task1::searchBook),
+        new Option("Предложить книгу", Task1::suggestBook),
         new Option("Выход", Task1::exit)
     };
 
@@ -88,6 +101,40 @@ public class Task1 {
         cli.println(search.toString());
     }
     
+    static void suggestBook() {
+        Option[] menu = buildMenu(Book.Type.getFullNames());
+        Book.Type type = Book.Type.values()[cli.getChoice(menu)];
+        String title = cli.getString("Введите название");
+        if (title.isBlank()) {
+            cli.println("Ошибка: пустое название");
+            return;
+        }
+        List<String> authors = library.getAuthorsList();
+        authors.add("Добавить автора");
+        int authIndex = cli.getChoice(buildMenu(authors));
+        String authorName;
+        if (authIndex == authors.size() - 1) {
+            authorName = cli.getString("Введите полное имя автора");
+            if (authorName.isBlank()) {
+                cli.println("Ошибка: имя автора не может быть пустым");
+                return;
+            }
+        } else {
+            authorName = authors.get(authIndex);
+        }
+        List<Address> adminsEmails = users.getAdminsEmails();
+        StringBuilder emailText = new StringBuilder("Пользователь ");
+        emailText.append(users.getLogged().getName());
+        emailText.append(" предлагает добавить книгу");
+        String emailSubject = emailText.toString();
+        String br = System.lineSeparator();
+        emailText.append('.').append(br);
+        emailText.append("Тип: ").append(type.fullName).append(br);
+        emailText.append("Автор: ").append(authorName).append(br); 
+        emailText.append("Название: ").append(title);
+        sendMail(adminsEmails, emailSubject, emailText.toString());
+    }
+    
     static void modifyBook() {
         int id = cli.getInt("Введите id книги");
         try {
@@ -126,17 +173,30 @@ public class Task1 {
             return;
         }
         List<String> authors = library.getAuthorsList();
+        Author author;
         authors.add("Добавить автора");
         int authIndex = cli.getChoice(buildMenu(authors));
         try {
             if (authIndex == authors.size() - 1) {
-                Author author = addAuthor();
+                author = addAuthor();
                 if (author == null) return;
                 library.addBook(type, title, new Author[]{author});
             } else {
-                library.addBook(type, title, new int[]{authIndex});
+                author = library.getAuthorByIndex(authIndex);
+                library.addBook(type, title, new Author[]{author});
             }
             cli.println("Книга успешно добавлена.");
+            List<Address> emails = users.getAllEmailsExcept(users.getLogged());
+            StringBuilder emailText = new StringBuilder("Администратор ");
+            emailText.append(users.getLogged().getName());
+            emailText.append(" добавил книгу");
+            String emailSubject = emailText.toString();
+            String br = System.lineSeparator();
+            emailText.append('.').append(br);
+            emailText.append("Тип: ").append(type.fullName).append(br);            
+            emailText.append("Автор: ").append(author.getName()).append(br);            
+            emailText.append("Название: ").append(title);
+            sendMail(emails, emailSubject, emailText.toString());
         } catch (Exception e) {
             cli.println("Ошибка: " + e.getMessage());
         }
@@ -214,9 +274,16 @@ public class Task1 {
             cli.println("Ошибка: введённые пароли не совпадают");
             return false;
         }
+        Address email;
+        try {
+            email = new InternetAddress(cli.readLine("Введите email"));
+        } catch (AddressException ex) {
+            errorMsg("неверный формат.");
+            email = null;
+        }
 //        boolean admin = cli.getChoice(ADMIN_OR_USER) == 0;
         try {
-            boolean result =  users.add(name, pass);
+            boolean result =  users.add(name, pass, email);
             if (result) cli.println("Пользователь успешно добавлен.");
             return result;
         } catch (Exception e) {
@@ -249,6 +316,15 @@ public class Task1 {
                 }
             } else {
                 cli.println("Ошибка: введённые пароли не совпадают");
+            }
+        }
+        String email = cli.readLine("Введите новый email (пустая строка - оставить без изменений)");
+        if (!email.isBlank()) {
+            try {
+                user.setEmail(new InternetAddress(email));
+                changed = true;
+            } catch (AddressException e) {
+                errorMsg("Неверный формат");
             }
         }
         if (users.canDelete(user)) {
@@ -292,6 +368,47 @@ public class Task1 {
             cli.println("Ошибка: " + e.getMessage());
         }
         System.exit(0);
+    }
+    
+    //TODO переделать архитектуру приложения в клиент/сервер и вынести отправку email на сервер
+    static final String SMTP_HOST = "smtp.yandex.com";
+    static final String SMTP_PORT = "465";
+    static final String SMTP_LOGIN = "epam-grow@aab.by"; 
+    static final String SMTP_PASSWORD = "J99oSLrt)jsf}mw8";
+    static final String APP_NAME = "Учёт книг в домашней библиотеке";
+        
+    static void sendMail(List<Address> recipients, String subject, String text) {
+        System.out.print("Отправка email...");
+        Properties properties = new Properties();
+        properties.put("mail.smtp.host", SMTP_HOST);
+        properties.put("mail.smtp.socketFactory.port", SMTP_PORT);
+        properties.put("mail.smtp.socketFactory.class", 
+                "javax.net.ssl.SSLSocketFactory");
+        properties.put("mail.smtp.auth", "true");    
+        properties.put("mail.smtp.port", SMTP_PORT);
+        Session session = Session.getDefaultInstance(properties, new Authenticator() {
+            @Override
+            protected PasswordAuthentication getPasswordAuthentication() {
+                return new PasswordAuthentication(SMTP_LOGIN, SMTP_PASSWORD);
+            }
+        });
+        try {    
+            MimeMessage message = new MimeMessage(session);
+            try {
+                message.setFrom(new InternetAddress(SMTP_LOGIN, APP_NAME));
+            } catch (UnsupportedEncodingException ex) {
+                message.setFrom(new InternetAddress(SMTP_LOGIN));
+            }
+            for (var recipient: recipients) {
+                message.addRecipient(Message.RecipientType.TO, recipient);
+            }
+            message.setSubject(subject);    
+            message.setText(text); 
+            Transport.send(message);    
+            System.out.println("ok");    
+          } catch (MessagingException e) {
+              errorMsg(e.getMessage());
+          }
     }
     
     static void errorMsg(String msg) {

@@ -209,6 +209,10 @@ public final class CLI {
     
     static final String NO_DSR = "Функция определения координат курсора не поддерживается.";
     
+    /**
+     * https://stackoverflow.com/questions/62026230/reading-cursor-position-in-a-java-console-application
+     * @return 
+     */
     public Position getCP() {
         //if (System.in.available() > 0) System.in.readAllBytes();
         System.out.print(DSR);

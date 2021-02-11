@@ -1,6 +1,7 @@
 package homelib;
 
 import cli.Table;
+import jakarta.mail.Address;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -36,9 +37,9 @@ public final class Users {
         }
     }
     
-    public boolean add(String name, char[] password) 
+    public boolean add(String name, char[] password, Address email) 
             throws NoSuchAlgorithmException, InvalidKeySpecException {        
-        boolean result = users.add(new User(name, password, this));
+        boolean result = users.add(new User(name, password, email, this));
         if (result) {
             users.sort(User::compareTo);
             changed = true;
@@ -62,6 +63,25 @@ public final class Users {
         List<String> result = new LinkedList<>();
         for (var user: users) {
             result.add(user.name);
+        }
+        return result;
+    }
+    
+    public List<Address> getAllEmailsExcept(User exclude) {
+        List<Address> result = new LinkedList<>();
+        for (var user: users) {
+            //Предполагается, что клиент может создать пользователя ТОЛЬКО посредством данного агрегатора
+            if (user != exclude && user.email != null) 
+                result.add(user.email);
+        }
+        return result;
+    }
+    
+    public List<Address> getAdminsEmails() {
+        List<Address> result = new LinkedList<>();
+        for (var user: users) {
+            if (user.admin && user.email != null) 
+                result.add(user.email);
         }
         return result;
     }
@@ -102,15 +122,16 @@ public final class Users {
         return users.size();
     }
     
-    static final String[] HEAD = new String[]{"Логин", "Админ"};
+    static final String[] HEAD = new String[]{"Логин", "email", "Админ"};
     
     @Override
     public String toString() {
         Table result = new Table(HEAD);
-        result.getCol(1).setAlign(Table.Align.CENTER);
+        result.getCol(2).setAlign(Table.Align.CENTER);
         for (var user: users) {
             result.addRow(new String[]{
                 user.name,
+                user.email != null ? user.email.toString() : "не указан",
                 user.admin ? "+" : ""
             });
         }
