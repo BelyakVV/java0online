@@ -1,6 +1,6 @@
-package cli;
+package aabyodj.console;
 
-import static cli.Table.Align.*;
+import static aabyodj.console.Table.Align.*;
 import java.util.Arrays;
 
 /**
@@ -14,10 +14,6 @@ public final class Table {
     public static final char H_SEPARATOR = '-';
     /** Псевдографика: вертикальная линия */
     public static final char V_SEPARATOR = '|';
-    /** Пробел */
-    public static final char SPACE = ' ';
-    /** Разделитель строк */
-    public static final String BR = System.lineSeparator();
     
     /** Первый столбец */
     private Col firstCol;
@@ -175,15 +171,15 @@ public final class Table {
         //Два горизонтальных разделителя: без пересечений и с пересечениями
         String[] separators = createSeparators();
         //Начинаем с разделителя без пересечений
-        StringBuilder result = new StringBuilder(separators[0]).append(BR);
+        StringBuilder result = new StringBuilder(separators[0]).append(Const.BR);
         Row row = firstRow;
         //Шапка таблицы
-        result.append(row.toString()).append(BR);
+        result.append(row.toString()).append(Const.BR);
         //Горизонтальный разделитель с пересечениями
-        result.append(separators[1]).append(BR);
+        result.append(separators[1]).append(Const.BR);
         row = row.next;
         while (row != null) { //Остальные строки таблицы
-            result.append(row.toString()).append(BR);
+            result.append(row.toString()).append(Const.BR);
             row = row.next;
         }
         //Горизонтальный разделитель без пересечений
@@ -287,7 +283,7 @@ public final class Table {
                 if (string.length() > width) {
                     return limitString(string, width);
                 }
-                return string + repeatChar(SPACE, width - string.length());
+                return string + repeatChar(Const.SPACE, width - string.length());
             }
         }, 
 
@@ -301,8 +297,8 @@ public final class Table {
                     return limitString(string, width);
                 }
                 int startPos = (width - string.length()) / 2;
-                return repeatChar(SPACE, startPos) + string 
-                        + repeatChar(SPACE, width - startPos - string.length());
+                return repeatChar(Const.SPACE, startPos) + string 
+                        + repeatChar(Const.SPACE, width - startPos - string.length());
             }
         }, 
 
@@ -315,7 +311,7 @@ public final class Table {
                 if (string.length() > width) {
                     return limitString(string, width);
                 }
-                return repeatChar(SPACE, width - string.length()) + string;
+                return repeatChar(Const.SPACE, width - string.length()) + string;
             }
         };
         

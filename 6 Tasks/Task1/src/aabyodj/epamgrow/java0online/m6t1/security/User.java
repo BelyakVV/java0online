@@ -1,6 +1,7 @@
-package homelib;
+package aabyodj.epamgrow.java0online.m6t1.security;
 
-import static homelib.Library.FLD_DLM;
+import static aabyodj.datafiles.Const.FLD_DLM;
+import static aabyodj.datafiles.Const.FLD_DLM_PTTRN;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.security.spec.InvalidKeySpecException;
@@ -9,7 +10,6 @@ import java.util.Base64;
 import java.util.Scanner;
 import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.PBEKeySpec;
-import static homelib.Library.FLD_DLM_PTTRN;
 import jakarta.mail.Address;
 import jakarta.mail.internet.AddressException;
 import jakarta.mail.internet.InternetAddress;
@@ -26,7 +26,7 @@ public final class User implements Comparable {
     Address email;
     boolean admin;
     
-    Users users;
+    UserManager users;
     
     static final int SALT_LENGTH = 16;
     static final int ITERATIONS = 10000;
@@ -35,7 +35,7 @@ public final class User implements Comparable {
     public static final String EMPTY_NAME = "Имя пользователя не может быть пустым";
     public static final String NOT_FOUND = "Нет такого пользователя";
     
-    User(String name, char[] password, Address email, Users users) 
+    User(String name, char[] password, Address email, UserManager users) 
             throws NoSuchAlgorithmException, InvalidKeySpecException {
         this.users = users;
         this.name = "";
@@ -44,7 +44,7 @@ public final class User implements Comparable {
         setPassword(password);        
     }
     
-    User(String line, Users users) {
+    User(String line, UserManager users) {
         Scanner in = new Scanner(line).useDelimiter(FLD_DLM_PTTRN);
         name = in.next();
         byte[] saltAndHash = Base64.getDecoder().decode(in.next());

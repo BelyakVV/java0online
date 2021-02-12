@@ -1,6 +1,7 @@
-package homelib;
+package aabyodj.epamgrow.java0online.m6t1.security;
 
-import cli.Table;
+import aabyodj.console.Table;
+import static aabyodj.epamgrow.java0online.m6t1.Util.createIfNeeded;
 import jakarta.mail.Address;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -17,22 +18,22 @@ import java.util.Scanner;
  *
  * @author aabyodj
  */
-public final class Users {
+public final class UserManager {
     List<User> users;
-    String fileName;
+    File file;
     boolean changed;
     User loggedUser;
     
-//    public Users() {
+//    public UserManager() {
 //        users = new LinkedList<>();
 //    }
     
-    public Users(String fileName) {
+    public UserManager(String fileName) {
+        file = new File(fileName).getAbsoluteFile();
         try {
-            load(fileName);
+            load(file);
         } catch (FileNotFoundException ex) {
             users = new LinkedList<>();
-            this.fileName = fileName;
             changed = true;
         }
     }
@@ -154,13 +155,12 @@ public final class Users {
         return true;
     }
 
-    public void load(String fileName) throws FileNotFoundException {
-        Scanner file = new Scanner(new File(fileName));
-        this.fileName = fileName;
+    void load(File file) throws FileNotFoundException {
+        Scanner in = new Scanner(file);
         users = new LinkedList<>();
-        while (file.hasNextLine()) {
+        while (in.hasNextLine()) {
             try {
-                users.add(new User(file.nextLine(), this));
+                users.add(new User(in.nextLine(), this));
             } catch (Exception e) {
                 //Строки с ошибками пропускаем
             }
@@ -171,8 +171,7 @@ public final class Users {
     
     public void save() throws IOException {
         if (!changed) return;
-        File file = new File(fileName);
-        if (!file.exists()) file.createNewFile();
+        createIfNeeded(file);
         try (PrintStream out = new PrintStream(file)) {
             for (var user: users) {
                 out.println(user);

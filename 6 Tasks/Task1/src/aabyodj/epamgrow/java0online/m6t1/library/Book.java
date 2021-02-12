@@ -1,10 +1,10 @@
-package homelib;
+package aabyodj.epamgrow.java0online.m6t1.library;
 
-import static homelib.Library.ARR_DLM;
+import static aabyodj.datafiles.Const.ARR_DLM;
+import static aabyodj.datafiles.Const.ARR_DLM_REGEX;
+import static aabyodj.datafiles.Const.FLD_DLM;
+import static aabyodj.datafiles.Const.FLD_DLM_PTTRN;
 import java.util.Scanner;
-import static homelib.Library.ARR_DLM_REGEX;
-import static homelib.Library.FLD_DLM;
-import static homelib.Library.FLD_DLM_PTTRN;
 
 /**
  *

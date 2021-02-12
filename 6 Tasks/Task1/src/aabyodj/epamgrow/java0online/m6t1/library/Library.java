@@ -1,7 +1,8 @@
-package homelib;
+package aabyodj.epamgrow.java0online.m6t1.library;
 
-import cli.Table;
-import homelib.Book.Author;
+import aabyodj.console.Table;
+import static aabyodj.epamgrow.java0online.m6t1.Util.createIfNeeded;
+import aabyodj.epamgrow.java0online.m6t1.library.Book.Author;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -10,7 +11,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Scanner;
-import java.util.regex.Pattern;
 
 /**
  *
@@ -19,25 +19,25 @@ import java.util.regex.Pattern;
 public final class Library {
     List<Book> books;
     int nextBookId = 0;
-    String booksFN;
+    File booksFile;
     boolean booksChanged = true;
     List<Author> authors;
     int nextAuthorId = 0;
-    String authorsFN;
+    File authorsFile;
     boolean authorsChanged = true;
     
     static final String BR = System.lineSeparator();
 
-    Library(List<Book> books, String booksFN, List<Author> authors, String authorsFN) {
+    Library(List<Book> books, File booksFile, List<Author> authors, File authorsFile) {
         this.books = books;
-        this.booksFN = booksFN;
+        this.booksFile = booksFile;
         this.authors = authors;
-        this.authorsFN = authorsFN;
+        this.authorsFile = authorsFile;
     }
     
     public Library(String booksFN, String authorsFN) {
-        this.authorsFN = authorsFN;
-        this.booksFN = booksFN;
+        this.authorsFile =  new File(authorsFN).getAbsoluteFile();
+        this.booksFile = new File(booksFN).getAbsoluteFile();
         loadOrCreateAll();
     }
     
@@ -184,7 +184,7 @@ public final class Library {
         return result;
     }
     
-    public Library onlyAuthor(Author subject) {
+    public Library selectAuthor(Author subject) {
         if (subject == null) return this;
         List<Book> result = new LinkedList<>();
         int authId = subject.id;
@@ -196,10 +196,10 @@ public final class Library {
                 }
             }
         }
-        return new Library(result, booksFN, authors, authorsFN);
+        return new Library(result, booksFile, authors, authorsFile);
     }
     
-    public Library onlyTitle(String subject) {
+    public Library selectTitle(String subject) {
         if (subject.isBlank()) return this;
         subject = subject.strip().toUpperCase();
         List<Book> result = new LinkedList<>();
@@ -208,13 +208,8 @@ public final class Library {
                 result.add(book);
             }
         }
-        return new Library(result, booksFN, authors, authorsFN);
+        return new Library(result, booksFile, authors, authorsFile);
     }
-
-    static final char ARR_DLM = ',';
-    static final String ARR_DLM_REGEX = "\\s*" + ARR_DLM + "\\s*";
-    static final char FLD_DLM = ';';
-    static final Pattern FLD_DLM_PTTRN = Pattern.compile("\\s*" + FLD_DLM + "\\s*");
     
     void loadOrCreateAll() {
         try {
@@ -230,12 +225,12 @@ public final class Library {
     }
     
     void loadAuthors() throws FileNotFoundException {
-        Scanner file = new Scanner(new File(authorsFN));
+        Scanner in = new Scanner(authorsFile);
         authors = new LinkedList<>();
         nextAuthorId = 0;
-        while (file.hasNextLine()) {
+        while (in.hasNextLine()) {
             try {
-                Author author = new Author(file.nextLine(), this);
+                Author author = new Author(in.nextLine(), this);
                 if (author.id >= nextAuthorId) nextAuthorId = author.id + 1;
                 authors.add(author);
             } catch (Exception e) {
@@ -247,12 +242,12 @@ public final class Library {
     }
     
     void loadBooks() throws FileNotFoundException {
-        Scanner file = new Scanner(new File(booksFN));
+        Scanner in = new Scanner(booksFile);
         books = new LinkedList<>();
         nextBookId = 0;
-        while (file.hasNextLine()) {
+        while (in.hasNextLine()) {
             try {
-                Book book = new Book(file.nextLine(), this);
+                Book book = new Book(in.nextLine(), this);
                 if (book.id >= nextBookId) nextBookId = book.id + 1;
                 books.add(book);
             } catch (Exception e) {
@@ -264,9 +259,8 @@ public final class Library {
 
     public void saveAuthors() throws IOException {
         if (!authorsChanged) return;
-        File file = new File(authorsFN);
-        if (!file.exists()) file.createNewFile();
-        try (PrintStream out = new PrintStream(file)) {
+        createIfNeeded(authorsFile);
+        try (PrintStream out = new PrintStream(authorsFile)) {
             for (var author: authors) {
                 out.println(author);
             }
@@ -276,9 +270,8 @@ public final class Library {
 
     public void saveBooks() throws IOException {
         if (!booksChanged) return;
-        File file = new File(booksFN);
-        if (!file.exists()) file.createNewFile();
-        try (PrintStream out = new PrintStream(file)) {
+        createIfNeeded(booksFile);
+        try (PrintStream out = new PrintStream(booksFile)) {
             for (var book: books) {
                 out.println(book);
             }

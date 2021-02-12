@@ -1,7 +1,5 @@
-package cli;
+package aabyodj.console;
 
-import static cli.Table.BR;
-import java.io.Console;
 import java.io.IOException;
 import java.util.List;
 import java.util.Scanner;
@@ -12,23 +10,27 @@ import java.util.regex.Pattern;
  *   Интерфейс командной строки
  * @author aabyodj
  */
-public final class CLI {
+public final class CommandLineInterface {
+
+    public static void printErrorMsg(String msg) {
+        System.out.println("Ошибка: " + msg);
+    }
+    
     /** Главное меню приложения */
     private Option[] menu;
     
-    static final Console CON = System.console();
     static final Scanner IN = new Scanner(System.in);
     
     boolean justHitEnter = false;
 
-    public CLI() {        
+    public CommandLineInterface() {        
     }
 
     /**
      * Инициализация приложения
      * @param menu Главное меню приложения
      */
-    public CLI(Option[] menu) {
+    public CommandLineInterface(Option[] menu) {
         setMenu(menu);
     }
     
@@ -51,7 +53,7 @@ public final class CLI {
         if (options.length < 1) return -1; //Пустой список
         int result;
         while (true) {
-            println("Выберите:" + BR + "---------");
+            println("Выберите:" + Const.BR + "---------");
             //Вывод списка вариантов
             for (int i = 0; i < options.length; i++) {
                 println((i + 1) + " - " + options[i].text);
@@ -123,7 +125,7 @@ public final class CLI {
     
     public String readLine() {
         justHitEnter = false;
-        if (CON != null) return CON.readLine();
+        if (Const.CON != null) return Const.CON.readLine();
         return IN.nextLine();
     }
     
@@ -133,7 +135,7 @@ public final class CLI {
     }
     
     public char[] readPassword() {
-        if (CON != null) return CON.readPassword();
+        if (Const.CON != null) return Const.CON.readPassword();
         return IN.nextLine().toCharArray();
     }
     
@@ -149,7 +151,7 @@ public final class CLI {
     }
     
     public void println(String string) {
-        String[] lines = string.split(BR);
+        String[] lines = string.split(Const.BR);
         int row = getRows();
         if (lines.length >= row) {
             int line = 0;
@@ -180,7 +182,7 @@ public final class CLI {
     static final int MAX_COLS = 10000;
     static final int MAX_ROWS = 10000;
     
-    public int getRows() {
+    public static int getRows() {
         //if (CON == null) 
             return DEFAULT_ROWS;
 //        saveCP();
@@ -280,7 +282,7 @@ public final class CLI {
 //        System.out.println(System.getProperty("jdk.module.path"));
 //        System.out.println(System.getProperty("sun.java.command"));
 //        System.out.println(System.getProperty("user.dir"));
-        //System.out.println(CLI.class.getProtectionDomain().getCodeSource().getLocation());
+        //System.out.println(CommandLineInterface.class.getProtectionDomain().getCodeSource().getLocation());
         StackTraceElement[] trace = Thread.currentThread().getStackTrace();
         System.out.println(Class.forName(trace[trace.length - 1].getClassName()).getProtectionDomain().getCodeSource().getLocation());
         System.exit(0);
