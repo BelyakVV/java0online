@@ -1,3 +1,22 @@
+/*
+    6. Tasks
+    Задание 1: создать консольное приложение “Учет книг в домашней библиотеке”
+    Общие требования к заданию:
+    * Система учитывает книги как в электронном, так и в бумажном варианте.
+    * Существующие роли: пользователь, администратор.
+    * Пользователь может просматривать книги в каталоге книг, осуществлять 
+поиск книг в каталоге.
+    * Администратор может модифицировать каталог.
+    * При добавлении описания книги в каталог оповещение о ней рассылается на
+e-mail всем пользователям.
+    * При просмотре каталога желательно реализовать постраничный просмотр
+    * Пользователь может предложить добавить книгу в библиотеку, переслав её
+администратору на e-mail.
+    * Каталог книг хранится в текстовом файле.
+    * Данные аутентификации пользователей хранятся в текстовом файле. Пароль
+не хранится в открытом виде
+*/
+
 package aabyodj.epamgrow.java0online.m6t1;
 
 import aabyodj.console.CommandLineInterface;
@@ -17,21 +36,27 @@ import java.util.List;
 import static aabyodj.console.CommandLineInterface.printErrorMsg;
 import static aabyodj.console.Const.BR;
 import static aabyodj.datafiles.Const.FILE_SEPARATOR;
-import aabyodj.epamgrow.java0online.m6t1.library.Book.Type;
 
 /**
- *
+ * Запускаемый класс
  * @author aabyodj
  */
 public class Main {
+//TODO: вынести функционал администратора и пользователя в отдельные классы
+    
+    /** Путь к файлам данных */
     static final String PATH = "data" + FILE_SEPARATOR;
     
+    /** Агрегатор списков книг и авторов */
     static Library books = new Library(PATH + "books.csv", PATH + "authors.csv");
     
+    /** Агрегатор списка пользователей и администраторов */
     static UserManager users = new UserManager(PATH + "users.csv");
     
+    /** Интерфейс командной строки */
     static CommandLineInterface cli = new CommandLineInterface();
     
+    /** Меню администратора */
     static final Option[] ADMIN_MENU = new Option[]{
         new Option("Показать все книги", Main::printAll),
         new Option("Найти книгу", Main::searchBook),        
@@ -54,6 +79,7 @@ public class Main {
         new Option("Выход", Main::exit)
     };
     
+    /** Меню пользователя */
     static final Option[] USER_MENU = new Option[]{
         new Option("Показать все книги", Main::printAll),
         new Option("Найти книгу", Main::searchBook),
@@ -67,12 +93,12 @@ public class Main {
     public static void main(String[] args) {
         if (users.size() < 1) {
             printErrorMsg("Не удалось загрузить список пользователей. Создаём учётную запись администратора...");
-            if (!addUser()) {
+            User firstAdmin = addUser();
+            if (firstAdmin == null) {
                 System.exit(1);
             }
-            User user = users.get(0);
-            user.setAdmin(true);
-            users.login(user);
+            firstAdmin.setAdmin(true);
+            users.login(firstAdmin);
         } else if (!users.login(cli.readLine("Введите логин"), 
                                 cli.readPassword("Введите пароль"))) {
             printErrorMsg("Неверный логин или пароль");
@@ -86,36 +112,54 @@ public class Main {
         cli.run();
     }
     
+    /**
+     * Вывести все книги из каталога
+     */
     static void printAll() {
-        cli.println(books.toString());        
+        cli.printByPages(books.toString());        
     }
     
+    /**
+     * Поиск книг в каталоге
+     */
     static void searchBook() {
         String title = cli.readLine("Название содержит (пустая строка - игнорировать название)");
-        Library result = books.selectTitle(title);
+        Library result = books.selectByTitle(title);
         List<String> authors = books.getAuthorsList();
         authors.add("Любой автор");
         int authIndex = cli.getChoice(buildMenu(authors));
         if (authIndex < authors.size() - 1) {
             Author author = books.getAuthorByIndex(authIndex);
-            result = result.selectAuthor(author);
+            result = result.selectByAuthor(author);
         }
-        cli.println(result.toString());
+        cli.printByPages(result.toString());
     }
     
+    /**
+     * Предложить администратору добавить книгу в каталог
+     */
     static void suggestBook() {
+        
+        //Тип книги: бумажная или электронная
         Option[] typeMenu = buildMenu(Book.Type.getFullNames());
         Book.Type type = Book.Type.values()[cli.getChoice(typeMenu)];
+        
+        //Название книги
         String title = cli.readLine("Введите название");
         if (title.isBlank()) {
             printErrorMsg("Пустое название");
             return;
         }
+        
+        /*
+         * Выбрать автора из существующих или предложить нового
+         * TODO: у книги может быть несколько авторов
+         */
         List<String> authors = books.getAuthorsList();
         authors.add("Добавить автора");
         int authIndex = cli.getChoice(buildMenu(authors));
         String authorName;
-        if (authIndex == authors.size() - 1) {
+        if (authIndex == authors.size() - 1) {  //Добавить автора
             authorName = cli.readLine("Введите полное имя автора");
             if (authorName.isBlank()) {
                 printErrorMsg("Имя автора не может быть пустым");
@@ -124,202 +168,290 @@ public class Main {
         } else {
             authorName = authors.get(authIndex);
         }
+        
         sendSuggest(users.getLogged().getName(), type, authorName, title, 
                     users.getAdminsEmails());
     }
     
+    /**
+     * Отправить адресатам по списку newEmail с предложением добавить книгу
+     * @param userName Имя отправителя
+     * @param type Тип книги: бумажная или электронная
+     * @param authorName Автор книги
+     * @param title Название книги
+     * @param adminsEmails Список адресатов
+     */
+    static void sendSuggest(String userName, Book.Type type, String authorName, 
+                            String title, List<Address> adminsEmails) {
+        StringBuilder emailText = new StringBuilder("Пользователь ");
+        emailText.append(userName).append(" предлагает добавить книгу");
+        String emailSubject = emailText.toString();
+        emailText.append('.').append(BR);
+        emailText.append("Тип: ").append(type.fullName).append(BR);
+        emailText.append("Автор: ").append(authorName).append(BR); 
+        emailText.append("Название: ").append(title);
+        sendMail(adminsEmails, emailSubject, emailText.toString());
+    }
+    
+    /**
+     * Изменить сведения о книге
+     */
     static void modifyBook() {
         int id = cli.getInt("Введите id книги");
         try {
             Book book = books.getBook(id);
-            cli.println("Название: " + book.getTitle());
-            String title = cli.getString("Введите новое название (пустая строка - оставить без изменений)");
             boolean changed = false;
-            if (!title.isBlank()) {
-                book.setTitle(title);
+            
+            //Изменить название
+            String newTitle = cli.readLine("Название: " + book.getTitle() + BR
+                    + "Введите новое название (пустая строка - оставить без изменений)");
+            if (!newTitle.isBlank()) {
+                book.setTitle(newTitle);
                 changed = true;
             }
+            
+            /*
+             * Изменить автора
+             * TODO: у книги может быть несколько авторов
+             */            
             List<String> authors = books.getAuthorsList();
             authors.add("Оставить без изменений");
-            cli.println("Авторы: " + book.authorsToString());
+            System.out.println("Авторы: " + book.authorsToString());
             int authIndex = cli.getChoice(buildMenu(authors));
             if (authIndex != authors.size() - 1) {
                 book.setAuthors(books.authorsByIndexes(new int[]{authIndex}));
                 changed = true;
             }
+            
             if (changed) {
-                cli.println("Информация о книге успешно изменена.");
+                System.out.println("Информация о книге успешно изменена.");
             } else {
-                cli.println("Информация осталась без изменений.");
+                System.out.println("Информация осталась без изменений.");
             }
         } catch (Exception e) {
-            cli.println("Ошибка: " + e.getMessage());
+            printErrorMsg(e.getMessage());
         }
     }
     
+    /**
+     * Добавить книгу в каталог
+     */
     static void addBook() {
-        Option[] menu = buildMenu(Book.Type.getFullNames());
-        Book.Type type = Book.Type.values()[cli.getChoice(menu)];
+        
+        //Тип книги: бумажная или электронная
+        Option[] typeMenu = buildMenu(Book.Type.getFullNames());
+        Book.Type type = Book.Type.values()[cli.getChoice(typeMenu)];
+        
+        //Название
         String title = cli.getString("Введите название");
         if (title.isBlank()) {
-            cli.println("Ошибка: пустое название");
+            printErrorMsg("Пустое название");
             return;
         }
+        
+        /*
+         * Автор
+         * TODO: у книги может быть несколько авторов
+         */
         List<String> authors = books.getAuthorsList();
         Author author;
         authors.add("Добавить автора");
         int authIndex = cli.getChoice(buildMenu(authors));
-        try {
-            if (authIndex == authors.size() - 1) {
-                author = addAuthor();
-                if (author == null) return;
-                books.addBook(type, title, new Author[]{author});
-            } else {
-                author = books.getAuthorByIndex(authIndex);
-                books.addBook(type, title, new Author[]{author});
-            }
-            cli.println("Книга успешно добавлена.");
-            List<Address> emails = users.getAllEmailsExcept(users.getLogged());
-            StringBuilder emailText = new StringBuilder("Администратор ");
-            emailText.append(users.getLogged().getName());
-            emailText.append(" добавил книгу");
-            String emailSubject = emailText.toString();
-            String br = System.lineSeparator();
-            emailText.append('.').append(br);
-            emailText.append("Тип: ").append(type.fullName).append(br);            
-            emailText.append("Автор: ").append(author.getName()).append(br);            
-            emailText.append("Название: ").append(title);
-            sendMail(emails, emailSubject, emailText.toString());
-        } catch (Exception e) {
-            cli.println("Ошибка: " + e.getMessage());
+        if (authIndex == authors.size() - 1) {  //Добавить автора
+            author = addAuthor();
+            if (author == null) return;         //Не удалось добавить
+        } else {                                //Автор из списка
+            author = books.getAuthorByIndex(authIndex);
+        }
+        
+        if (books.addBook(type, title, new Author[]{author}) != null) {
+            System.out.println("Книга успешно добавлена.");
+            User me = users.getLogged();
+            List<Address> emails = users.getAllEmailsExcept(me);
+            sendNotification(me.getName(), type, author.getName(), title, emails);
+        } else {
+            printErrorMsg("Не удалось добавить книгу.");
         }
     }
     
+    /**
+     * Отправить адресатам по списку оповещение о новой книге
+     * @param adminName Имя отправителя
+     * @param type Тип книги: бумажная или электронная
+     * @param authorName Автор книги
+     * @param title Название книги
+     * @param emails Список адресатов
+     */
+    static void sendNotification(String adminName, Book.Type type, 
+            String authorName, String title, List<Address> emails) {
+        StringBuilder emailText = new StringBuilder("Администратор ");
+        emailText.append(adminName).append(" добавил книгу");
+        String emailSubject = emailText.toString();
+        emailText.append('.').append(BR);
+        emailText.append("Тип: ").append(type.fullName).append(BR);
+        emailText.append("Автор: ").append(authorName).append(BR); 
+        emailText.append("Название: ").append(title);
+        sendMail(emails, emailSubject, emailText.toString());
+    }
+    
+    /**
+     * Удалить книгу из каталога
+     */
     static void removeBook() {
         int id = cli.getInt("Введите id книги");
         try {
             books.removeBook(id);
-            cli.println("Книга успешно удалена.");
+            System.out.println("Книга успешно удалена.");
         } catch (Exception e) {
-            cli.println("Ошибка: " + e.getMessage());
+            printErrorMsg(e.getMessage());
         }
     }
     
+    /**
+     * Вывести всех авторов из каталога
+     */
     static void printAuthors() {
-        cli.println(books.getAuthorsTable());
+        cli.printByPages(books.getAuthorsTable());
     }
     
+    /**
+     * Изменить сведения об авторе
+     */
     static void editAuthor() {
         int id = cli.getInt("Введите id автора");
         try {
             Author author = books.getAuthor(id);
-            cli.println(author.getName());
-            String name = cli.getString("Введите новое имя (пустая строка - оставить без изменений)");
-            if (name.isBlank()) return;
-            author.setName(name);
-            cli.println("Имя автора успешно изменено.");
+            String newName = cli.readLine(author.getName() + BR
+                    + "Введите новое имя (пустая строка - оставить без изменений)");
+            if (newName.isBlank()) return;
+            author.setName(newName);
+            cli.printByPages("Имя автора успешно изменено.");
         } catch (Exception e) {
-            cli.println("Ошибка: " + e.getMessage());
+            printErrorMsg(e.getMessage());
         }
     }
     
     /**
      * Добавить автора в справочник
-     * @return id нового автора или Author.INVALID_ID в случае ошибки
+     * @return новый автор или null в случае ошибки
      */
     static Author addAuthor() {
-        String name = cli.getString("Введите полное имя");
+        String name = cli.readLine("Введите полное имя");
         try {
             Author author =  books.addAuthor(name);
-            cli.println("Автор успешно добавлен.");
+            System.out.println("Автор успешно добавлен.");
             return author;
         } catch (Exception e) {
-            cli.println("Ошибка: " + e.getMessage());
+            printErrorMsg(e.getMessage());
             return null;
         }
     }
     
+    /**
+     * Вывести пользователей и администраторов
+     */
     static void printUsers() {
-        cli.println(users.toString());
+        cli.printByPages(users.toString());
     }
     
+    /** Меню выбора статуса нового пользователя */
     static final Option[] ADMIN_OR_USER = new Option[]{
         new Option("Администратор"),
         new Option("Пользователь")
     };
     
-    static boolean addUser() {
-        String name = cli.getString("Введите имя нового пользователя").strip();
+    /**
+     * Добавить нового пользователя
+     * @return 
+     */
+    static User addUser() {
+        String name = cli.readLine("Введите имя нового пользователя").strip();
         if (name.isBlank()) {
-            cli.println("Ошибка: " + User.EMPTY_NAME);
-            return false;
+            printErrorMsg(User.EMPTY_NAME);
+            return null;
         }
         if (!users.nameIsFree(name)) {
-            cli.println("Ошибка: такое имя пользователя уже есть");
-            return false;
+            printErrorMsg("Такое имя пользователя уже есть");
+            return null;
         }
-        char[] pass = cli.getPass("Введите пароль нового пользователя");
+        char[] pass = cli.readPassword("Введите пароль нового пользователя");
         if (pass.length < 1) {
-            cli.println("Ошибка: пароль не может быть пустым");
-            return false;
+            printErrorMsg("Пароль не может быть пустым");
+            return null;
         }
-        if (!Arrays.equals(pass, cli.getPass("Повторите пароль"))) {
-            cli.println("Ошибка: введённые пароли не совпадают");
-            return false;
+        if (!Arrays.equals(pass, cli.readPassword("Повторите пароль"))) {
+            printErrorMsg("Введённые пароли не совпадают");
+            return null;
         }
         Address email;
         try {
             email = new InternetAddress(cli.readLine("Введите email"));
-        } catch (AddressException ex) {
+        } catch (AddressException e) {
             printErrorMsg("неверный формат.");
             email = null;
         }
 //        boolean admin = cli.getChoice(ADMIN_OR_USER) == 0;
         try {
-            boolean result =  users.add(name, pass, email);
-            if (result) cli.println("Пользователь успешно добавлен.");
+            User result =  users.add(name, pass, email);
+            if (result != null) {
+                System.out.println("Пользователь успешно добавлен.");
+            } else {
+                printErrorMsg("Не удалось добавить пользователя.");
+            }
             return result;
         } catch (Exception e) {
-            cli.println("Ошибка: " + e.getMessage());
-            return false;
+            printErrorMsg(e.getMessage());
+            return null;
         }
     }
     
+    /**
+     * Изменить учётную запись пользователя
+     */
     static void editUser() {
+        //Выбрать пользователя из списка
         var usersList = buildMenu(users.getList());
-        User user = users.get(cli.getChoice(usersList));
+        User user = users.getByIndex(cli.getChoice(usersList));
         boolean changed = false;
-        String name = cli.getString("Введите новое имя (пустая строка - оставить без изменений)");        
-        if (!name.isBlank() && !name.contentEquals(user.getName())) {
-            if (users.nameIsFree(name)) {
-                user.setName(name);
+        
+        //Изменить имя
+        String newName = cli.readLine("Введите новое имя (пустая строка - оставить без изменений)");        
+        if (!newName.isBlank() && !newName.contentEquals(user.getName())) {
+            try {
+                user.setName(newName);
                 changed = true;
-            } else {
-                cli.println("Ошибка: такое имя пользователя уже есть");
+            } catch (Exception e) {
+                printErrorMsg(e.getMessage());
             }
         }
-        char[] pass = cli.getPass("Введите новый пароль (пустая строка - оставить без изменений)");
-        if (pass.length > 0) {
-            if (Arrays.equals(pass, cli.getPass("Повторите пароль"))) {
+        
+        //Изменить пароль
+        char[] newPass = cli.readPassword("Введите новый пароль (пустая строка - оставить без изменений)");
+        if (newPass.length > 0) {
+            if (Arrays.equals(newPass, cli.readPassword("Повторите пароль"))) {
                 try {
-                    user.setPassword(pass);
+                    user.setPassword(newPass);
                     changed = true;
                 } catch (Exception e) {
-                    cli.println("Ошибка: " + e.getMessage());
+                    printErrorMsg(e.getMessage());
                 }
             } else {
-                cli.println("Ошибка: введённые пароли не совпадают");
+                printErrorMsg("Введённые пароли не совпадают");
             }
         }
-        String email = cli.readLine("Введите новый email (пустая строка - оставить без изменений)");
-        if (!email.isBlank()) {
+        
+        //Изменить email
+        String newEmail = cli.readLine("Введите новый email (пустая строка - оставить без изменений)");
+        if (!newEmail.isBlank()) {
             try {
-                user.setEmail(new InternetAddress(email));
+                user.setEmail(new InternetAddress(newEmail));
                 changed = true;
             } catch (AddressException e) {
                 printErrorMsg("Неверный формат");
             }
         }
+        
+        //Изменить статус: администратор или пользоатель
         if (users.canDelete(user)) {
             boolean admin = cli.getChoice(ADMIN_OR_USER) == 0;
             if (admin != user.isAdmin()) {
@@ -327,23 +459,30 @@ public class Main {
                 changed = true;
             }
         }
+                
         if (changed) {
-            cli.println("Учётная запись пользователя " + user.getName() + " успешна изменена.");
+            cli.printByPages("Учётная запись пользователя " + user.getName() + " успешна изменена.");
         } else {
-            cli.println("Учётная запись пользователя " + user.getName() + " осталась без изменений.");
+            cli.printByPages("Учётная запись пользователя " + user.getName() + " осталась без изменений.");
         }
     }
     
+    /**
+     * Удалить пользователя
+     */
     static void removeUser() {
-        var usersList = buildMenu(users.getList());        
+        var usersMenu = buildMenu(users.getList());        
         try {
-            users.remove(cli.getChoice(usersList));
-            cli.println("Учётная запись пользователя успешно удалена.");
+            users.remove(cli.getChoice(usersMenu));
+            System.out.println("Учётная запись пользователя успешно удалена.");
         } catch (Exception e) {
-            cli.println("Ошибка: " + e.getMessage());
+            printErrorMsg(e.getMessage());
         }
     }
     
+    /**
+     * Завершение работы приложения
+     */
     static void exit() {
         try {
             books.saveAuthors();            
@@ -361,17 +500,5 @@ public class Main {
             printErrorMsg(e.getMessage());
         }
         System.exit(0);
-    }
-    
-    static void sendSuggest(String userName, Type type, String authorName, 
-                            String title, List<Address> adminsEmails) {
-        StringBuilder emailText = new StringBuilder("Пользователь ");
-        emailText.append(userName).append(" предлагает добавить книгу");
-        String emailSubject = emailText.toString();
-        emailText.append('.').append(BR);
-        emailText.append("Тип: ").append(type.fullName).append(BR);
-        emailText.append("Автор: ").append(authorName).append(BR); 
-        emailText.append("Название: ").append(title);
-        sendMail(adminsEmails, emailSubject, emailText.toString());
     }
 }

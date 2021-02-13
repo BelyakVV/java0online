@@ -7,20 +7,18 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- *   Интерфейс командной строки
+ * Интерфейс командной строки
  * @author aabyodj
  */
 public final class CommandLineInterface {
-
-    public static void printErrorMsg(String msg) {
-        System.out.println("Ошибка: " + msg);
-    }
     
     /** Главное меню приложения */
     private Option[] menu;
     
+    //TODO: избавиться
     static final Scanner IN = new Scanner(System.in);
     
+    //Для waitForEnter()
     boolean justHitEnter = false;
 
     public CommandLineInterface() {        
@@ -53,10 +51,10 @@ public final class CommandLineInterface {
         if (options.length < 1) return -1; //Пустой список
         int result;
         while (true) {
-            println("Выберите:" + Const.BR + "---------");
+            System.out.println("Выберите:" + Const.BR + "---------");
             //Вывод списка вариантов
             for (int i = 0; i < options.length; i++) {
-                println((i + 1) + " - " + options[i].text);
+                System.out.println((i + 1) + " - " + options[i].text);
             }
             //Ввод ответа
             try {
@@ -67,10 +65,10 @@ public final class CommandLineInterface {
             }
             //Валидация результата
             if (result < 0 || result >= options.length) { 
-                println("Нет такого варианта.");
+                System.out.println("Нет такого варианта.");
             } else break; //Валидный результат
         }
-        println("Выбрано: " + options[result].text);
+        System.out.println("Выбрано: " + options[result].text);
         //Запуск связанного действия, если задано
         if (options[result].action != null)
             options[result].action.run();
@@ -115,48 +113,92 @@ public final class CommandLineInterface {
         return readLine(hint);
     }
     
+    /**
+     * Ввод пароля
+     * @param hint Текстовая подсказка
+     * @return Введённый пароль
+     */
     public char[] getPass(String hint) {
         return readPassword(hint);
     }
     
+    /**
+     * Задать главное меню приложения
+     * @param menu Новое меню
+     */
     public void setMenu(Option[] menu) {
         this.menu = menu;
     }
     
+    /**
+     * Ввести значение типа String
+     * @return Введённое значение
+     */
     public String readLine() {
-        justHitEnter = false;
-        if (Const.CON != null) return Const.CON.readLine();
+        justHitEnter = false;       //Для waitForEnter()
+        if (Const.CON != null) {    //Если есть System.console()
+            return Const.CON.readLine();
+        }
         return IN.nextLine();
     }
     
+    /**
+     * Ввести значение типа String
+     * @param hint Текстовая подсказка
+     * @return Введённое значение
+     */
     public String readLine​(String hint) {
         printHint(hint);
         return readLine();
     }
     
+    /**
+     * Ввести пароль
+     * @return Введённый пароль
+     */
     public char[] readPassword() {
-        if (Const.CON != null) return Const.CON.readPassword();
+        justHitEnter = false;           //Для waitForEnter()
+        if (Const.CON != null) {        //Если есть System.console()
+            return Const.CON.readPassword();
+        }
+        
+        //TODO: отключить эхо
         return IN.nextLine().toCharArray();
     }
     
+    /**
+     * Ввести пароль
+     * @param hint Текстовая подсказка
+     * @return Введённый пароль
+     */
     public char[] readPassword(String hint) {
         printHint(hint);
         return readPassword();
     }
     
+    /**
+     * Вывести текстовую подсказку
+     * @param hint Текстовая подсказка
+     */
     void printHint(String hint) {
         if (hint != null) {
-            if (!hint.isBlank()) System.out.print(hint + ": ");
+            if (!hint.isBlank()) {
+                System.out.print(hint + ": ");
+            }
         }
     }
     
-    public void println(String string) {
-        String[] lines = string.split(Const.BR);
-        int row = getRows();
+    /**
+     * Постраничный вывод
+     * @param text Исходный текст
+     */
+    public void printByPages(String text) {
+        String[] lines = text.split(Const.BR);
+        int row = getRows();    //Количество строк в консоли
         if (lines.length >= row) {
             int line = 0;
             while (line < lines.length) {
-                while (row > 0 && line < lines.length) {
+                while ((row > 0) && (line < lines.length)) {
                     System.out.println(lines[line++]);
                     row--;
                 }
@@ -165,9 +207,22 @@ public final class CommandLineInterface {
                 row = getRows();
             }
         } else {
-            System.out.println(string);
+            System.out.println(text);
             justHitEnter = false;
         }        
+    }
+
+    /**
+     * Вывод сообщения об ошибке
+     * @param msg Описание ошибки
+     */
+    public static void printErrorMsg(String msg) {
+        if (msg.isBlank()) {
+            throw new IllegalArgumentException("Не указано описание ошибки");
+        }
+        char[] message = msg.toCharArray();
+        message[0] = Character.toLowerCase(message[0]);
+        System.out.println("Ошибка: " + new String(message));
     }
     
     /** Ожидание нажатия ENTER */
@@ -178,17 +233,24 @@ public final class CommandLineInterface {
         justHitEnter = true;
     }    
     
+    //TODO вынести константы в отдельный класс
     static final int DEFAULT_ROWS = 25;
     static final int MAX_COLS = 10000;
     static final int MAX_ROWS = 10000;
     
-    public static int getRows() {
+    /**
+     * Получить высоту консоли в строках (отсчёт от 0)
+     * @return 
+     */
+    static int getRows() {
+    //FIXME
+    
         //if (CON == null) 
             return DEFAULT_ROWS;
-//        saveCP();
+//        saveCursorPosition();
 //        gotoXY(MAX_COLS, MAX_ROWS);
-//        Position position = getCP();
-//        restoreCP();
+//        Position position = getCursorPosition();
+//        restoreCursorPosition();
 //        return position.y + 1;
     }
     
@@ -196,13 +258,19 @@ public final class CommandLineInterface {
     
     static final String SCP = CSI + 's';
     
-    public void saveCP() {
+    /**
+     * Сохранить позицию курсора
+     */
+    public void saveCursorPosition() {
         System.out.print(SCP);
     }
     
     static final String RCP = CSI + 'u';
     
-    public void restoreCP() {
+    /**
+     * Восстановить позицию курсора
+     */    
+    public void restoreCursorPosition() {
         System.out.print(RCP);
     }
     
@@ -212,10 +280,15 @@ public final class CommandLineInterface {
     static final String NO_DSR = "Функция определения координат курсора не поддерживается.";
     
     /**
-     * https://stackoverflow.com/questions/62026230/reading-cursor-position-in-a-java-console-application
-     * @return 
+     * Получить позицию курсора
+     * @return Позиция курсора
      */
-    public Position getCP() {
+    Position getCursorPosition() {
+    /*
+        FIXME
+        https://stackoverflow.com/questions/62026230/reading-cursor-position-in-a-java-console-application
+    */
+        
         //if (System.in.available() > 0) System.in.readAllBytes();
         System.out.print(DSR);
         try {
@@ -231,10 +304,15 @@ public final class CommandLineInterface {
             throw new RuntimeException(NO_DSR);
         int x = Integer.parseInt(matcher.group(1)) - 1;
         int y = Integer.parseInt(matcher.group(2)) - 1;
-        //System.out.println("x = " + x + "; y = " + y);
+        //System.out.printByPages("x = " + x + "; y = " + y);
         return new Position(x, y);
     }
     
+    /**
+     * Установить позицию курсора в заданные координаты (отсчёт от 0)
+     * @param x
+     * @param y 
+     */
     public void gotoXY(int x, int y) {
         x = Math.max(1, x + 1);
         y = Math.max(1, y + 1);
@@ -242,6 +320,17 @@ public final class CommandLineInterface {
         System.out.print(cup);
     }
     
+    /**
+     * Установить позицию курсора
+     * @param pos Заданная позиция
+     */
+    public void setCursorPosition(Position pos) {
+        gotoXY(pos.x, pos.y);
+    }
+    
+    /**
+     * Позиция курсора
+     */
     public class Position {
         public int x;
         public int y;
@@ -276,13 +365,20 @@ public final class CommandLineInterface {
     
     static final String RESTART_FLAG = "RESTART_WITH_CONSOLE";
     
+    /**
+     * Перезапустить приложение в попытке получить в своё распоряжение консоль
+     * @param args Аргументы командной строки, полученные функцией main()
+     * @throws ClassNotFoundException 
+     */
     static void restartWithConsole(String[] args) throws ClassNotFoundException {
+    //FIXME
+        
         //System.getProperties().list(System.out);
-//        System.out.println(System.getProperty("java.class.path"));
-//        System.out.println(System.getProperty("jdk.module.path"));
-//        System.out.println(System.getProperty("sun.java.command"));
-//        System.out.println(System.getProperty("user.dir"));
-        //System.out.println(CommandLineInterface.class.getProtectionDomain().getCodeSource().getLocation());
+//        System.out.printByPages(System.getProperty("java.class.path"));
+//        System.out.printByPages(System.getProperty("jdk.module.path"));
+//        System.out.printByPages(System.getProperty("sun.java.command"));
+//        System.out.printByPages(System.getProperty("user.dir"));
+        //System.out.printByPages(CommandLineInterface.class.getProtectionDomain().getCodeSource().getLocation());
         StackTraceElement[] trace = Thread.currentThread().getStackTrace();
         System.out.println(Class.forName(trace[trace.length - 1].getClassName()).getProtectionDomain().getCodeSource().getLocation());
         System.exit(0);

@@ -3,7 +3,7 @@ package aabyodj.datafiles;
 import java.util.regex.Pattern;
 
 /**
- *
+ * Константы для функций чтения и записи файлов
  * @author aabyodj
  */
 public class Const {

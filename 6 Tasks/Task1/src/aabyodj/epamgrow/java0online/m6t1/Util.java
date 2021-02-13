@@ -17,7 +17,7 @@ import java.io.File;
 import java.io.IOException;
 
 /**
- *
+ * Методы, используемые более чем одним классом и/или пакетом
  * @author aabyodj
  */
 public class Util {
@@ -30,6 +30,12 @@ public class Util {
     static final String SMTP_HOST = "smtp.yandex.com";
     static final String SMTP_PORT = "465";
 
+    /**
+     * Отправить email
+     * @param recipients Список получателей
+     * @param subject Тема письма
+     * @param text Тело письма
+     */
     static void sendMail(List<Address> recipients, String subject, String text) {
         System.out.print("Отправка email...");
         Properties properties = new Properties();
@@ -62,7 +68,25 @@ public class Util {
             printErrorMsg(e.getMessage());
         }
     }
+    
+    /**
+     * В массиве строк каждую строку преобразовать в целое число
+     * @param strings Исходный массив строк
+     * @return Массив целых чисел
+     */
+    public static int[] toIntegers(String[] strings) {
+        int[] result = new int[strings.length];
+        for (int i = 0; i < strings.length; i++) {
+            result[i] = Integer.parseInt(strings[i]);
+        }
+        return result;
+    }
 
+    /**
+     * Создать файл в случае отсутствия
+     * @param file Требуемый файл
+     * @throws IOException 
+     */
     public static void createIfNeeded(File file) throws IOException {
         if (file.exists()) {
             return;

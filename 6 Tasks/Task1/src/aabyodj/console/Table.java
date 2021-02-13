@@ -10,27 +10,34 @@ import java.util.Arrays;
 public final class Table {
     /** Псевдографика: пересечение вертикальной и горизонтальной линий */
     public static final char CR_SEPARATOR = '+';
+    
     /** Псевдографика: горизонтальная линия */
     public static final char H_SEPARATOR = '-';
+    
     /** Псевдографика: вертикальная линия */
     public static final char V_SEPARATOR = '|';
     
     /** Первый столбец */
     private Col firstCol;
+    
     /** Последний столбец */
     private Col lastCol;
+    
     /** Количество столбцов */
     private int colsCount;
     
     /** Первая строка */
     private Row firstRow;
+    
     /** Последняя строка */
     private Row lastRow;
+    
     /** Количество строк */
     private int rowsCount;
     
     /** Ширина таблицы в символах, с учётом горизонтальных разделителей */
     private int width;
+    
     /** Признак необходимости пересчитать ширину таблицы и всех столбцов */
     private boolean needRecalcWidth = true;
     
@@ -67,6 +74,8 @@ public final class Table {
      * @return 
      */
     public Col getCol(int i) {
+    //TODO: искать с конца, если это целесообразно
+        
         Col result = firstCol;
         while (result != null && i > 0) {            
             result = result.next;
