@@ -22,16 +22,17 @@ class Note {
 	String body;
 	Notepad notepad;
 	
-//	public Note() {
-//		touch();
-//	}
+	public Note() {
+		touch();
+		notepad = null;
+	}
 	
-//	Note(String subject, long created, String email, String body) throws AddressException {
-//		this.subject = subject;
-//		this.created = created;
-//		setEmail(email);
-//		this.body = body;
-//	}
+	Note(String subject, String email, String body) throws AddressException {
+		this();
+		setSubject(subject);
+		setEmail(email);
+		setBody(body);
+	}
 		
 	Note(Matcher matcher, Notepad notepad) {
 		subject = decode(matcher.group(1).strip());
@@ -53,7 +54,9 @@ class Note {
 		newSubject = newSubject.strip();
 		if (newSubject.equals(subject)) return;
 		subject = newSubject;
-		notepad.changed = true;
+		if (notepad != null) {
+			notepad.changed = true;
+		}
 	}
 	
 	public long getDate() {
@@ -64,7 +67,9 @@ class Note {
 		long newDate = LocalDate.now().toEpochDay();
 		if (newDate == created) return;
 		created = newDate;
-		notepad.changed = true;
+		if (notepad != null) {
+			notepad.changed = true;
+		}
 	}
 	
 	public String getEmail() {
@@ -75,14 +80,18 @@ class Note {
 		if (newEmail == null) {
 			if (email != null) {
 				email = null;
-				notepad.changed = true;
+				if (notepad != null) {
+					notepad.changed = true;
+				}
 			}
 			return;
 		}
 		Address ne = new InternetAddress(newEmail);		
 		if (ne.equals(email)) return;
 		email = ne;
-		notepad.changed = true;
+		if (notepad != null) {
+			notepad.changed = true;
+		}
 	}
 	
 	public String getBody() {
@@ -92,9 +101,12 @@ class Note {
 	public void setBody(String newBody) {
 		if (newBody.equals(body)) return;
 		body = newBody;
-		notepad.changed = true;
+		if (notepad != null) {
+			notepad.changed = true;
+		}
 	}
 	
+	@Override
 	public String toString() {
 		StringBuilder result = new StringBuilder("Тема: ");
 		result.append(subject).append(BR);
