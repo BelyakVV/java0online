@@ -16,7 +16,7 @@ import java.util.regex.Pattern;
 import jakarta.mail.internet.AddressException;
 
 /**
- * @author master
+ * @author aabyodj
  *
  */
 class Notepad {

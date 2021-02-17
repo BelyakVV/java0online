@@ -84,9 +84,8 @@ public final class CommandLineInterface {
      * @return введённое значение
      */
     public int getInt(String hint) {
-    	String string = readLine​(hint);
         try {
-            return Integer.parseInt(string);
+            return Integer.parseInt(readLine(hint));
         } catch (Exception e) {
             return 0;
         }
@@ -98,9 +97,8 @@ public final class CommandLineInterface {
      * @return введённое значение
      */
     public long getLong(String hint) {
-    	String string = readLine​(hint);
         try {
-            return Long.parseLong(string);
+            return Long.parseLong(readLine(hint));
         } catch (Exception e) {
             return 0;
         }
@@ -111,11 +109,12 @@ public final class CommandLineInterface {
      * @param hint Текстовая подсказка
      * @return Введённое значение
      */
-    public String getString(String hint) {    	
-        return readLine(hint);;
+    public String getString(String hint) {
+        return readLine(hint);
     }
     
-    /**
+
+	/**
      * Ввод пароля
      * @param hint Текстовая подсказка
      * @return Введённый пароль
@@ -134,16 +133,6 @@ public final class CommandLineInterface {
     
     /**
      * Ввести значение типа String
-     * @param hint Текстовая подсказка
-     * @return Введённое значение
-     */
-    public String readLine​(String hint) {
-        printHint(hint);
-        return readLine();
-    }
-    
-    /**
-     * Ввести значение типа String
      * @return Введённое значение
      */
     public String readLine() {
@@ -152,6 +141,16 @@ public final class CommandLineInterface {
             return Const.CON.readLine();
         }
         return IN.nextLine();
+    }
+    
+    /**
+     * Ввести значение типа String
+     * @param hint Текстовая подсказка
+     * @return Введённое значение
+     */
+    public String readLine(String hint) {
+        printHint(hint);
+        return readLine();
     }
     
     /**
@@ -182,7 +181,7 @@ public final class CommandLineInterface {
      * Вывести текстовую подсказку
      * @param hint Текстовая подсказка
      */
-    void printHint(String hint) {
+    static void printHint(String hint) {
         if (hint != null) {
             if (!hint.isBlank()) {
                 System.out.print(hint + ": ");
