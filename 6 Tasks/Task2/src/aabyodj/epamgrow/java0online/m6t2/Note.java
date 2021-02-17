@@ -17,7 +17,7 @@ import jakarta.mail.internet.InternetAddress;
  * @author aabyodj
  *
  */
-class Note {
+public class Note {
 	String subject;
 	long created;
 	Address email;
@@ -166,7 +166,7 @@ class Note {
 	 * Функционал для проверки адреса email и его составных частей на соответствие RFC 2822
 	 * @author aabyodj
 	 */
-	static class Email {
+	public static class Email {
 				
 		static final String CRLF = "\\r\\n";		
 		static final String FWS = "(\\s*" + CRLF + ")?\\s+";
