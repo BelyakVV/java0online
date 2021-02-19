@@ -1,6 +1,3 @@
-/**
- * 
- */
 package aabyodj.epamgrow.java0online.m6t2;
 
 import java.io.BufferedReader;
@@ -13,7 +10,10 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import jakarta.mail.internet.AddressException;
+import aabyodj.console.Table;
+import aabyodj.epamgrow.java0online.m6t2.Note.Date;
+import aabyodj.epamgrow.java0online.m6t2.Note.Email.AddressException;
+
 
 /**
  * @author aabyodj
@@ -22,17 +22,40 @@ import jakarta.mail.internet.AddressException;
 class Notepad {
 	List<Note> notes;	//TODO: сделать деревом
 	File file;
-	boolean changed;	
+	boolean changed;
+	int nextNoteId;
 	
-	Notepad(List<Note> notes, File file, boolean changed) {
+	public Notepad(String fileName) {
+		file = new File(fileName).getAbsoluteFile();
+		try {
+			load();
+		} catch (IOException e) {
+			notes = new LinkedList<>();
+			changed = true;
+		}
+	}
+	
+	Notepad(List<Note> notes, File file, boolean changed, int nextNoteId) {
 		this.notes = notes;
 		this.file = file;
 		this.changed = changed;
+		this.nextNoteId = nextNoteId;
 	}
 
+	public Note getNote(int id) {
+		for (var note: notes) {
+			if (note.id == id) {
+				return note;
+			}
+		}
+		throw new RuntimeException(Const.NOT_FOUND);
+	}
+	
 	public Note add() {
-		Note result = new Note();
-		if (add(result)) return result;
+		Note result = new Note(nextNoteId);
+		if (add(result)) {
+			return result;
+		}
 		throw new RuntimeException(Const.COULD_NOT_ADD);
 	}
 	
@@ -40,12 +63,17 @@ class Notepad {
 		boolean result = notes.add(note);
 		if (result) {
 			note.notepad = this;
+			if (note.id >= nextNoteId) {
+				nextNoteId = note.id + 1;
+			}
+			notes.sort(null);
+			changed = true;
 		}
 		return result;
 	}
 	
 	public Note add(String subject, String email, String body) throws AddressException {
-		Note result = new Note(subject, email, body);
+		Note result = new Note(nextNoteId, subject, email, body);
 		if (add(result)) {
 			return result;
 		}
@@ -56,15 +84,16 @@ class Notepad {
 		boolean result = notes.remove(note);
 		if (result) {
 			note.notepad = null;
+			changed = true;
 		}
 		return result;
 	}
 	
-//	public Note remove(int i) {
-//		Note result = notes.remove(i);
-//		result.notepad = null;
-//		return result;
-//	}
+	public Note remove(int id) {
+		Note result = getNote(id);
+		if (remove(result)) return result;
+		throw new RuntimeException("Не удалось удалить заметку");
+	}
 	
 	public Notepad selectBySubject(String regex) {
 		if (regex.isBlank()) return this;
@@ -75,7 +104,7 @@ class Notepad {
 				result.add(note);
 			}
 		}
-		return new Notepad(result, file, changed);
+		return new Notepad(result, file, changed, nextNoteId);
 	}
 	
 	public Notepad selectAfter(long date) {
@@ -85,7 +114,11 @@ class Notepad {
 				result.add(note);
 			}
 		}
-		return new Notepad(result, file, changed);
+		return new Notepad(result, file, changed, nextNoteId);
+	}
+	
+	public Notepad selectFromDate(String date) {
+		return selectAfter(Date.decode(date) - 1);
 	}
 	
 	public Notepad selectBefore(long date) {
@@ -95,7 +128,11 @@ class Notepad {
 				result.add(note);
 			}
 		}
-		return new Notepad(result, file, changed);
+		return new Notepad(result, file, changed, nextNoteId);
+	}
+	
+	public Notepad selectUntilDate(String date) {
+		return this.selectBefore(Date.decode(date) + 1);
 	}
 	
 	public Notepad selectByEmail(String regex) {
@@ -103,11 +140,12 @@ class Notepad {
 		Pattern pattern = Pattern.compile(regex);
 		List<Note> result = new LinkedList<>();
 		for (var note: notes) {
+			if (note.email == null) continue;
 			if (pattern.matcher(note.email.toString()).find()) {
 				result.add(note);
 			}
 		}
-		return new Notepad(result, file, changed);
+		return new Notepad(result, file, changed, nextNoteId);
 	}
 	
 	public Notepad selectByBody(String regex) {
@@ -119,28 +157,55 @@ class Notepad {
 				result.add(note);
 			}
 		}
-		return new Notepad(result, file, changed);
+		return new Notepad(result, file, changed, nextNoteId);
 	}	
 	
+	static final String[] HEADER = new String[] {
+			"id", "Тема", "Создано", "email", "Текст"
+	};
+	
+	@Override
+	public String toString() {
+		Table result = new Table(HEADER);
+		result.getCol(0).setAlign(Table.Align.RIGHT);
+		for (var note: notes) {
+			result.addRow(new String[]{
+					Integer.toString(note.id),
+					note.subject,
+					Date.encode(note.created),
+					(note.email != null) ? note.email : "не указан",
+					note.body
+			});
+		}
+		return result.toString();
+	}
+
 	void load() throws IOException {
 		try (BufferedReader in = new BufferedReader(new FileReader(file))) {
 			notes = new LinkedList<>();
+			nextNoteId = 0;
 			String line;
 			while ((line = in.readLine()) != null) {
 				Matcher matcher = Const.NOTE_PTRN.matcher(line);
 				if (matcher.find()) {
 					try {
-						notes.add(new Note(matcher, this));
+						Note note = new Note(matcher, this);
+						if (notes.add(note)) {
+							if (note.id >= nextNoteId) {
+								nextNoteId = note.id + 1;
+							}
+						}
 					} catch (Exception e) {
 						//Заметки с ошибками игнорируются
 					}					
 				}
 			}
 		}		
+		notes.sort(null);
 		changed = false;
 	}
 	
-	void save() throws IOException {
+	public void save() throws IOException {
 		if (!changed) return;
 		createIfNeeded(file);
 		try (PrintStream out = new PrintStream(file)) {
@@ -180,12 +245,13 @@ class Notepad {
     }
     
     static class Const {
-    	static final Pattern NOTE_PTRN = Pattern.compile("(.*?);\\s*(\\d*)\\s*;(.*?);(.*)");
+    	static final Pattern NOTE_PTRN = Pattern.compile("\\s*(\\d*)\\s*;(.*?);\\s*(\\d*)\\s*;(.*?);(.*)");
     	
     	static final String[] REGEX_META = new String[]{
     			"\\\\", "\\^", "\\.", "\\[", "\\]", "\\$", "\\(", "\\)", "\\*", "\\{", "\\}", "\\?", "\\+", "\\|"  
     	};
     	
     	static final String COULD_NOT_ADD = "Не удалось добавить заметку";
+    	static final String NOT_FOUND = "Нет такой заметки";
     }
 }

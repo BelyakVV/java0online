@@ -1,6 +1,3 @@
-/**
- * 
- */
 package aabyodj.epamgrow.java0online.m6t2;
 
 import static aabyodj.console.Const.BR;
@@ -9,40 +6,41 @@ import java.time.LocalDate;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import jakarta.mail.Address;
-import jakarta.mail.internet.AddressException;
-import jakarta.mail.internet.InternetAddress;
+import aabyodj.epamgrow.java0online.m6t2.Note.Email.AddressException;
 
 /**
  * @author aabyodj
  *
  */
-public class Note {
+public class Note implements Comparable<Note> {
+	final int id;
 	String subject;
 	long created;
-	Address email;
+	String email;
 	String body;
 	Notepad notepad;
 	
-	public Note() {
+	Note(int id) {
+		this.id = id;
 		touch();
 		notepad = null;
 	}
 	
-	Note(String subject, String email, String body) throws AddressException {
-		this();
+	Note(int id, String subject, String email, String body) throws Email.AddressException {
+		this(id);
 		setSubject(subject);
 		setEmail(email);
 		setBody(body);
 	}
 		
 	Note(Matcher matcher, Notepad notepad) {
-		subject = decode(matcher.group(1).strip());
-		created = Long.parseLong(matcher.group(2).strip());
-		body = decode(matcher.group(4));
+		id = Integer.parseInt(matcher.group(1));
+		subject = decode(matcher.group(2).strip());
+		created = Long.parseLong(matcher.group(3).strip());
+		body = decode(matcher.group(5));
 		this.notepad = notepad;
 		try {
-			setEmail(decode(matcher.group(3).strip()));
+			setEmail(decode(matcher.group(4).strip()));
 		} catch (Exception e) {
 			email = null;
 		}
@@ -73,6 +71,7 @@ public class Note {
 		if (epochDay == created) return;
 		created = epochDay;
 		if (notepad != null) {
+			notepad.notes.sort(null);
 			notepad.changed = true;
 		}		
 	}
@@ -82,7 +81,7 @@ public class Note {
 	}
 	
 	public String getEmail() {
-		return (email != null) ? email.toString() : null;
+		return email;
 	}
 	
 	public void setEmail(String newEmail) throws AddressException {
@@ -95,9 +94,12 @@ public class Note {
 			}
 			return;
 		}
-		Address ne = new InternetAddress(newEmail);		
-		if (ne.equals(email)) return;
-		email = ne;
+		newEmail = newEmail.strip();
+		if (newEmail.equals(email)) return;
+		if (!Email.isValidMailbox(newEmail)) {
+			throw new AddressException("Неверный формат email адреса");
+		}
+		email = newEmail;
 		if (notepad != null) {
 			notepad.changed = true;
 		}
@@ -114,6 +116,11 @@ public class Note {
 			notepad.changed = true;
 		}
 	}
+
+	@Override
+	public int compareTo(Note o) {
+		return Long.compare(created, o.created);
+	}
 	
 	@Override
 	public String toString() {
@@ -127,6 +134,7 @@ public class Note {
 	
 	String encode() {
 		StringBuilder result = new StringBuilder();
+		result.append(Integer.toString(id)).append(';');
 		result.append(encode(subject)).append(';');
 		result.append(created).append(';');
 		if (email != null) result.append(email.toString());
@@ -139,7 +147,7 @@ public class Note {
 	}
 	
 	static String encode(String in) {
-		return in.replaceAll(";", "\\u003b").replaceAll("\\R", "\\000a");
+		return in.replaceAll(";", "\\\\u003b").replaceAll("\\R", "\\\\000a");
 	}
 	
 	public static class Date {
@@ -153,7 +161,9 @@ public class Note {
 		
 		public static long decode(String str) {
 			Matcher matcher = DATE_PTRN.matcher(str);
-			matcher.find();
+			if (!matcher.find()) {
+				throw new IllegalArgumentException("Неверный формат даты");
+			}
 			int year = Integer.parseInt(matcher.group(1));
 			int month = Integer.parseInt(matcher.group(2));
 			int dayOfMonth = Integer.parseInt(matcher.group(3));
@@ -167,7 +177,7 @@ public class Note {
 	 * @author aabyodj
 	 */
 	public static class Email {
-				
+
 		static final String CRLF = "\\r\\n";		
 		static final String FWS = "(\\s*" + CRLF + ")?\\s+";
 		
@@ -221,5 +231,14 @@ public class Note {
 		public static boolean isValidMailbox(String str) {
 			return MAILBOX_PTRN.matcher(str).matches();
 		}
+		
+public static class AddressException extends Exception {
+
+	public AddressException(String msg) {
+		super(msg);
+	}
+	private static final long serialVersionUID = -7860464595616956496L;
+
+}
 	}
 }
