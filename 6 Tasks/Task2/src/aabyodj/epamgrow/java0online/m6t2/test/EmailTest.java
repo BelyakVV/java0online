@@ -8,7 +8,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.junit.jupiter.api.Test;
 
-import aabyodj.epamgrow.java0online.m6t2.Note.Email;
+import aabyodj.epamgrow.java0online.m6t2.util.Email;
 
 /**
  * @author aabyodj
@@ -37,7 +37,7 @@ class EmailTest extends Email {
 	};
 	
 	/**
-	 * Test method for {@link aabyodj.epamgrow.java0online.m6t2.Note.Email#isValidMailbox(java.lang.String)}.
+	 * Test method for {@link aabyodj.epamgrow.java0online.m6t2.util.Note.Email#isValidMailbox(java.lang.String)}.
 	 */
 	@Test
 	void testIsValidMailbox() {

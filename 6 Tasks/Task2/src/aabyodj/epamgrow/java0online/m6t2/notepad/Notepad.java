@@ -1,4 +1,4 @@
-package aabyodj.epamgrow.java0online.m6t2;
+package aabyodj.epamgrow.java0online.m6t2.notepad;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -11,15 +11,15 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import aabyodj.console.Table;
-import aabyodj.epamgrow.java0online.m6t2.Note.Date;
-import aabyodj.epamgrow.java0online.m6t2.Note.Email.AddressException;
+import aabyodj.epamgrow.java0online.m6t2.util.Date;
+import aabyodj.epamgrow.java0online.m6t2.util.Email.AddressException;
 
 
 /**
  * @author aabyodj
  *
  */
-class Notepad {
+public class Notepad {
 	List<Note> notes;	//TODO: сделать деревом
 	File file;
 	boolean changed;

@@ -1,12 +1,15 @@
 package aabyodj.epamgrow.java0online.m6t2;
 
-import aabyodj.console.CommandLineInterface;
-import aabyodj.epamgrow.java0online.m6t2.Note.Email.AddressException;
-
-import static aabyodj.console.CommandLineInterface.Option;
 import static aabyodj.console.CommandLineInterface.printErrorMsg;
 
 import java.io.IOException;
+
+import aabyodj.console.CommandLineInterface;
+import aabyodj.console.CommandLineInterface.Option;
+import aabyodj.epamgrow.java0online.m6t2.notepad.Note;
+import aabyodj.epamgrow.java0online.m6t2.notepad.Notepad;
+import aabyodj.epamgrow.java0online.m6t2.util.Email;
+import aabyodj.epamgrow.java0online.m6t2.util.Email.AddressException;
 
 /**
  * @author aabyodj
@@ -58,7 +61,7 @@ public class Main {
 			return false;
 		}
 		String email = cli.readLine("Введите email");
-		if (!Note.Email.isValidMailbox(email)) {
+		if (!Email.isValidMailbox(email)) {
 			printErrorMsg("Неверный формат email адреса. Заметка будет сохранена без email.");
 			email = null;
 		}
