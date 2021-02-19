@@ -1,5 +1,7 @@
 package aabyodj.epamgrow.java0online.m6t2.notepad;
 
+import static aabyodj.console.Const.BR;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
@@ -209,6 +211,9 @@ public class Notepad {
 		if (!changed) return;
 		createIfNeeded(file);
 		try (PrintStream out = new PrintStream(file)) {
+			out.println("# Это автоматически сгенерированный файл. " + BR
+					+ "# Все изменения и комментарии при следующем сохранении будут перезаписаны." + BR + BR
+					+ "# id; тема; дата создания; email; сообщение" + BR);
 			for (var note: notes) {
 				out.println(note.encode());
 			}
