@@ -56,17 +56,28 @@ public class Email {
 	static final String NAME_ADDR = '(' + DISPLAY_NAME + ")?(" + ANGLE_ADDR + ')';
 	static final String MAILBOX = NAME_ADDR + '|' + ADDR_SPEC;
 
+	/** Паттерн для проверки адреса email на соответствие RFC 2822 */
 	public static final Pattern MAILBOX_PTRN = Pattern.compile(MAILBOX);
 
+	/**
+	 * Проверить адрес email на соответствие RFC 2822
+	 * @param str
+	 * @return
+	 */
 	public static boolean isValidMailbox(String str) {
 		return MAILBOX_PTRN.matcher(str).matches();
 	}
 
+	/**
+	 * Ошибка формата email адреса
+	 * @author aabyodj
+	 */
 	public static class AddressException extends Exception {
 
 		public AddressException(String msg) {
 			super(msg);
 		}
+		
 		private static final long serialVersionUID = -7860464595616956496L;
 	}
 }
