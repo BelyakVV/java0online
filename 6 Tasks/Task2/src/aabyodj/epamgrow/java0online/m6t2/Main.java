@@ -55,7 +55,12 @@ public class Main {
 	/** Найти заметку */
 	static void searchNote() {
 		String regex = cli.readLine("Введите регулярное выражене для поиска по теме и тексту");
-		Notepad result = notepad.selectBySubject(regex).selectByBody(regex);
+		Notepad result = notepad;
+		try {
+			result = result.selectBySubject(regex).selectByBody(regex);
+		} catch (Exception e) {
+			printErrorMsg(e.getMessage() + ". Игнорируем...");
+		}
 		
 		String begin = cli.readLine("Искать заметки, созданные в указанном интервале. Начало");
 		try {
@@ -72,7 +77,11 @@ public class Main {
 		}
 		
 		String email = cli.readLine("Введите регулярное выражение для поиска по email");
-		result = result.selectByEmail(email);
+		try {
+			result = result.selectByEmail(email);
+		} catch (Exception e) {
+			printErrorMsg(e.getMessage() + ". Игнорируем...");
+		}
 		
 		cli.printByPages(result.toString());
 	}
