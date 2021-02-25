@@ -1,6 +1,8 @@
 
 package m6t3.client;
 
+import static m6t3.client.ClientMain.KEY_ENTER;
+
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.KeyAdapter;
 import org.eclipse.swt.events.KeyEvent;
@@ -76,7 +78,7 @@ public class Login extends Dialog {
 		passwd.addKeyListener(new KeyAdapter() {
 			@Override
 			public void keyPressed(KeyEvent e) {
-				if (e.character == 13) proceed();
+				if (e.character == KEY_ENTER) proceed();
 			}
 		});
 		passwd.setBounds(79, 35, 126, 26);

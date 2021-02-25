@@ -1,31 +1,42 @@
 package m6t3.client;
 
+import static m6t3.client.ClientMain.KEY_ENTER;
+
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.KeyAdapter;
+import org.eclipse.swt.events.KeyEvent;
+import org.eclipse.swt.events.SelectionAdapter;
+import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Dialog;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
-import org.eclipse.swt.widgets.Text;
-import org.eclipse.swt.events.SelectionAdapter;
-import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.widgets.Spinner;
+import org.eclipse.swt.widgets.Text;
 
 public class ConnectionDialog extends Dialog {
-
+	
+	Connection connection;
 	protected Object result = false;
 	protected Shell shell;
 	private Text txtHost;
 	private Label lblPort;
+	private Spinner spnPort;
 
 	/**
 	 * Create the dialog.
 	 * @param parent
 	 * @param style
 	 */
+	public ConnectionDialog(ClientMain client) {
+		super(client.shell, SWT.NONE);
+		connection = client.connection;
+		setText("Соединение с сервером");
+	}
+	
 	public ConnectionDialog(Shell parent, int style) {
 		super(parent, style);
-		setText("Соединение с сервером");
 	}
 
 	/**
@@ -58,26 +69,39 @@ public class ConnectionDialog extends Dialog {
 		lblHost.setText("Сервер");
 		
 		txtHost = new Text(shell, SWT.BORDER);
-		txtHost.setText(ClientMain.client.serverHost);
+		txtHost.addKeyListener(new KeyAdapter() {
+			@Override
+			public void keyPressed(KeyEvent e) {
+				if (e.character == KEY_ENTER) {
+					spnPort.setFocus();
+				}
+			}
+		});
+		txtHost.setText(connection.serverHost);
 		txtHost.setBounds(64, 10, 147, 26);
 		
 		lblPort = new Label(shell, SWT.NONE);
 		lblPort.setBounds(26, 54, 32, 19);
 		lblPort.setText("Порт");
 		
-		Spinner spnPort = new Spinner(shell, SWT.BORDER);
+		spnPort = new Spinner(shell, SWT.BORDER);
+		spnPort.addKeyListener(new KeyAdapter() {
+			@Override
+			public void keyPressed(KeyEvent e) {
+				if (e.character == KEY_ENTER) {
+					submit();
+				}
+			}
+		});
 		spnPort.setMaximum(65536);
 		spnPort.setBounds(64, 42, 147, 44);
-		spnPort.setSelection(ClientMain.client.serverPort);
+		spnPort.setSelection(connection.serverPort);
 		
 		Button btnOk = new Button(shell, SWT.NONE);
 		btnOk.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
-				ClientMain.client.serverHost = txtHost.getText().trim();
-				ClientMain.client.serverPort = spnPort.getSelection();
-				result = true;
-				shell.close();
+				submit();
 			}
 		});
 		btnOk.setBounds(10, 96, 89, 32);
@@ -94,4 +118,13 @@ public class ConnectionDialog extends Dialog {
 		btnCancel.setText("Отмена");
 
 	}
+
+	protected void submit() {
+		connection.serverHost = txtHost.getText().trim();
+		connection.serverPort = spnPort.getSelection();
+		result = true;
+		shell.close();
+	}
+	
+	
 }

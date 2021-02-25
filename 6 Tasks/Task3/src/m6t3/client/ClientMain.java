@@ -1,12 +1,13 @@
 package m6t3.client;
 
-import java.io.IOException;
-import java.net.InetSocketAddress;
-import java.net.Socket;
+import java.util.LinkedList;
+import java.util.List;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.events.ShellAdapter;
+import org.eclipse.swt.events.ShellEvent;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.layout.FormAttachment;
 import org.eclipse.swt.layout.FormData;
@@ -20,26 +21,38 @@ import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableColumn;
 
-import m6t3.server.ServerMain;
-import org.eclipse.swt.events.ShellAdapter;
-import org.eclipse.swt.events.ShellEvent;
+import m6t3.server.Student;
 
 public class ClientMain {
-
-	static final String DEFAULT_SERVER_HOST = "localhost";
-	static final int DEFAULT_TIMEOUT = 3000;
 	
 	static ClientMain client;
 	
-	String serverHost = DEFAULT_SERVER_HOST;
-	int serverPort = ServerMain.DEFAULT_IP_PORT;
-	Socket socket = new Socket();
+	List<TableItemStudent> students = new LinkedList<>();
+	boolean running = true;
+	boolean drawing = false;
+	volatile int merging = 0;
+	boolean sending = false;
+	boolean changed = false;
+
+//	Socket socket = new Socket();
+	Connection connection;
+	ConnectionDialog connDlg;
+	static final int CONN_DLG_NONE = 0;
+	static final int CONN_DLG_NEEDED = 1;
+	static final int CONN_DLG_OPENED = 2;
+	static final int CONN_DLG_CLOSED = 3;
+	Integer connDlgStatus = CONN_DLG_NONE;
+	boolean connDlgResult;
+	
+	
 	int syncProgress;
 	protected Shell shell;
 	private Table table;
 	private Button btnExit;
 	private Button btnAdd;
 
+	static final char KEY_ENTER = 13;
+	
 	/**
 	 * Launch the application.
 	 * @param args
@@ -61,35 +74,30 @@ public class ClientMain {
 		createContents();
 		shell.open();
 		shell.layout();
-		if (!serverConnect()) {
-			shell.close();
-		};
+//		if (!serverConnect()) {
+//			shell.close();
+//		} 
+//		System.err.println(client);
+		connection  = new Connection(this);
+		connection.start();
 //		Login loginDialog = new Login(shell, SWT.NONE);
 //		loginDialog.open();
 		while (!shell.isDisposed()) {
 			if (!display.readAndDispatch()) {
 				display.sleep();
 			}
-		}
-	}
-
-	private boolean serverConnect() {
-		while (!socket.isConnected()) {
-			try {
-//				System.out.println(serverHost + ':' + serverPort);
-				socket.connect(new InetSocketAddress(serverHost, serverPort), DEFAULT_TIMEOUT);
-			} catch (IOException e) {
-//				e.printStackTrace(System.err);
-				socket = new Socket();
-				ConnectionDialog connDlg = new ConnectionDialog(shell, SWT.NONE);
-				if (!(Boolean) connDlg.open()) {
-					break;
-				}
+			if (!running) {
+				shell.close();
+			}
+			if (connDlgStatus == CONN_DLG_NEEDED) {
+				connDlgStatus = CONN_DLG_OPENED;
+				connDlg = new ConnectionDialog(this);
+				connDlgResult = (boolean) connDlg.open();
+				connDlgStatus = CONN_DLG_CLOSED;
 			}
 		}
-		return socket.isConnected();
 	}
-
+	
 	/**
 	 * Create contents of the window.
 	 */
@@ -98,12 +106,7 @@ public class ClientMain {
 		shell.addShellListener(new ShellAdapter() {
 			@Override
 			public void shellClosed(ShellEvent e) {
-				try {
-					socket.close();
-				} catch (IOException e1) {
-					// TODO Auto-generated catch block
-					e1.printStackTrace();
-				}
+				running = false;
 			}
 		});
 		shell.setMinimumSize(new Point(400, 300));
@@ -214,5 +217,76 @@ public class ClientMain {
 		fd_btnExit.bottom = new FormAttachment(btnAdd, 0, SWT.BOTTOM);
 		btnExit.setLayoutData(fd_btnExit);
 		btnExit.setText("Выход");
+	}
+
+	public boolean isRunning() {
+		return running;
+	}
+	
+//	private boolean serverConnect() {
+//		while (!socket.isConnected()) {
+//			try {
+////				System.out.println(serverHost + ':' + serverPort);
+//				socket.connect(new InetSocketAddress(serverHost, serverPort), DEFAULT_TIMEOUT);
+//			} catch (IOException e) {
+////				e.printStackTrace(System.err);
+//				socket = new Socket();
+//				ConnectionDialog connDlg = new ConnectionDialog(shell, SWT.NONE);
+//				if (!(Boolean) connDlg.open()) {
+//					break;
+//				}
+//			}
+//		}
+//		return socket.isConnected();
+//	}
+
+	public void mergeStudent(Student srvStudent) {
+		synchronized (students) {
+			for (var ti: students) {
+				if (ti.student.id == srvStudent.id) {
+					if (srvStudent.getSerial() > ti.student.getSerial()) {
+						ti.student = srvStudent;
+						ti.setText(srvStudent.getFullName());
+					}
+					return;
+				}
+			}
+			students.add(new TableItemStudent(table, srvStudent));
+		}
+	}
+
+	public void mergeStudents(List<Student> srvStudents) {
+		synchronized (students) {
+			table.setRedraw(false);
+			for (var student: srvStudents) {
+				mergeStudent(student);
+			}
+			table.setRedraw(true);
+		}
+	}
+	
+	public void replaceStudents(List<Student> srvStudents) {
+		synchronized (students) {
+			students.clear();
+			table.setRedraw(false);
+			table.clearAll();
+			for (var student: srvStudents) {
+				students.add(new TableItemStudent(table, student));
+			}
+			table.setRedraw(true);
+		}
+	}
+
+	public boolean showConnDlg() {
+		if (connDlgStatus == CONN_DLG_NONE) {
+			connDlgStatus = CONN_DLG_NEEDED;
+		}
+		while (connDlgStatus != CONN_DLG_CLOSED) {
+			Thread.onSpinWait();
+		}
+		synchronized (connDlgStatus) {
+			connDlgStatus = CONN_DLG_NONE;
+			return connDlgResult;
+		}
 	}
 }
