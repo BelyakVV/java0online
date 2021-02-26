@@ -26,7 +26,7 @@ public class Util {
 
     //TODO переделать архитектуру приложения в клиент/сервер и вынести отправку email на сервер
     static final String SMTP_LOGIN = "epam-grow@aab.by";
-    static final String SMTP_PASSWORD = "J99oSLrt)jsf}mw8";
+    static final String SMTP_PASSWORD = Актуальный пароль по личному запросу;
     static final String SMTP_HOST = "smtp.yandex.com";
     static final String SMTP_PORT = "465";
 
