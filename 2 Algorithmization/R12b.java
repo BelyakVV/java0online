@@ -39,7 +39,7 @@ public class R12b {
         int[] result = new int[calcSize(k, n)];
         int i = 0;
         int minX = (int) Math.pow(9, (double) k / 9);
-        for (int x = minX; x < n; x++) {
+        for (int x = minX; x <= n; x++) {
             if (digitSum(x) == k) result[i++] = x;
         }
         return result;
