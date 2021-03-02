@@ -7,6 +7,5 @@
 		</attributes>
 	</classpathentry>
 	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/SWT"/>
-	<classpathentry combineaccessrules="false" kind="src" path="/org.eclipse.jface"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

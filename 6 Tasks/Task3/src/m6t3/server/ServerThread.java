@@ -23,7 +23,9 @@ class ServerThread extends Thread {
 	public void run() {
 		while (running) {
 			try {
+				System.out.println("Сервер ждёт подключения");
 				Socket socket = listener.accept();
+				System.out.println("Сервер установил подключение");
 				SocketThread thread = new SocketThread(this, socket);
 				if (threads.add(thread)) {
 					thread.start();
@@ -32,7 +34,7 @@ class ServerThread extends Thread {
 				}
 			} catch (IOException e) {
 				if (!running) {
-					return;
+					break;
 				}
 				// TODO Auto-generated catch block
 				e.printStackTrace();

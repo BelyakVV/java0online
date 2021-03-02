@@ -21,7 +21,7 @@ import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableColumn;
 
-import m6t3.server.Student;
+import m6t3.common.Student;
 
 public class ClientMain {
 	
@@ -36,13 +36,13 @@ public class ClientMain {
 
 //	Socket socket = new Socket();
 	Connection connection;
-	ConnectionDialog connDlg;
-	static final int CONN_DLG_NONE = 0;
-	static final int CONN_DLG_NEEDED = 1;
-	static final int CONN_DLG_OPENED = 2;
-	static final int CONN_DLG_CLOSED = 3;
-	Integer connDlgStatus = CONN_DLG_NONE;
-	boolean connDlgResult;
+//	ConnectionDialog connDlg;
+//	static final int CONN_DLG_NONE = 0;
+//	static final int CONN_DLG_NEEDED = 1;
+//	static final int CONN_DLG_OPENED = 2;
+//	static final int CONN_DLG_CLOSED = 3;
+//	Integer connDlgStatus = CONN_DLG_NONE;
+//	boolean connDlgResult;
 	
 	
 	int syncProgress;
@@ -86,15 +86,15 @@ public class ClientMain {
 			if (!display.readAndDispatch()) {
 				display.sleep();
 			}
-			if (!running) {
-				shell.close();
-			}
-			if (connDlgStatus == CONN_DLG_NEEDED) {
-				connDlgStatus = CONN_DLG_OPENED;
-				connDlg = new ConnectionDialog(this);
-				connDlgResult = (boolean) connDlg.open();
-				connDlgStatus = CONN_DLG_CLOSED;
-			}
+//			if (!running) {
+//				shell.close();
+//			}
+//			if (connDlgStatus == CONN_DLG_NEEDED) {
+//				connDlgStatus = CONN_DLG_OPENED;
+//				connDlg = new ConnectionDialog(this);
+//				connDlgResult = (boolean) connDlg.open();
+//				connDlgStatus = CONN_DLG_CLOSED;
+//			}
 		}
 	}
 	
@@ -162,10 +162,8 @@ public class ClientMain {
 		btnAdd.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
-				var newStudent = new TableItemStudent(table, SWT.NONE);
-				newStudent.setText(new String[]{
-						"номер", "имя"
-				});
+				EditDialog editDlg = new EditDialog(client);
+				editDlg.open();
 			}
 		});
 		FormData fd_btnAdd = new FormData();
@@ -245,8 +243,7 @@ public class ClientMain {
 			for (var ti: students) {
 				if (ti.student.id == srvStudent.id) {
 					if (srvStudent.getSerial() > ti.student.getSerial()) {
-						ti.student = srvStudent;
-						ti.setText(srvStudent.getFullName());
+						ti.setStudent(srvStudent);
 					}
 					return;
 				}
@@ -277,16 +274,16 @@ public class ClientMain {
 		}
 	}
 
-	public boolean showConnDlg() {
-		if (connDlgStatus == CONN_DLG_NONE) {
-			connDlgStatus = CONN_DLG_NEEDED;
-		}
-		while (connDlgStatus != CONN_DLG_CLOSED) {
-			Thread.onSpinWait();
-		}
-		synchronized (connDlgStatus) {
-			connDlgStatus = CONN_DLG_NONE;
-			return connDlgResult;
-		}
-	}
+//	public boolean showConnDlg() {
+//		if (connDlgStatus == CONN_DLG_NONE) {
+//			connDlgStatus = CONN_DLG_NEEDED;
+//		}
+//		while (connDlgStatus != CONN_DLG_CLOSED) {
+//			Thread.onSpinWait();
+//		}
+//		synchronized (connDlgStatus) {
+//			connDlgStatus = CONN_DLG_NONE;
+//			return connDlgResult;
+//		}
+//	}
 }

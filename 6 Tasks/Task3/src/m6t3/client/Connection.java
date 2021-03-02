@@ -1,18 +1,23 @@
 package m6t3.client;
 
-import java.io.BufferedReader;
+import static m6t3.common.Tranciever.SEND_ALL;
+import static m6t3.common.Tranciever.SEND_STUDENT;
+import static m6t3.common.Tranciever.recieveInt;
+import static m6t3.common.Tranciever.recieveStudent;
+import static m6t3.common.Tranciever.recieveStudentsList;
+import static m6t3.common.Tranciever.transmitInt;
+import static m6t3.common.Tranciever.transmitStudent;
+
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.InetSocketAddress;
 import java.net.Socket;
-import java.nio.ByteBuffer;
 import java.util.LinkedList;
-import java.util.List;
+import java.util.Queue;
 
+import m6t3.common.Student;
 import m6t3.server.ServerMain;
-import m6t3.server.Student;
 
 class Connection extends Thread {
 
@@ -21,16 +26,14 @@ class Connection extends Thread {
 	static final int RETRIES_COUNT = 3;
 	static final long SYNC_INTERVAL = 500;
 	
-	static final int SEND_ALL = signatureToInt("BULK");
-	static final int SEND_STUDENT = signatureToInt("STUD");
-	static final int STOP = signatureToInt("STOP");
-	
 	ClientMain client;
 	String serverHost;
 	int serverPort;
 	Socket socket;
 	InputStream in;
 	OutputStream out;
+	
+	Queue<Student> outStudents = new LinkedList<>();
 
 	public Connection(ClientMain client) {
 		this.serverHost = DEFAULT_SERVER_HOST;
@@ -51,12 +54,17 @@ class Connection extends Thread {
 							client.mergeStudents(recieveStudentsList(in));							
 						}
 					} else if (SEND_STUDENT == signature) {
-						client.mergeStudent(recieveStudent(in));
+//						client.mergeStudent(recieveStudent(in));
+						Student student = recieveStudent(in);
+//						System.out.println(student);
+						client.shell.getDisplay().asyncExec(() -> client.mergeStudent(student));
 					} else {
-						in.close();
+						in.skipNBytes(in.available());
 					}
-				}
-				if (client.running) {
+				} else if (!outStudents.isEmpty()) {
+					transmitInt(SEND_STUDENT, out);
+					transmitStudent(outStudents.poll(), out);
+				} else {
 					Thread.sleep(SYNC_INTERVAL);
 				}
 			} catch (IOException | NullPointerException e) {
@@ -69,56 +77,35 @@ class Connection extends Thread {
 
 	private void reconnect() {
 		int retries = RETRIES_COUNT;
-		while (true) {
+		while (!client.shell.isDisposed()) {
 			while (retries-- > 0) {
+				try {
+					socket.close();
+				} catch (Exception e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				}
 				socket = new Socket();
 				try {
 					socket.connect(new InetSocketAddress(serverHost, serverPort), DEFAULT_TIMEOUT);
+					in = socket.getInputStream();
+					out = socket.getOutputStream();
 					return;
 				} catch (IOException e) {
 					//Здесь ничего не надо делать
 				}
 			}
-			if (!client.showConnDlg()) {
-				client.running = false;
-				return;
-			}
+			client.shell.getDisplay().syncExec(() -> showReconnDlg());
 		}
 	}
 	
-	static int signatureToInt(String str) {
-		return ByteBuffer.wrap(str.getBytes()).getInt();
+	void showReconnDlg() {
+		if (!(boolean) new ConnectionDialog(client).open()) {
+			client.shell.getDisplay().syncExec(() -> client.shell.close());
+		}
 	}
 	
-	static int recieveInt(InputStream in) throws IOException {
-		int result = 0;
-		for (int i = 0; i < 4; i++) {
-			result = (result << 8) + in.read();
-		}
-		return result;
-	}
-	
-	static List<Student> recieveStudentsList(InputStream in) throws IOException {
-		List<Student> result = new LinkedList<>();
-		int signature = recieveInt(in);
-		while (signature == SEND_STUDENT) {
-			result.add(recieveStudent(in));
-			signature = recieveInt(in);
-		}
-		if (signature != STOP) {
-			in.close();
-		}
-		return result;
-	}
-	
-	static Student recieveStudent(InputStream in) throws IOException {
-		int id = recieveInt(in);
-		int serial = recieveInt(in);
-		BufferedReader br = new BufferedReader(new InputStreamReader(in));
-		String number = br.readLine();
-		String surname = br.readLine();
-		String name = br.readLine();
-		String patronymic = br.readLine();
-		return new Student(id, serial, number, surname, name, patronymic);
+	public void sendStudent(Student student) {
+		outStudents.add(student);
 	}
 }
