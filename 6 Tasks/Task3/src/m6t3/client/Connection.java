@@ -2,6 +2,7 @@ package m6t3.client;
 
 import static m6t3.common.Tranciever.SEND_ALL;
 import static m6t3.common.Tranciever.SEND_STUDENT;
+import static m6t3.common.Tranciever.SYNC_INTERVAL;
 import static m6t3.common.Tranciever.recieveInt;
 import static m6t3.common.Tranciever.recieveStudent;
 import static m6t3.common.Tranciever.recieveStudentsList;
@@ -24,7 +25,6 @@ class Connection extends Thread {
 	static final String DEFAULT_SERVER_HOST = "localhost";
 	static final int DEFAULT_TIMEOUT = 3000;
 	static final int RETRIES_COUNT = 3;
-	static final long SYNC_INTERVAL = 500;
 	
 	ClientMain client;
 	String serverHost;
@@ -48,15 +48,14 @@ class Connection extends Thread {
 				if (in.available() >= 4) {
 					int signature = recieveInt(in);
 					if (SEND_ALL == signature) {
+						LinkedList<Student> students = recieveStudentsList(in);
 						if (client.table.getItemCount() < 1) {
-							client.replaceStudents(recieveStudentsList(in));
+							client.shell.getDisplay().asyncExec(() -> client.replaceStudents(students));
 						} else {
-							client.mergeStudents(recieveStudentsList(in));							
+							client.shell.getDisplay().asyncExec(() -> client.mergeStudents(students));						
 						}
 					} else if (SEND_STUDENT == signature) {
-//						client.mergeStudent(recieveStudent(in));
 						Student student = recieveStudent(in);
-//						System.out.println(student);
 						client.shell.getDisplay().asyncExec(() -> client.mergeStudent(student));
 					} else {
 						in.skipNBytes(in.available());

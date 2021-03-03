@@ -1,6 +1,7 @@
 package m6t3.server;
 
 import static m6t3.common.Tranciever.SEND_STUDENT;
+import static m6t3.common.Tranciever.SYNC_INTERVAL;
 import static m6t3.common.Tranciever.recieveInt;
 import static m6t3.common.Tranciever.recieveStudent;
 import static m6t3.common.Tranciever.transmitInt;
@@ -24,29 +25,24 @@ class SocketThread extends Thread {
 
 	@Override
 	public void run() {
-//		Student student = null;
 		try {
 			InputStream in = socket.getInputStream();
 			OutputStream out = socket.getOutputStream();
 			while (server.running && !socket.isClosed()) {
 				if (in.available() >= 4) {
-//					System.out.println("Серверу что-то прилетело");
 					int signature = recieveInt(in);
 					if (SEND_STUDENT == signature) {
-//						System.out.println("Это студент");
 						server.updateStudent(recieveStudent(in));
 					} else {
-						System.out.println("Сервер не опознал передачу");
+						System.err.println("Сервер не опознал передачу");
 						in.skipNBytes(in.available());
 					}
 				} else if (!server.changed.isEmpty()) {
-//					System.out.println("Сервер передаёт студента");
 					transmitInt(SEND_STUDENT, out);
 					transmitStudent(server.changed.poll(), out);
 					out.flush();
-//					System.out.println("Сервер передал студента");
 				} else {
-					Thread.sleep(100);
+					Thread.sleep(SYNC_INTERVAL);
 				}
 			}
 		} catch (IOException e) {
@@ -61,7 +57,6 @@ class SocketThread extends Thread {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		System.out.println("Сервер закрыл подключение");
 	}
 	
 	

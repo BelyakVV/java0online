@@ -27,33 +27,20 @@ import m6t3.common.Student;
 public class ClientMain {
 	
 	static ClientMain client;
-	
-//	List<TableItem> students = new LinkedList<>();
-	boolean running = true;
-	boolean drawing = false;
-	volatile int merging = 0;
-	boolean sending = false;
-	boolean changed = false;
 
-//	Socket socket = new Socket();
-	Connection connection;
-//	ConnectionDialog connDlg;
-//	static final int CONN_DLG_NONE = 0;
-//	static final int CONN_DLG_NEEDED = 1;
-//	static final int CONN_DLG_OPENED = 2;
-//	static final int CONN_DLG_CLOSED = 3;
-//	Integer connDlgStatus = CONN_DLG_NONE;
-//	boolean connDlgResult;
+	Connection connection;	
 	
+	boolean running = true;
 	
 	int syncProgress;
-	protected Shell shell;
+	Shell shell;
 	Table table;
 	private Button btnAdd;
 	private Button btnModify;
 	private Button btnExit;
 
 	static final char KEY_ENTER = 13;
+	private Button btnDelete;
 	
 	/**
 	 * Launch the application.
@@ -76,27 +63,12 @@ public class ClientMain {
 		createContents();
 		shell.open();
 		shell.layout();
-//		if (!serverConnect()) {
-//			shell.close();
-//		} 
-//		System.err.println(client);
 		connection  = new Connection(this);
 		connection.start();
-//		Login loginDialog = new Login(shell, SWT.NONE);
-//		loginDialog.open();
 		while (!shell.isDisposed()) {
 			if (!display.readAndDispatch()) {
 				display.sleep();
 			}
-//			if (!running) {
-//				shell.close();
-//			}
-//			if (connDlgStatus == CONN_DLG_NEEDED) {
-//				connDlgStatus = CONN_DLG_OPENED;
-//				connDlg = new ConnectionDialog(this);
-//				connDlgResult = (boolean) connDlg.open();
-//				connDlgStatus = CONN_DLG_CLOSED;
-//			}
 		}
 	}
 	
@@ -195,7 +167,7 @@ public class ClientMain {
 		btnModify.setLayoutData(fd_btnModify);
 		btnModify.setText("Изменить");
 		
-		Button btnDelete = new Button(shell, SWT.NONE);
+		btnDelete = new Button(shell, SWT.NONE);
 		btnDelete.setEnabled(false);
 		fd_btnModify.left = new FormAttachment(btnDelete, -158);
 		fd_btnModify.right = new FormAttachment(btnDelete, -6);
@@ -232,10 +204,6 @@ public class ClientMain {
 		fd_btnExit.bottom = new FormAttachment(btnAdd, 0, SWT.BOTTOM);
 		btnExit.setLayoutData(fd_btnExit);
 		btnExit.setText("Выход");
-	}
-
-	public boolean isRunning() {
-		return running;
 	}
 
 	public void mergeStudent(Student srvStudent) {

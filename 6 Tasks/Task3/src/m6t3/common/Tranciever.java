@@ -14,6 +14,7 @@ public class Tranciever {
 	public static final int SEND_ALL = signatureToInt("BULK");
 	public static final int SEND_STUDENT = signatureToInt("STUD");
 	public static final int STOP = signatureToInt("STOP");
+	public static final long SYNC_INTERVAL = 100;
 	
 	public static int signatureToInt(String str) {
 		return ByteBuffer.wrap(str.getBytes()).getInt();
