@@ -127,6 +127,7 @@ public class ClientMain {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
 				btnModify.setEnabled(true);
+				btnDelete.setEnabled(true);
 			}
 		});
 		FormData fd_table = new FormData();
@@ -174,7 +175,9 @@ public class ClientMain {
 		btnDelete.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
-				table.remove(table.getSelectionIndices());
+				int index = table.getSelectionIndex();
+				Student student = (Student) table.getItem(index).getData();
+				connection.sendStudent(student.suicide());
 			}
 		});
 		FormData fd_btnDelete = new FormData();
@@ -213,6 +216,10 @@ public class ClientMain {
 			if (student.id == srvStudent.id) {
 				if (srvStudent.getSerial() < 0) {
 					table.remove(i);
+					if (table.getItemCount() < 1) {
+						btnModify.setEnabled(false);
+						btnDelete.setEnabled(false);
+					}
 					return;
 				}
 				if (srvStudent.getSerial() > student.getSerial()) {

@@ -104,4 +104,9 @@ public class Student {
 		}
 		return false;
 	}
+
+	public Student suicide() {
+		serial = INVALID_SERIAL;
+		return this;
+	}
 }
