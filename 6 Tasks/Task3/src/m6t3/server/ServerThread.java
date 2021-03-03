@@ -5,18 +5,20 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Queue;
+
+import m6t3.common.Student;
 
 class ServerThread extends Thread {
-//	int port;
+	List<Student> students = new LinkedList<>();
+	Queue<Student> changed = new LinkedList<>();
+	int nextId = 0;
 	final ServerSocket listener;
 	final List<SocketThread> threads = new LinkedList<>();
-//	final ThreadGroup threadGroup;
 	volatile boolean running = true;
 	
 	ServerThread(int port) throws IOException {
-//		this.port = port;
 		listener = new ServerSocket(port);
-//		threadGroup = new ThreadGroup("Port " + Integer.toString(port));
 	}
 
 	@Override
@@ -60,6 +62,34 @@ class ServerThread extends Thread {
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+		}
+	}
+
+	public void updateStudent(Student upd) {
+		synchronized (students) {
+			if (upd.id < 0) {
+				if (upd.getSerial() >= 0) {
+					Student student = new Student(nextId++, upd);
+					if (students.add(student)) {
+						changed.add(student);
+					}
+				}
+				return;
+			}
+			for (var student: students) {
+				if (student.id == upd.id) {
+					if (upd.getSerial() < 0) {
+						students.remove(student);
+						changed.add(upd);
+					} else {
+						upd.incSerial();
+						if (student.update(upd)) {
+							changed.add(student);
+						}
+					}
+					return;
+				}
+			}
 		}
 	}
 }

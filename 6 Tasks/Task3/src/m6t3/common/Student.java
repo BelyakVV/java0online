@@ -1,6 +1,9 @@
 package m6t3.common;
 
 public class Student {
+	public static final int INVALID_ID = -1;
+	public static final int INVALID_SERIAL = -1;
+	
 	public final int id;
 	int serial;
 	String number;
@@ -22,6 +25,15 @@ public class Student {
 		this.name = name;
 		this.patronymic = patronymic;
 	}	
+	
+	public Student(int id, Student student) {
+		this.id = id;
+		serial = 0;
+		number = student.number;
+		surname = student.surname;
+		name = student.name;
+		patronymic = student.patronymic;
+	}
 	
 	public Student() {
 		id = -1;	
@@ -79,5 +91,17 @@ public class Student {
 	public String toString() {
 		return "Student [id=" + id + ", serial=" + serial + ", number=" + number + ", surname=" + surname + ", name="
 				+ name + ", patronymic=" + patronymic + "]";
+	}
+
+	public boolean update(Student upd) {
+		if (upd.serial > serial) {
+			serial = upd.serial;
+			number = upd.number;
+			surname = upd.surname;
+			name = upd.name;
+			patronymic = upd.patronymic;
+			return true;
+		}
+		return false;
 	}
 }

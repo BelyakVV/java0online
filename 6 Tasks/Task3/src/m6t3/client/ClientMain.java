@@ -1,7 +1,7 @@
 package m6t3.client;
 
 import java.util.LinkedList;
-import java.util.List;
+import java.util.Queue;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
@@ -20,6 +20,7 @@ import org.eclipse.swt.widgets.ProgressBar;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableColumn;
+import org.eclipse.swt.widgets.TableItem;
 
 import m6t3.common.Student;
 
@@ -27,7 +28,7 @@ public class ClientMain {
 	
 	static ClientMain client;
 	
-	List<TableItemStudent> students = new LinkedList<>();
+//	List<TableItem> students = new LinkedList<>();
 	boolean running = true;
 	boolean drawing = false;
 	volatile int merging = 0;
@@ -47,9 +48,10 @@ public class ClientMain {
 	
 	int syncProgress;
 	protected Shell shell;
-	private Table table;
-	private Button btnExit;
+	Table table;
 	private Button btnAdd;
+	private Button btnModify;
+	private Button btnExit;
 
 	static final char KEY_ENTER = 13;
 	
@@ -149,6 +151,12 @@ public class ClientMain {
 		progressBar.setLayoutData(fd_progressBar);
 
 		table = new Table(shell, SWT.BORDER | SWT.FULL_SELECTION);
+		table.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				btnModify.setEnabled(true);
+			}
+		});
 		FormData fd_table = new FormData();
 		fd_table.left = new FormAttachment(0, 10);
 		fd_table.right = new FormAttachment(100, -10);
@@ -162,8 +170,7 @@ public class ClientMain {
 		btnAdd.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
-				EditDialog editDlg = new EditDialog(client);
-				editDlg.open();
+				new EditDialog(client).open();
 			}
 		});
 		FormData fd_btnAdd = new FormData();
@@ -172,7 +179,16 @@ public class ClientMain {
 		btnAdd.setLayoutData(fd_btnAdd);
 		btnAdd.setText("Добавить");
 		
-		Button btnModify = new Button(shell, SWT.NONE);
+		btnModify = new Button(shell, SWT.NONE);
+		btnModify.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				int index = table.getSelectionIndex();
+				Student student = (Student) table.getItem(index).getData();
+				new EditDialog(client, student).open();
+			}
+		});
+		btnModify.setEnabled(false);
 		FormData fd_btnModify = new FormData();
 		fd_btnModify.top = new FormAttachment(table, 6);
 		fd_btnModify.bottom = new FormAttachment(statusBar, -6);
@@ -180,6 +196,7 @@ public class ClientMain {
 		btnModify.setText("Изменить");
 		
 		Button btnDelete = new Button(shell, SWT.NONE);
+		btnDelete.setEnabled(false);
 		fd_btnModify.left = new FormAttachment(btnDelete, -158);
 		fd_btnModify.right = new FormAttachment(btnDelete, -6);
 		btnDelete.addSelectionListener(new SelectionAdapter() {
@@ -220,70 +237,47 @@ public class ClientMain {
 	public boolean isRunning() {
 		return running;
 	}
-	
-//	private boolean serverConnect() {
-//		while (!socket.isConnected()) {
-//			try {
-////				System.out.println(serverHost + ':' + serverPort);
-//				socket.connect(new InetSocketAddress(serverHost, serverPort), DEFAULT_TIMEOUT);
-//			} catch (IOException e) {
-////				e.printStackTrace(System.err);
-//				socket = new Socket();
-//				ConnectionDialog connDlg = new ConnectionDialog(shell, SWT.NONE);
-//				if (!(Boolean) connDlg.open()) {
-//					break;
-//				}
-//			}
-//		}
-//		return socket.isConnected();
-//	}
 
 	public void mergeStudent(Student srvStudent) {
-		synchronized (students) {
-			for (var ti: students) {
-				if (ti.student.id == srvStudent.id) {
-					if (srvStudent.getSerial() > ti.student.getSerial()) {
-						ti.setStudent(srvStudent);
-					}
+		for (int i = 0; i < table.getItemCount(); i++) {
+			TableItem item = table.getItem(i);
+			Student student = (Student) item.getData();
+			if (student.id == srvStudent.id) {
+				if (srvStudent.getSerial() < 0) {
+					table.remove(i);
 					return;
 				}
+				if (srvStudent.getSerial() > student.getSerial()) {
+					fillTableItem(item, srvStudent);
+				}
+				return;
 			}
-			students.add(new TableItemStudent(table, srvStudent));
 		}
+		TableItem item = new TableItem(table, SWT.NONE);
+		fillTableItem(item, srvStudent);
 	}
 
-	public void mergeStudents(List<Student> srvStudents) {
-		synchronized (students) {
-			table.setRedraw(false);
-			for (var student: srvStudents) {
-				mergeStudent(student);
-			}
-			table.setRedraw(true);
-		}
-	}
-	
-	public void replaceStudents(List<Student> srvStudents) {
-		synchronized (students) {
-			students.clear();
-			table.setRedraw(false);
-			table.clearAll();
-			for (var student: srvStudents) {
-				students.add(new TableItemStudent(table, student));
-			}
-			table.setRedraw(true);
-		}
+	private static void fillTableItem(TableItem item, Student student) {
+		item.setData(student);
+		item.setText(0, student.getNumber());
+		item.setText(1, student.getFullName());
 	}
 
-//	public boolean showConnDlg() {
-//		if (connDlgStatus == CONN_DLG_NONE) {
-//			connDlgStatus = CONN_DLG_NEEDED;
-//		}
-//		while (connDlgStatus != CONN_DLG_CLOSED) {
-//			Thread.onSpinWait();
-//		}
-//		synchronized (connDlgStatus) {
-//			connDlgStatus = CONN_DLG_NONE;
-//			return connDlgResult;
-//		}
-//	}
+	public void mergeStudents(Queue<Student> srvStudents) {
+		table.setRedraw(false);
+		while (!srvStudents.isEmpty()) {
+			mergeStudent(srvStudents.poll());
+		}
+		table.setRedraw(true);
+	}
+
+	public void replaceStudents(LinkedList<Student> list) {
+		table.setRedraw(false);
+		table.clearAll();
+		while (!list.isEmpty()) {
+			TableItem item = new TableItem(table, SWT.NONE);
+			fillTableItem(item, list.poll());
+		}
+		table.setRedraw(true);
+	}
 }

@@ -47,6 +47,13 @@ public class EditDialog extends Dialog {
 		setText("Новый студент");
 		student = new Student();
 	}
+
+	public EditDialog(ClientMain client, Student student) {
+		super(client.shell, SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL);
+		this.client = client;
+		setText("Редактирование студента");
+		this.student = student;
+	}
 	
 	public EditDialog(Shell parent, Student student) {
 		super(parent, SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL);

@@ -48,7 +48,7 @@ class Connection extends Thread {
 				if (in.available() >= 4) {
 					int signature = recieveInt(in);
 					if (SEND_ALL == signature) {
-						if (client.students.isEmpty()) {
+						if (client.table.getItemCount() < 1) {
 							client.replaceStudents(recieveStudentsList(in));
 						} else {
 							client.mergeStudents(recieveStudentsList(in));							

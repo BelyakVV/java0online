@@ -8,7 +8,6 @@ import java.io.OutputStream;
 import java.io.PrintStream;
 import java.nio.ByteBuffer;
 import java.util.LinkedList;
-import java.util.List;
 
 public class Tranciever {
 	
@@ -60,8 +59,8 @@ public class Tranciever {
 		out.flush();
 	}
 	
-	public static List<Student> recieveStudentsList(InputStream in) throws IOException {
-		List<Student> result = new LinkedList<>();
+	public static LinkedList<Student> recieveStudentsList(InputStream in) throws IOException {
+		LinkedList<Student> result = new LinkedList<>();
 		int signature = recieveInt(in);
 		while (signature == SEND_STUDENT) {
 			result.add(recieveStudent(in));
