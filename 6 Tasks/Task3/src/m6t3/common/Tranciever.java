@@ -49,6 +49,8 @@ public class Tranciever {
 	}
 	
 	public static void transmitStudent(Student student, OutputStream out) throws IOException {
+		System.out.println("Отправка студента");
+		transmitInt(SEND_STUDENT, out);
 		transmitInt(student.id, out);
 		transmitInt(student.getSerial(), out);
 		PrintStream ps = new PrintStream(out);

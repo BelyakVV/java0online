@@ -8,7 +8,6 @@ public class ServerMain {
 
 	public static final int DEFAULT_IP_PORT = 10000;
 	static int port = DEFAULT_IP_PORT;
-	static boolean running = true;
 	
 	public static void main(String[] args) throws IOException {
 		if (args.length > 0) {
@@ -23,12 +22,7 @@ public class ServerMain {
 		System.out.println("Сервер успешно запущен на порту " + port);
 		System.out.print("Нажмите ВВОД для завершения...");
 		new BufferedReader(new InputStreamReader(System.in)).readLine();
-		try {
-			server.syncStop();
-		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+		server.halt();
 		System.out.println("Сервер успешно остановлен");
 	}
 

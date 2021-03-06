@@ -1,83 +1,48 @@
 package m6t3.client;
 
-import static m6t3.common.Tranciever.SEND_ALL;
-import static m6t3.common.Tranciever.SEND_STUDENT;
-import static m6t3.common.Tranciever.SYNC_INTERVAL;
-import static m6t3.common.Tranciever.recieveInt;
-import static m6t3.common.Tranciever.recieveStudent;
-import static m6t3.common.Tranciever.recieveStudentsList;
-import static m6t3.common.Tranciever.transmitInt;
-import static m6t3.common.Tranciever.transmitStudent;
-
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.util.LinkedList;
 import java.util.Queue;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 
 import m6t3.common.Student;
 import m6t3.server.ServerMain;
 
-class Connection extends Thread {
+class Connection {
 
 	static final String DEFAULT_SERVER_HOST = "localhost";
 	static final int DEFAULT_TIMEOUT = 3000;
 	static final int RETRIES_COUNT = 3;
 	
-	ClientMain client;
+	final ClientMain client;
 	String serverHost;
 	int serverPort;
 	Socket socket;
-	InputStream in;
-	OutputStream out;
+	final ClntReciever reciever;
+	final ClientTransmitter transmitter;
 	
-	Queue<Student> outStudents = new LinkedList<>();
+	final Queue<Student> inStudents = new LinkedList<>();
+	final BlockingQueue<Student> outStudents = new LinkedBlockingQueue<>();
 
 	public Connection(ClientMain client) {
 		this.serverHost = DEFAULT_SERVER_HOST;
 		this.serverPort = ServerMain.DEFAULT_IP_PORT;
 		this.client = client;
+		reciever = new ClntReciever(this);
+		reciever.start();
+		transmitter = new ClientTransmitter(this);
+		transmitter.start();
 	}
 
-	@Override
-	public void run() {
-		while(client.running) {
-			try {
-				if (in.available() >= 4) {
-					int signature = recieveInt(in);
-					if (SEND_ALL == signature) {
-						LinkedList<Student> students = recieveStudentsList(in);
-						if (client.table.getItemCount() < 1) {
-							client.shell.getDisplay().asyncExec(() -> client.replaceStudents(students));
-						} else {
-							client.shell.getDisplay().asyncExec(() -> client.mergeStudents(students));						
-						}
-					} else if (SEND_STUDENT == signature) {
-						Student student = recieveStudent(in);
-						client.shell.getDisplay().asyncExec(() -> client.mergeStudent(student));
-					} else {
-						in.skipNBytes(in.available());
-					}
-				} else if (!outStudents.isEmpty()) {
-					transmitInt(SEND_STUDENT, out);
-					transmitStudent(outStudents.poll(), out);
-				} else {
-					Thread.sleep(SYNC_INTERVAL);
-				}
-			} catch (IOException | NullPointerException e) {
-				reconnect();
-			} catch (InterruptedException e) {
-				//Ничего не надо делать
-			}
-		}
-	}
-
-	private void reconnect() {
-		int retries = RETRIES_COUNT;
+	void reconnect() {
+		System.out.print("Reconnection ");
 		while (!client.shell.isDisposed()) {
+			int retries = RETRIES_COUNT;
 			while (retries-- > 0) {
+				System.out.print(retries + " ");
 				try {
 					socket.close();
 				} catch (Exception e1) {
@@ -87,13 +52,15 @@ class Connection extends Thread {
 				socket = new Socket();
 				try {
 					socket.connect(new InetSocketAddress(serverHost, serverPort), DEFAULT_TIMEOUT);
-					in = socket.getInputStream();
-					out = socket.getOutputStream();
+					reciever.in = socket.getInputStream();
+					transmitter.out = socket.getOutputStream();
+					System.out.println("success");
 					return;
 				} catch (IOException e) {
 					//Здесь ничего не надо делать
 				}
 			}
+			System.out.println();
 			client.shell.getDisplay().syncExec(() -> showReconnDlg());
 		}
 	}
@@ -105,6 +72,19 @@ class Connection extends Thread {
 	}
 	
 	public void sendStudent(Student student) {
-		outStudents.add(student);
+		System.out.println("Передача студента в очередь отправки " + outStudents.add(student));
+		;
+	}
+
+	public void disconnect() {
+		if (outStudents.isEmpty()) {
+			transmitter.interrupt();
+		}
+		try {
+			transmitter.join();
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 }

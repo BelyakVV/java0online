@@ -64,10 +64,12 @@ public class ClientMain {
 		shell.open();
 		shell.layout();
 		connection  = new Connection(this);
-		connection.start();
 		while (!shell.isDisposed()) {
 			if (!display.readAndDispatch()) {
 				display.sleep();
+			}
+			if (!connection.inStudents.isEmpty()) {
+				mergeStudent(connection.inStudents.poll());
 			}
 		}
 	}
@@ -81,6 +83,7 @@ public class ClientMain {
 			@Override
 			public void shellClosed(ShellEvent e) {
 				running = false;
+				connection.disconnect();
 			}
 		});
 		shell.setMinimumSize(new Point(400, 300));
