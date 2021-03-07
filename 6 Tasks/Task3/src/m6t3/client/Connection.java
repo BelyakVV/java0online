@@ -1,7 +1,5 @@
 package m6t3.client;
 
-import static m6t3.common.Tranciever.SYNC_REQUEST;
-
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.Socket;
@@ -22,6 +20,7 @@ class Connection {
 	Socket socket;
 	final ClientReciever reciever;
 	final ClientTransmitter transmitter;
+	final Synchronizer synchronizer;
 	
 //	final Queue<Student> inQueue = new LinkedList<>();
 	final BlockingQueue<Object> outQueue = new LinkedBlockingQueue<>();
@@ -34,7 +33,9 @@ class Connection {
 		reciever.start();
 		transmitter = new ClientTransmitter(this);
 		transmitter.start();
-		outQueue.add(SYNC_REQUEST);
+		synchronizer = new Synchronizer(client);
+		synchronizer.start();
+//		outQueue.add(SYNC_REQUEST);
 	}
 
 	void reconnect() {
@@ -77,6 +78,7 @@ class Connection {
 //	}
 
 	public void disconnect() {
+		synchronizer.interrupt();
 		if (outQueue.isEmpty()) {
 			transmitter.interrupt();
 		}

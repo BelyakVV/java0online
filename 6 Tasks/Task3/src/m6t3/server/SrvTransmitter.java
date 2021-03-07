@@ -1,8 +1,12 @@
 package m6t3.server;
-import static m6t3.common.Tranciever.*;
+
+import static m6t3.common.Tranciever.transmitInt;
+import static m6t3.common.Tranciever.transmitStudent;
 
 import java.io.IOException;
 import java.io.OutputStream;
+
+import m6t3.common.Student;
 
 class SrvTransmitter extends Thread {
 	final SrvLink link;
@@ -17,7 +21,12 @@ class SrvTransmitter extends Thread {
 	public void run() {
 		try {
 			while (true) {
-				transmitStudent(link.outQueue.take(), out);
+				Object obj = link.outQueue.take();
+				if (obj instanceof Student) {
+					transmitStudent((Student) obj, out);
+				} else if (obj instanceof Integer) {
+					transmitInt((Integer) obj, out);
+				}
 			}
 		} catch (Exception e) {
 			// TODO Auto-generated catch block

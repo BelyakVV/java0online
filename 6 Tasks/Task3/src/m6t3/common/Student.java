@@ -37,6 +37,7 @@ public class Student {
 	
 	public Student() {
 		id = -1;	
+		serial = 1;
 		number = "";
 		surname = "";
 		name = "";

@@ -1,5 +1,6 @@
 package m6t3.client;
 
+import static m6t3.common.Tranciever.CHECKSUM;
 import static m6t3.common.Tranciever.SEND_STUDENT;
 import static m6t3.common.Tranciever.recieveInt;
 import static m6t3.common.Tranciever.recieveStudent;
@@ -23,6 +24,7 @@ public class ClientReciever extends Thread {
 			e.printStackTrace();
 		}
 	}
+	
 	@Override
 	public void run() {
 		while (true) {				
@@ -34,10 +36,12 @@ public class ClientReciever extends Thread {
 //					connection.inQueue.add(recieveStudent(in));
 					Student student = recieveStudent(in);
 					client.shell.getDisplay().asyncExec(() -> client.mergeStudent(student));
+				} else if (CHECKSUM == signature) {
+					connection.synchronizer.srvChecksum = recieveInt(in);
 				} else {
 					System.err.println("Клиент не опознал передачу");
-//					in.skipNBytes(in.available());
-					connection.reconnect();
+					in.skipNBytes(in.available());
+//					connection.reconnect();
 				}
 			} catch (Exception e) {
 				// TODO Auto-generated catch block

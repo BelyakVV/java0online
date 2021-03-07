@@ -13,9 +13,14 @@ class ServerThread extends Thread {
 	final ServerSocket socket;
 	final List<SrvLink> links = new LinkedList<>();
 	volatile boolean running = true;
+	volatile boolean changed = true;
+	
+	final SyncSender syncSender;
 	
 	ServerThread(int port) throws IOException {
 		socket = new ServerSocket(port);
+		syncSender = new SyncSender(this);
+		syncSender.start();
 	}
 
 	@Override
@@ -34,6 +39,7 @@ class ServerThread extends Thread {
 
 	public void halt() {
 		running = false;
+		
 		while (!links.isEmpty()) {
 			links.remove(0).close();
 		}
@@ -51,6 +57,7 @@ class ServerThread extends Thread {
 				if (upd.getSerial() >= 0) {
 					Student student = new Student(nextId++, upd);
 					if (students.add(student)) {
+						changed = true;
 						broadcast(student);
 					}
 				}
@@ -60,10 +67,12 @@ class ServerThread extends Thread {
 				if (student.id == upd.id) {
 					if (upd.getSerial() < 0) {
 						students.remove(student);
+						changed  = true;
 						broadcast(upd);
 					} else {
 						upd.incSerial();
 						if (student.update(upd)) {
+							changed = true;
 							broadcast(student);
 						}
 					}

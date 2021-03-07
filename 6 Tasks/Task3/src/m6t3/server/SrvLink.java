@@ -5,14 +5,12 @@ import java.net.Socket;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
-import m6t3.common.Student;
-
 class SrvLink {
 	final ServerThread server;
 	final Socket socket;
 	final SrvReciever reciever;
 	final SrvTransmitter transmitter;
-	final BlockingQueue<Student> outQueue;
+	final BlockingQueue<Object> outQueue;
 	
 	static final long STOP_TIMEOUT = 1000;
 

@@ -11,11 +11,12 @@ import java.util.LinkedList;
 
 public class Tranciever {
 	
+	public static final int CHECKSUM = signatureToInt("CHCK");
 	public static final int SEND_ALL = signatureToInt("BULK");
 	public static final int SEND_STUDENT = signatureToInt("STUD");
 	public static final int STOP = signatureToInt("STOP");
 	public static final int SYNC_REQUEST = signatureToInt("SYNC");
-	public static final long SYNC_INTERVAL = 100;
+	public static final long SYNC_INTERVAL = 3000;
 	
 	public static int signatureToInt(String str) {
 		return ByteBuffer.wrap(str.getBytes()).getInt();
