@@ -30,6 +30,7 @@ public class ClientReciever extends Thread {
 				int signature = recieveInt(in);
 				//				System.out.println(signature);
 				if (SEND_STUDENT == signature) {
+					System.out.println("Приём студента");
 //					connection.inQueue.add(recieveStudent(in));
 					Student student = recieveStudent(in);
 					client.shell.getDisplay().asyncExec(() -> client.mergeStudent(student));

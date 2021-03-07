@@ -1,22 +1,30 @@
 package m6t3.client;
-import org.eclipse.swt.widgets.Dialog;
-import org.eclipse.swt.widgets.Display;
-import org.eclipse.swt.widgets.Shell;
-import org.eclipse.swt.widgets.Text;
-
-import m6t3.common.Student;
-
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.swt.widgets.Label;
-import org.eclipse.swt.layout.GridData;
-import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Button;
+import org.eclipse.swt.events.FocusAdapter;
+import org.eclipse.swt.events.FocusEvent;
+import org.eclipse.swt.events.KeyAdapter;
+import org.eclipse.swt.events.KeyEvent;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
-import org.eclipse.swt.layout.FormLayout;
-import org.eclipse.swt.layout.FormData;
+import org.eclipse.swt.events.TraverseEvent;
+import org.eclipse.swt.events.TraverseListener;
+import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.layout.FormAttachment;
+import org.eclipse.swt.layout.FormData;
+import org.eclipse.swt.layout.FormLayout;
+import org.eclipse.swt.layout.GridData;
+import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.widgets.Button;
+import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Dialog;
+import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Shell;
+import org.eclipse.swt.widgets.Text;
+import org.eclipse.wb.swt.SWTResourceManager;
+
+import m6t3.common.Student;
 
 public class EditDialog extends Dialog {
 
@@ -29,6 +37,8 @@ public class EditDialog extends Dialog {
 	private Text txtName;
 	private Text txtPatronymic;
 
+	private static Color defBgrdColor;
+	private static final Color RED = SWTResourceManager.getColor(SWT.COLOR_RED);
 	/**
 	 * Create the dialog.
 	 * @param parent
@@ -58,6 +68,36 @@ public class EditDialog extends Dialog {
 	public EditDialog(Shell parent, Student student) {
 		super(parent, SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL);
 	}
+	
+	public static final FocusAdapter SELECT_ALL_TEXT = new FocusAdapter() {
+		@Override
+		public void focusGained(FocusEvent e) {
+			((Text) e.widget).selectAll();
+		}
+	};
+	
+	public static final KeyAdapter TRAVERSE_OR_EXIT = new KeyAdapter() {
+		@Override
+		public void keyPressed(KeyEvent e) {
+			if (SWT.CR == e.keyCode || SWT.KEYPAD_CR == e.keyCode) {
+				((Control) e.widget).traverse(SWT.TRAVERSE_TAB_NEXT);
+			} else if (e.keyCode == SWT.ESC) {
+				((Control) e.widget).getShell().close();
+			}
+		}
+	};
+	
+	static final TraverseListener CHECK_BLANK = new TraverseListener() {
+		public void keyTraversed(TraverseEvent e) {
+			Text text = (Text) e.widget;
+			if (text.getText().isBlank()) {
+				text.setBackground(RED);
+				e.doit = false;
+			} else {
+				text.setBackground(defBgrdColor);
+			}
+		}
+	};
 
 	/**
 	 * Open the dialog.
@@ -67,6 +107,7 @@ public class EditDialog extends Dialog {
 		createContents();
 		shell.open();
 		shell.layout();
+		txtNumber.setFocus();
 		Display display = getParent().getDisplay();
 		while (!shell.isDisposed()) {
 			if (!display.readAndDispatch()) {
@@ -89,12 +130,7 @@ public class EditDialog extends Dialog {
 		btnOk.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
-				student.setNumber(txtNumber.getText());
-				student.setSurname(txtSurname.getText());
-				student.setName(txtName.getText());
-				student.setPatronymic(txtPatronymic.getText());
-				client.connection.outQueue.add(student);
-				shell.close();
+				submit();
 			}
 		});
 		FormData fd_btnOk = new FormData();
@@ -132,6 +168,10 @@ public class EditDialog extends Dialog {
 		lblNumber.setText("Номер");
 		
 		txtNumber = new Text(composite, SWT.BORDER);
+		defBgrdColor = txtNumber.getBackground();
+		txtNumber.addFocusListener(SELECT_ALL_TEXT);
+		txtNumber.addTraverseListener(CHECK_BLANK);
+		txtNumber.addKeyListener(TRAVERSE_OR_EXIT);
 		txtNumber.setText(student.getNumber());
 		GridData gd_txtNumber = new GridData(SWT.LEFT, SWT.CENTER, false, false, 1, 1);
 		gd_txtNumber.widthHint = 142;
@@ -142,6 +182,9 @@ public class EditDialog extends Dialog {
 		lblSurname.setText("Фамилия");
 		
 		txtSurname = new Text(composite, SWT.BORDER);
+		txtSurname.addFocusListener(SELECT_ALL_TEXT);
+		txtSurname.addTraverseListener(CHECK_BLANK);
+		txtSurname.addKeyListener(TRAVERSE_OR_EXIT);
 		txtSurname.setText(student.getSurname());
 		txtSurname.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
 		
@@ -150,6 +193,9 @@ public class EditDialog extends Dialog {
 		lblName.setText("Имя");
 		
 		txtName = new Text(composite, SWT.BORDER);
+		txtName.addFocusListener(SELECT_ALL_TEXT);
+		txtName.addTraverseListener(CHECK_BLANK);
+		txtName.addKeyListener(TRAVERSE_OR_EXIT);
 		txtName.setText(student.getName());
 		txtName.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
 		
@@ -158,8 +204,46 @@ public class EditDialog extends Dialog {
 		lblPatronymic.setText("Отчество");
 		
 		txtPatronymic = new Text(composite, SWT.BORDER);
+		txtPatronymic.addFocusListener(SELECT_ALL_TEXT);
+		txtPatronymic.addTraverseListener(CHECK_BLANK);
+		txtPatronymic.addKeyListener(new KeyAdapter() {
+			@Override
+			public void keyPressed(KeyEvent e) {
+				if (SWT.CR == e.keyCode || SWT.KEYPAD_CR == e.keyCode) {
+					submit();
+				} else if (e.keyCode == SWT.ESC) {
+					((Control) e.widget).getShell().close();
+				}
+			}
+		});
 		txtPatronymic.setText(student.getPatronymic());
 		txtPatronymic.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
 
+	}
+
+	private void submit() {
+		boolean ok = true;
+		ok &= checkText(txtPatronymic);
+		ok &= checkText(txtName);
+		ok &= checkText(txtSurname);
+		ok &= checkText(txtNumber);
+		if (!ok) return;
+		student.setNumber(txtNumber.getText());
+		student.setSurname(txtSurname.getText());
+		student.setName(txtName.getText());
+		student.setPatronymic(txtPatronymic.getText());
+		client.connection.outQueue.add(student);
+		shell.close();
+	}
+	
+	boolean checkText(Text text) {
+		boolean result = !text.getText().isBlank();
+		if (!result) {
+			text.setBackground(RED);
+			text.setFocus();
+		} else {
+			text.setBackground(defBgrdColor);
+		}
+		return result;
 	}
 }
