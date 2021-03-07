@@ -6,12 +6,14 @@ import static m6t3.common.Tranciever.recieveStudent;
 
 import java.io.InputStream;
 
-public class ClntReciever extends Thread {
+import m6t3.common.Student;
+
+public class ClientReciever extends Thread {
 	final ClientMain client;
 	final Connection connection;
 	InputStream in;
 
-	ClntReciever(Connection connection) {
+	ClientReciever(Connection connection) {
 		this.connection = connection;
 		client = connection.client;
 		try {
@@ -28,11 +30,12 @@ public class ClntReciever extends Thread {
 				int signature = recieveInt(in);
 				//				System.out.println(signature);
 				if (SEND_STUDENT == signature) {
-					connection.inStudents.add(recieveStudent(in));
-					//					client.shell.getDisplay().asyncExec(() -> client.mergeStudent(student));
+//					connection.inQueue.add(recieveStudent(in));
+					Student student = recieveStudent(in);
+					client.shell.getDisplay().asyncExec(() -> client.mergeStudent(student));
 				} else {
 					System.err.println("Клиент не опознал передачу");
-					in.skipNBytes(in.available());
+//					in.skipNBytes(in.available());
 					connection.reconnect();
 				}
 			} catch (Exception e) {

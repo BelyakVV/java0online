@@ -1,14 +1,13 @@
 package m6t3.client;
 
+import static m6t3.common.Tranciever.SYNC_REQUEST;
+
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.Socket;
-import java.util.LinkedList;
-import java.util.Queue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
-import m6t3.common.Student;
 import m6t3.server.ServerMain;
 
 class Connection {
@@ -21,20 +20,21 @@ class Connection {
 	String serverHost;
 	int serverPort;
 	Socket socket;
-	final ClntReciever reciever;
+	final ClientReciever reciever;
 	final ClientTransmitter transmitter;
 	
-	final Queue<Student> inStudents = new LinkedList<>();
-	final BlockingQueue<Student> outStudents = new LinkedBlockingQueue<>();
+//	final Queue<Student> inQueue = new LinkedList<>();
+	final BlockingQueue<Object> outQueue = new LinkedBlockingQueue<>();
 
 	public Connection(ClientMain client) {
 		this.serverHost = DEFAULT_SERVER_HOST;
 		this.serverPort = ServerMain.DEFAULT_IP_PORT;
 		this.client = client;
-		reciever = new ClntReciever(this);
+		reciever = new ClientReciever(this);
 		reciever.start();
 		transmitter = new ClientTransmitter(this);
 		transmitter.start();
+		outQueue.add(SYNC_REQUEST);
 	}
 
 	void reconnect() {
@@ -71,13 +71,13 @@ class Connection {
 		}
 	}
 	
-	public void sendStudent(Student student) {
-		System.out.println("Передача студента в очередь отправки " + outStudents.add(student));
-		;
-	}
+//	public void sendStudent(Student student) {
+//		System.out.println("Передача студента в очередь отправки " + outQueue.add(student));
+//		;
+//	}
 
 	public void disconnect() {
-		if (outStudents.isEmpty()) {
+		if (outQueue.isEmpty()) {
 			transmitter.interrupt();
 		}
 		try {

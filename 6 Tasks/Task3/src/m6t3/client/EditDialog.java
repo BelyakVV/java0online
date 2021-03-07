@@ -93,7 +93,7 @@ public class EditDialog extends Dialog {
 				student.setSurname(txtSurname.getText());
 				student.setName(txtName.getText());
 				student.setPatronymic(txtPatronymic.getText());
-				client.connection.sendStudent(student);
+				client.connection.outQueue.add(student);
 				shell.close();
 			}
 		});

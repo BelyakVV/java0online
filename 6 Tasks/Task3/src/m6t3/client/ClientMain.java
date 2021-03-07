@@ -68,9 +68,9 @@ public class ClientMain {
 			if (!display.readAndDispatch()) {
 				display.sleep();
 			}
-			if (!connection.inStudents.isEmpty()) {
-				mergeStudent(connection.inStudents.poll());
-			}
+//			if (!connection.inQueue.isEmpty()) {
+//				mergeStudent(connection.inQueue.poll());
+//			}
 		}
 	}
 	
@@ -180,7 +180,7 @@ public class ClientMain {
 			public void widgetSelected(SelectionEvent e) {
 				int index = table.getSelectionIndex();
 				Student student = (Student) table.getItem(index).getData();
-				connection.sendStudent(student.suicide());
+				connection.outQueue.add(student.suicide());
 			}
 		});
 		FormData fd_btnDelete = new FormData();

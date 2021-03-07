@@ -1,6 +1,6 @@
 package m6t3.server;
 
-import static m6t3.common.Tranciever.SEND_STUDENT;
+import static m6t3.common.Tranciever.*;
 import static m6t3.common.Tranciever.recieveInt;
 import static m6t3.common.Tranciever.recieveStudent;
 
@@ -24,11 +24,15 @@ class SrvReciever extends Thread {
 				int signature = recieveInt(in);
 //				System.out.println(signature);
 				if (SEND_STUDENT == signature) {
+					System.out.println("Recieved a student");
 					link.server.updateStudent(recieveStudent(in));
+				} else if (SYNC_REQUEST == signature) {
+					System.out.println("Recieved a request of full sync");
+					link.outQueue.addAll(link.server.students);
 				} else {
 					System.err.println("Сервер не опознал передачу");
-					link.close();
-					in.skipNBytes(in.available());
+					break;
+//					in.skipNBytes(in.available());
 				}
 			}
 		} catch (Exception e) {

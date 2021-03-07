@@ -14,6 +14,7 @@ public class Tranciever {
 	public static final int SEND_ALL = signatureToInt("BULK");
 	public static final int SEND_STUDENT = signatureToInt("STUD");
 	public static final int STOP = signatureToInt("STOP");
+	public static final int SYNC_REQUEST = signatureToInt("SYNC");
 	public static final long SYNC_INTERVAL = 100;
 	
 	public static int signatureToInt(String str) {
@@ -21,16 +22,22 @@ public class Tranciever {
 	}
 	
 	public static int recieveInt(InputStream in) throws IOException {
+		byte[] bytes = new byte[4];
+		if (in.read(bytes) < 4) {
+			in.close();
+			throw new IOException("End of stream reached");
+		}
 		int result = 0;
-		for (int i = 0; i < 4; i++) {
-			result = (result << 8) + in.read();
+		for (int i = 3; i >= 0; i--) {
+			result = (result << 8) + bytes[i];
 		}
 		return result;
 	}
 	
 	public static void transmitInt(int n, OutputStream out) throws IOException {
+//		System.out.print("transmitInt: " + n + " ");
 		byte[] result = new byte[4];
-		for (int i = 3; i >= 0; i--) {
+		for (int i = 0; i < 4; i++) {
 			result[i] = (byte) n;
 			n = n >> 8;
 		}

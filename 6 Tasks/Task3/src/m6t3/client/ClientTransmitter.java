@@ -1,9 +1,11 @@
 package m6t3.client;
 
-import static m6t3.common.Tranciever.transmitStudent;
+import static m6t3.common.Tranciever.*;
 
 import java.io.IOException;
 import java.io.OutputStream;
+
+import m6t3.common.Student;
 
 class ClientTransmitter extends Thread {
 	final ClientMain client;
@@ -23,17 +25,29 @@ class ClientTransmitter extends Thread {
 
 	@Override
 	public void run() {
-		while (client.running || !connection.outStudents.isEmpty()) {
-			try {
-				transmitStudent(connection.outStudents.take(), out);
-			} catch (Exception e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-				if (!client.running && connection.outStudents.isEmpty()) {
-					break;
+		try {
+			while (true) {
+				while (null == out) {
+					Thread.sleep(100);
 				}
-				connection.reconnect();
-			} 
+				Object obj = connection.outQueue.take();
+				var objClass = obj.getClass();
+				try {
+					if (Student.class == objClass) {
+							transmitStudent((Student) obj, out);
+					} else if (Integer.class == objClass) {
+						transmitInt((Integer) obj, out);
+//						out.flush();
+					}
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+					connection.outQueue.add(obj);
+				}
+			}
+		} catch (InterruptedException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
 		}
 		try {
 			connection.socket.close();
