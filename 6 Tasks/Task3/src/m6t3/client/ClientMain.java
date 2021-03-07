@@ -4,6 +4,12 @@ import java.util.LinkedList;
 import java.util.Queue;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.FocusAdapter;
+import org.eclipse.swt.events.FocusEvent;
+import org.eclipse.swt.events.KeyAdapter;
+import org.eclipse.swt.events.KeyEvent;
+import org.eclipse.swt.events.MouseAdapter;
+import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.ShellAdapter;
@@ -126,11 +132,30 @@ public class ClientMain {
 		progressBar.setLayoutData(fd_progressBar);
 
 		table = new Table(shell, SWT.BORDER | SWT.FULL_SELECTION);
+		table.addFocusListener(new FocusAdapter() {
+			@Override
+			public void focusGained(FocusEvent e) {
+				if (table.getItemCount() > 0) {
+					btnModify.setEnabled(true);
+					btnDelete.setEnabled(true);
+				}
+			}
+		});
+		table.addKeyListener(new KeyAdapter() {
+			@Override
+			public void keyPressed(KeyEvent e) {
+				if ((SWT.CR == e.keyCode) || (SWT.KEYPAD_CR == e.keyCode)) editStudent();
+			}
+		});
+		table.addMouseListener(new MouseAdapter() {
+			@Override
+			public void mouseDoubleClick(MouseEvent e) {
+				editStudent();
+			}
+		});
 		table.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
-				btnModify.setEnabled(true);
-				btnDelete.setEnabled(true);
 			}
 		});
 		FormData fd_table = new FormData();
@@ -159,9 +184,7 @@ public class ClientMain {
 		btnModify.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
-				int index = table.getSelectionIndex();
-				Student student = (Student) table.getItem(index).getData();
-				new EditDialog(client, student).open();
+				editStudent();
 			}
 		});
 		btnModify.setEnabled(false);
@@ -212,17 +235,31 @@ public class ClientMain {
 		btnExit.setText("Выход");
 	}
 
+	protected void editStudent() {
+		int index = table.getSelectionIndex();
+		if (index < 0) return;
+		Student student = (Student) table.getItem(index).getData();
+		new EditDialog(client, student).open();		
+//		table.setFocus();
+	}
+
 	public void mergeStudent(Student srvStudent) {
 		for (int i = 0; i < table.getItemCount(); i++) {
 			TableItem item = table.getItem(i);
 			Student student = (Student) item.getData();
 			if (student.id == srvStudent.id) {
 				if (srvStudent.getSerial() < 0) {
-					table.remove(i);
-					if (table.getItemCount() < 1) {
-						btnModify.setEnabled(false);
-						btnDelete.setEnabled(false);
+					if (table.isSelected(i)) {
+						if (table.getItemCount() > (i + 1)) {
+							table.select(i + 1);
+						} else if (i > 0) {
+							table.select(i - 1);
+						} else {
+							btnDelete.setEnabled(false);
+							btnModify.setEnabled(false);
+						}
 					}
+					table.remove(i);
 					return;
 				}
 				if (srvStudent.getSerial() > student.getSerial()) {
@@ -233,6 +270,7 @@ public class ClientMain {
 		}
 		TableItem item = new TableItem(table, SWT.NONE);
 		fillTableItem(item, srvStudent);
+		if (table.getItemCount() == 1) table.select(0);
 	}
 
 	private static void fillTableItem(TableItem item, Student student) {
