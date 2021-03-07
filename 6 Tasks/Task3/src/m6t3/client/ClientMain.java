@@ -45,7 +45,6 @@ public class ClientMain {
 	private Button btnModify;
 	private Button btnExit;
 
-	static final char KEY_ENTER = 13;
 	private Button btnDelete;
 	
 	/**
@@ -144,7 +143,7 @@ public class ClientMain {
 		table.addKeyListener(new KeyAdapter() {
 			@Override
 			public void keyPressed(KeyEvent e) {
-				if ((SWT.CR == e.keyCode) || (SWT.KEYPAD_CR == e.keyCode)) editStudent();
+				if (SWT.CR == e.character) editStudent();
 			}
 		});
 		table.addMouseListener(new MouseAdapter() {

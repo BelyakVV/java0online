@@ -79,9 +79,9 @@ public class EditDialog extends Dialog {
 	public static final KeyAdapter TRAVERSE_OR_EXIT = new KeyAdapter() {
 		@Override
 		public void keyPressed(KeyEvent e) {
-			if (SWT.CR == e.keyCode || SWT.KEYPAD_CR == e.keyCode) {
+			if (SWT.CR == e.character) {
 				((Control) e.widget).traverse(SWT.TRAVERSE_TAB_NEXT);
-			} else if (e.keyCode == SWT.ESC) {
+			} else if (e.character == SWT.ESC) {
 				((Control) e.widget).getShell().close();
 			}
 		}
@@ -209,9 +209,9 @@ public class EditDialog extends Dialog {
 		txtPatronymic.addKeyListener(new KeyAdapter() {
 			@Override
 			public void keyPressed(KeyEvent e) {
-				if (SWT.CR == e.keyCode || SWT.KEYPAD_CR == e.keyCode) {
+				if (SWT.CR == e.character) {
 					submit();
-				} else if (e.keyCode == SWT.ESC) {
+				} else if (e.character == SWT.ESC) {
 					((Control) e.widget).getShell().close();
 				}
 			}
