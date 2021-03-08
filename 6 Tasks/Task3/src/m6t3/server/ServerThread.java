@@ -5,6 +5,8 @@ import java.net.ServerSocket;
 import java.util.LinkedList;
 import java.util.List;
 
+import javax.xml.parsers.ParserConfigurationException;
+
 import m6t3.common.Student;
 
 class ServerThread extends Thread {
@@ -16,11 +18,14 @@ class ServerThread extends Thread {
 	volatile boolean changed = true;
 	
 	final SyncSender syncSender;
+	final SrvSaver saver;
 	
-	ServerThread(int port) throws IOException {
+	ServerThread(int port) throws IOException, ParserConfigurationException {
 		socket = new ServerSocket(port);
 		syncSender = new SyncSender(this);
 		syncSender.start();
+		saver = new SrvSaver(this);
+		saver.start();
 	}
 
 	@Override
@@ -39,7 +44,7 @@ class ServerThread extends Thread {
 
 	public void halt() {
 		running = false;
-		
+		syncSender.interrupt();
 		while (!links.isEmpty()) {
 			links.remove(0).close();
 		}
@@ -48,7 +53,8 @@ class ServerThread extends Thread {
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-		}	
+		}
+		saver.interrupt();
 	}
 
 	void updateStudent(Student upd) {

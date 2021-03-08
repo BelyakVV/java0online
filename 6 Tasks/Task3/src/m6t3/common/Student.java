@@ -110,4 +110,12 @@ public class Student {
 		serial = INVALID_SERIAL;
 		return this;
 	}
+	
+	public static int calcChecksum(Iterable<Student> students) {
+		int result = 0;
+		for (var student: students) {
+			result += student.serial;
+		}
+		return result;
+	}
 }
