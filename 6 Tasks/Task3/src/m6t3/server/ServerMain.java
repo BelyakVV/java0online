@@ -11,7 +11,7 @@ public class ServerMain {
 	public static final int DEFAULT_IP_PORT = 10000;
 	static int port = DEFAULT_IP_PORT;
 	
-	public static void main(String[] args) throws IOException, ParserConfigurationException {
+	public static void main(String[] args) throws IOException, ParserConfigurationException, InterruptedException {
 		if (args.length > 0) {
 			try {
 				port = Integer.parseInt(args[0]);
@@ -19,12 +19,12 @@ public class ServerMain {
 				//Оставить номер порта по умолчанию
 			}
 		}
-		ServerThread server = new ServerThread(port);
+		SrvListener server = new SrvListener(port);
 		server.start();
 		System.out.println("Сервер успешно запущен на порту " + port);
 		System.out.print("Нажмите ВВОД для завершения...");
 		new BufferedReader(new InputStreamReader(System.in)).readLine();
-		server.halt();
+		server.close();
 		System.out.println("Сервер успешно остановлен");
 	}
 

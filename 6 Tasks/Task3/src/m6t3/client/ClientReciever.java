@@ -34,10 +34,12 @@ public class ClientReciever extends Thread {
 				if (SEND_STUDENT == signature) {
 					System.out.println("Приём студента");
 //					connection.inQueue.add(recieveStudent(in));
-					Student student = recieveStudent(in);
-					client.shell.getDisplay().asyncExec(() -> client.mergeStudent(student));
+					Student srvStudent = recieveStudent(in);
+					client.shell.getDisplay().asyncExec(() -> client.mergeStudent(srvStudent));
 				} else if (CHECKSUM == signature) {
-					connection.synchronizer.srvChecksum = recieveInt(in);
+					int t = recieveInt(in);
+//					System.out.println("Recieved checksum = " + Integer.toHexString(t));
+					connection.synchronizer.srvChecksum = t;
 				} else {
 					System.err.println("Клиент не опознал передачу");
 					in.skipNBytes(in.available());

@@ -19,6 +19,12 @@ public class Tranciever {
 		return ByteBuffer.wrap(str.getBytes()).getInt();
 	}
 	
+	public static Long createMessage(int signature, int data) {
+		long result = signature | (((long) data) << Integer.SIZE);
+//		System.out.println(Long.toHexString(result));
+		return result;
+	}
+	
 	public static byte[] toBytes(int n) {
 		byte[] result = new byte[Integer.BYTES];
 		for (int i = 0; i < Integer.BYTES; i++) {
@@ -32,8 +38,10 @@ public class Tranciever {
 		byte[] result = new byte[Long.BYTES];
 		for (int i = 0; i < Long.BYTES; i++) {
 			result[i] = (byte) n;
+//			System.out.print(Integer.toHexString(Byte.toUnsignedInt(result[i])));
 			n = n >> 8;
 		}
+//		System.out.println();
 		return result;
 	}
 	
@@ -41,8 +49,10 @@ public class Tranciever {
 		int result = 0;
 		int end = start + Integer.BYTES - 1;
 		for (int i = end; i >= start; i--) {
-			result = (result << 8) + bytes[i];
+			result = (result << 8) | Byte.toUnsignedInt(bytes[i]);
+//			System.out.print(Integer.toHexString(Byte.toUnsignedInt(bytes[i])) + " ");
 		}
+//		System.out.println(Integer.toHexString(result));
 		return result;
 	}
 	
@@ -54,7 +64,7 @@ public class Tranciever {
 		long result = 0;
 		int end = start + Long.BYTES - 1;
 		for (int i = end; i >= start; i--) {
-			result = (result << 8) + bytes[i];
+			result = (result << 8) | Byte.toUnsignedInt(bytes[i]);
 		}
 		return result;
 	}
@@ -68,7 +78,7 @@ public class Tranciever {
 		for (int i = 0; i < len; i++) {
 			int x = in.read();
 			if (x < 0) {
-				in.close();
+//				in.close();
 				throw new IOException("End of stream reached");
 			} else {
 				result[i] = (byte) x;
@@ -79,6 +89,7 @@ public class Tranciever {
 	
 	public static int recieveInt(InputStream in) throws IOException {
 		byte[] bytes = recieveBytes(in, Integer.BYTES);
+//		System.out.println("Recieved int = " + toString(bytes));
 		return getInt(bytes);
 	}
 	
@@ -92,7 +103,17 @@ public class Tranciever {
 	}	
 	
 	public static void transmitLong(long n, OutputStream out) throws IOException {
-		out.write(toBytes(n));
+		byte[] result = toBytes(n);
+//		System.out.println(toString(result));
+		out.write(result);
+	}
+	
+	static String toString(byte[] bytes) {
+		StringBuilder result = new StringBuilder();
+		for (int i = bytes.length - 1; i >= 0; i--) {
+			result.append(Integer.toHexString(Byte.toUnsignedInt(bytes[i])));
+		}
+		return result.toString();
 	}
 	
 	public static Student recieveStudent(InputStream in) throws IOException {

@@ -6,18 +6,16 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
 class SrvLink {
-	final ServerThread server;
+	final SrvListener server;
 	final Socket socket;
 	final SrvReciever reciever;
 	final SrvTransmitter transmitter;
 	final BlockingQueue<Object> outQueue;
+	volatile boolean running = true;
 	
-	static final long STOP_TIMEOUT = 1000;
+//	static final long STOP_TIMEOUT = 1000;
 
-	SrvLink(ServerThread server, Socket socket) throws IOException {
-		if (!server.running) {
-			throw new RuntimeException("Сервер останавливается");
-		}
+	SrvLink(SrvListener server, Socket socket) throws IOException {
 		this.server = server;
 		this.socket = socket;
 		outQueue = new LinkedBlockingQueue<>();
@@ -28,13 +26,36 @@ class SrvLink {
 	}
 	
 	void close() {
-		reciever.interrupt();
+		if (!running) return;
+		running = false;
+		try {
+			if (socket.getInputStream().available() < 1) {
+				socket.getInputStream().close();
+			}
+		} catch (IOException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+		try {
+			if (Thread.currentThread() != reciever) reciever.join();
+		} catch (InterruptedException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
 		transmitter.interrupt();
+		try {
+			if (Thread.currentThread() != transmitter) transmitter.join();
+		} catch (InterruptedException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
 		try {
 			socket.close();
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+		server.links.remove(this);
+		System.out.println("Link is shut down");
 	}	
 }
