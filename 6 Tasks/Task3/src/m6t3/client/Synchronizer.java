@@ -13,7 +13,7 @@ class Synchronizer extends Thread {
 	final Display display;
 	public volatile int srvChecksum = 0;
 	Table table;
-//	private int myChecksum = 0;
+	private int myChecksum = 0;
 	
 	Synchronizer(ClientMain client) {
 		this.client = client;
@@ -27,10 +27,10 @@ class Synchronizer extends Thread {
 		client.connection.outQueue.add(SYNC_REQUEST);
 		try {
 			while (true) {
-//				display.syncExec(() -> calcChecksum());
+				display.syncExec(() -> calcChecksum());
 //				System.out.println("Me: " + myChecksum + ", Server: " + srvChecksum);
-				if (client.getChecksum() != srvChecksum) {
-					System.out.println("My: " + Integer.toHexString(client.getChecksum()) + ", server: " + Integer.toHexString(srvChecksum));
+				if (myChecksum != srvChecksum) {
+					System.out.println("My: " + Integer.toHexString(myChecksum) + ", server: " + Integer.toHexString(srvChecksum));
 					client.connection.outQueue.add(SYNC_REQUEST);
 				}
 				srvChecksum = 0;
@@ -41,11 +41,11 @@ class Synchronizer extends Thread {
 			e.printStackTrace();
 		}
 	}
-//	
-//	void calcChecksum() {
-//		myChecksum = 0;
-//		for (int i = 0; i < table.getItemCount(); i++) {
-//			myChecksum += ((Student) table.getItem(i).getData()).getSerial();
-//		}		
-//	}
+	
+	void calcChecksum() {
+		myChecksum = 0;
+		for (int i = 0; i < table.getItemCount(); i++) {
+			myChecksum += ((Student) table.getItem(i).getData()).hashCode();
+		}		
+	}
 }

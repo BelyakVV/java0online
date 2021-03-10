@@ -98,11 +98,11 @@ public class Student {
 		result = prime * result + ((patronymic == null) ? 0 : patronymic.hashCode());
 		result = prime * result + serial;
 		result = prime * result + ((surname == null) ? 0 : surname.hashCode());
-		StringBuilder sb = new StringBuilder(" id=");
-		sb.append(id).append(", serial=");
-		sb.append(serial).append(", hash=");
-		sb.append(Integer.toHexString(result));
-		System.out.println(sb.toString());
+//		StringBuilder sb = new StringBuilder(" id=");
+//		sb.append(id).append(", serial=");
+//		sb.append(serial).append(", hash=");
+//		sb.append(Integer.toHexString(result));
+//		System.out.println(sb.toString());
 		return result;
 	}
 

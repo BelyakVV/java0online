@@ -41,7 +41,7 @@ public class ClientMain {
 	int syncProgress;
 	Shell shell;
 	Table table;
-	private volatile int checksum = 0;
+//	private volatile int checksum = 0;
 	private Button btnAdd;
 	private Button btnModify;
 	private Button btnExit;
@@ -71,12 +71,12 @@ public class ClientMain {
 		shell.layout();
 		connection  = new Connection(this);
 		while (!shell.isDisposed()) {
+			while (!connection.reciever.queue.isEmpty()) {
+				mergeStudent(connection.reciever.queue.poll());				
+			}
 			if (!display.readAndDispatch()) {
 				display.sleep();
 			}
-//			if (!connection.inQueue.isEmpty()) {
-//				mergeStudent(connection.inQueue.poll());
-//			}
 		}
 	}
 	
@@ -243,15 +243,15 @@ public class ClientMain {
 //		table.setFocus();
 	}
 	
-	public int getChecksum() {
-		return checksum;
-	}
+//	public int getChecksum() {
+//		return checksum;
+//	}
 
 	public void mergeStudent(Student srvStudent) {
 		for (int i = 0; i < table.getItemCount(); i++) {
 			TableItem item = table.getItem(i);
 			Student student = (Student) item.getData();
-			System.out.println("Student " + i + ": " + student.getSerial());
+//			System.out.println("Student " + i + ": " + student.getSerial());
 			if (student.id == srvStudent.id) {
 				if (srvStudent.getSerial() < 0) {
 					if (table.isSelected(i)) {
@@ -264,24 +264,24 @@ public class ClientMain {
 							btnModify.setEnabled(false);
 						}
 					}
-					System.out.print("Before: " + Integer.toHexString(checksum) + ", student: " + Integer.toHexString(student.hashCode()));
-					checksum += -student.hashCode();
-					System.out.println(", after: " + Integer.toHexString(checksum));
+//					System.out.print("Before: " + Integer.toHexString(checksum) + ", student: " + Integer.toHexString(student.hashCode()));
+//					checksum += -student.hashCode();
+//					System.out.println(", after: " + Integer.toHexString(checksum));
 					table.remove(i);
 					return;
 				} else if (srvStudent.getSerial() > student.getSerial()) {
-					checksum += srvStudent.hashCode() - student.hashCode();
+//					checksum += srvStudent.hashCode() - student.hashCode();
 					fillTableItem(item, srvStudent);
 				}
 				return;
 			}
 		}
 		TableItem item = new TableItem(table, SWT.NONE);
-		System.out.print("Before: " + Integer.toHexString(checksum) + ", student: " + Integer.toHexString(srvStudent.hashCode()));
-		checksum += srvStudent.hashCode();
-		System.out.print(", after: " + Integer.toHexString(checksum));
+//		System.out.print("Before: " + Integer.toHexString(checksum) + ", student: " + Integer.toHexString(srvStudent.hashCode()));
+//		checksum += srvStudent.hashCode();
+//		System.out.print(", after: " + Integer.toHexString(checksum));
 		fillTableItem(item, srvStudent);
-		System.out.println(" , saved: " + Integer.toHexString(((Student) item.getData()).hashCode()));
+//		System.out.println(" , saved: " + Integer.toHexString(((Student) item.getData()).hashCode()));
 		if (table.getItemCount() == 1) table.select(0);
 	}
 
@@ -299,13 +299,13 @@ public class ClientMain {
 		table.setRedraw(true);
 	}
 
-	public void replaceStudents(LinkedList<Student> list) {
-		table.setRedraw(false);
-		table.clearAll();
-		while (!list.isEmpty()) {
-			TableItem item = new TableItem(table, SWT.NONE);
-			fillTableItem(item, list.poll());
-		}
-		table.setRedraw(true);
-	}
+//	public void replaceStudents(LinkedList<Student> list) {
+//		table.setRedraw(false);
+//		table.clearAll();
+//		while (!list.isEmpty()) {
+//			TableItem item = new TableItem(table, SWT.NONE);
+//			fillTableItem(item, list.poll());
+//		}
+//		table.setRedraw(true);
+//	}
 }
