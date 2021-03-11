@@ -9,7 +9,10 @@ import javax.xml.parsers.ParserConfigurationException;
 public class ServerMain {
 
 	public static final int DEFAULT_IP_PORT = 10000;
+	public static final String DEFAULT_FILE_NAME = "data/archive.xml";
+	
 	static int port = DEFAULT_IP_PORT;
+	static String fileName = DEFAULT_FILE_NAME;
 	
 	public static void main(String[] args) throws IOException, ParserConfigurationException, InterruptedException {
 		if (args.length > 0) {
@@ -19,7 +22,7 @@ public class ServerMain {
 				//Оставить номер порта по умолчанию
 			}
 		}
-		SrvListener server = new SrvListener(port);
+		SrvListener server = new SrvListener(port, fileName);
 		server.start();
 		System.out.println("Сервер успешно запущен на порту " + port);
 		System.out.print("Нажмите ВВОД для завершения...");

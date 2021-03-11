@@ -1,6 +1,7 @@
 package m6t3.server;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
@@ -17,6 +18,9 @@ import javax.xml.transform.stream.StreamResult;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+import org.xml.sax.SAXException;
 
 import m6t3.common.Student;
 
@@ -30,10 +34,18 @@ class SrvData extends Thread {
 	private final SrvListener server;
 	private int checksum = 0;
 	private final DocumentBuilder dBuilder;
+	private final String fileName;
 
-	SrvData(SrvListener server) throws ParserConfigurationException {
+	SrvData(SrvListener server, String fileName) throws ParserConfigurationException {
 			this.server = server;
+			this.fileName = fileName;
 			dBuilder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
+			try {
+				load();
+			} catch (SAXException | IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 		}
 
 	@Override
@@ -112,6 +124,21 @@ class SrvData extends Thread {
 		return new Student(id, serial, number, surname, name, patronymic);
 	}
 	
+	void load() throws SAXException, IOException {
+		students.clear();
+		checksum = 0;
+		Document xmlDoc = dBuilder.parse(new File(fileName));
+		xmlDoc.getDocumentElement().normalize();	//TODO: проверить, надо ли это
+		NodeList xmlStudents = xmlDoc.getElementsByTagName("student");
+		for (int i = 0; i < xmlStudents.getLength(); i++) {
+			Node node = xmlStudents.item(i);
+			Student student = toStudent((Element) node);
+			students.add(student);
+			checksum += student.hashCode();
+		}
+		changed = false;
+	}
+	
 	void save() {
 		if (!changed) return;
 		Iterable<Student> outStudents;
@@ -130,7 +157,7 @@ class SrvData extends Thread {
 		try {
 			Transformer transformer = TransformerFactory.newInstance().newTransformer();
 			DOMSource source = new DOMSource(xmlDoc);
-			StreamResult result = new StreamResult(new File("data/archive.xml"));
+			StreamResult result = new StreamResult(new File(fileName));
 			transformer.transform(source, result);
 		} catch (TransformerFactoryConfigurationError | TransformerException e) {
 			// TODO Auto-generated catch block

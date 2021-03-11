@@ -15,8 +15,8 @@ class SrvListener extends Thread {
 	final SrvSyncSender syncSender;
 	final SrvData data;
 	
-	SrvListener(int port) throws IOException, ParserConfigurationException {
-		data = new SrvData(this);
+	SrvListener(int port, String fileName) throws IOException, ParserConfigurationException {
+		data = new SrvData(this, fileName);
 		socket = new ServerSocket(port);
 		syncSender = new SrvSyncSender(this);
 	}
