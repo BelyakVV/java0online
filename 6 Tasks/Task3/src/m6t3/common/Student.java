@@ -1,8 +1,8 @@
 package m6t3.common;
 
+import static m6t3.common.Const.INVALID_SERIAL;
+
 public class Student {
-	public static final int INVALID_ID = -1;
-	public static final int INVALID_SERIAL = -1;
 	
 	public final int id;
 	int serial;

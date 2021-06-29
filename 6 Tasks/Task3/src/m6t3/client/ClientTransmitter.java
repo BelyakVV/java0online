@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 
 import m6t3.common.Student;
+import m6t3.common.User;
 
 class ClientTransmitter extends Thread {
 	final ClientMain client;
@@ -38,6 +39,8 @@ class ClientTransmitter extends Thread {
 					} else if (Integer.class == objClass) {
 						transmitInt((Integer) obj, out);
 //						out.flush();
+					} else if (User.class == objClass) {
+						transmitUser((User) obj, out);
 					}
 				} catch (IOException e) {
 					// TODO Auto-generated catch block

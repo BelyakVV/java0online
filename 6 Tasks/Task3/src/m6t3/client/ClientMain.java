@@ -1,6 +1,5 @@
 package m6t3.client;
 
-import java.util.LinkedList;
 import java.util.Queue;
 
 import org.eclipse.swt.SWT;
@@ -22,6 +21,8 @@ import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Menu;
+import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.swt.widgets.ProgressBar;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Table;
@@ -171,7 +172,7 @@ public class ClientMain {
 		btnAdd.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
-				new EditDialog(client).open();
+				new StudentEditDialog(client).open();
 			}
 		});
 		FormData fd_btnAdd = new FormData();
@@ -233,13 +234,26 @@ public class ClientMain {
 		fd_btnExit.bottom = new FormAttachment(btnAdd, 0, SWT.BOTTOM);
 		btnExit.setLayoutData(fd_btnExit);
 		btnExit.setText("Выход");
+		
+		Menu menu = new Menu(shell, SWT.BAR);
+		shell.setMenuBar(menu);
+		
+		MenuItem mntmUsers = new MenuItem(menu, SWT.NONE);
+		mntmUsers.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+//				new UsersWindow(shell, SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL).open();
+				new UsersWindow(client).open();
+			}
+		});
+		mntmUsers.setText("Управление пользователями");
 	}	
 	
 	protected void editStudent() {
 		int index = table.getSelectionIndex();
 		if (index < 0) return;
 		Student student = (Student) table.getItem(index).getData();
-		new EditDialog(client, student).open();		
+		new StudentEditDialog(client, student).open();		
 //		table.setFocus();
 	}
 	
@@ -298,14 +312,4 @@ public class ClientMain {
 		}
 		table.setRedraw(true);
 	}
-
-//	public void replaceStudents(LinkedList<Student> list) {
-//		table.setRedraw(false);
-//		table.clearAll();
-//		while (!list.isEmpty()) {
-//			TableItem item = new TableItem(table, SWT.NONE);
-//			fillTableItem(item, list.poll());
-//		}
-//		table.setRedraw(true);
-//	}
 }

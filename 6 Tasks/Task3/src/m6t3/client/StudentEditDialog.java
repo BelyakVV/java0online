@@ -26,7 +26,7 @@ import org.eclipse.wb.swt.SWTResourceManager;
 
 import m6t3.common.Student;
 
-public class EditDialog extends Dialog {
+public class StudentEditDialog extends Dialog {
 
 	Student student;
 	ClientMain client;
@@ -45,27 +45,27 @@ public class EditDialog extends Dialog {
 	 * @param style
 	 * @wbp.parser.constructor
 	 */
-	public EditDialog(Shell parent, int style) {
+	public StudentEditDialog(Shell parent, int style) {
 		super(parent, SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL);
 		setText("Новый студент");
 		student = new Student();
 	}
 	
-	public EditDialog(ClientMain client) {
+	public StudentEditDialog(ClientMain client) {
 		super(client.shell, SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL);
 		this.client = client;
 		setText("Новый студент");
 		student = new Student();
 	}
 
-	public EditDialog(ClientMain client, Student student) {
+	public StudentEditDialog(ClientMain client, Student student) {
 		super(client.shell, SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL);
 		this.client = client;
 		setText("Редактирование студента");
 		this.student = student;
 	}
 	
-	public EditDialog(Shell parent, Student student) {
+	public StudentEditDialog(Shell parent, Student student) {
 		super(parent, SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL);
 	}
 	
