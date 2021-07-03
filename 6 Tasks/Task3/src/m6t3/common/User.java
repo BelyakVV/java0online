@@ -42,8 +42,21 @@ public class User {
 		this(INVALID_ID, 0, "", null, null, false);
 	}
 	
+	public User(int id, User origin) {
+		this.id = id;
+		this.serial = origin.serial;
+		this.login = origin.login;
+		this.hash = origin.hash;
+		this.salt = origin.salt;
+		this.admin = origin.admin;
+	}
+
 	public int getSerial() {
 		return serial;
+	}
+
+	public void incSerial() {
+		serial++;
 	}
 	
 	public boolean isValidPassword(char[] password) 
@@ -65,4 +78,16 @@ public class User {
         var factory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA1");
         return factory.generateSecret(spec).getEncoded();
     }
+
+	public boolean update(User upd) {
+		if (upd.serial > serial) {
+			serial = upd.serial;
+			login = upd.login;
+			hash = upd.hash;
+			salt = upd.salt;
+			admin = upd.admin;
+			return true;
+		}
+		return false;
+	}
 }

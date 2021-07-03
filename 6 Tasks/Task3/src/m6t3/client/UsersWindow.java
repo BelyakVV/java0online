@@ -1,6 +1,8 @@
 package m6t3.client;
 
-import static m6t3.common.Tranciever.NEW_USER;
+import static m6t3.common.Tranceiver.SYNC_USERS_REQUEST;
+
+import java.util.LinkedList;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
@@ -14,6 +16,7 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableColumn;
+import org.eclipse.swt.widgets.TableItem;
 
 import m6t3.common.User;
 
@@ -47,6 +50,8 @@ public class UsersWindow extends Dialog {
 	 * @return the result
 	 */
 	public Object open() {
+		client.connection.receiver.usersQueue = new LinkedList<>();
+		client.connection.outQueue.add(SYNC_USERS_REQUEST);
 		createContents();
 		shell.open();
 		shell.layout();
@@ -56,6 +61,7 @@ public class UsersWindow extends Dialog {
 				display.sleep();
 			}
 		}
+		client.connection.receiver.usersQueue = null; //won't receive users anymore
 		return result;
 	}
 
@@ -127,5 +133,50 @@ public class UsersWindow extends Dialog {
 		fd_btnEdit.left = new FormAttachment(btnNew, 6);
 		btnEdit.setLayoutData(fd_btnEdit);
 		btnEdit.setText("Изменить");
+	}	
+
+	public void mergeUser(User srvUser) {
+		for (int i = 0; i < table.getItemCount(); i++) {
+			TableItem item = table.getItem(i);
+			User user = (User) item.getData();
+//			System.out.println("Student " + i + ": " + student.getSerial());
+			if (user.id == srvUser.id) {
+				if (srvUser.getSerial() < 0) {
+					if (table.isSelected(i)) {
+						if (table.getItemCount() > (i + 1)) {
+							table.select(i + 1);
+						} else if (i > 0) {
+							table.select(i - 1);
+						} else {
+//							btnDelete.setEnabled(false);
+//							btnModify.setEnabled(false);
+						}
+					}
+//					System.out.print("Before: " + Integer.toHexString(checksum) + ", student: " + Integer.toHexString(student.hashCode()));
+//					checksum += -student.hashCode();
+//					System.out.println(", after: " + Integer.toHexString(checksum));
+					table.remove(i);
+					return;
+				} else if (srvUser.getSerial() > user.getSerial()) {
+//					checksum += srvStudent.hashCode() - student.hashCode();
+					fillTableItem(item, srvUser);
+				}
+				return;
+			}
+		}
+		TableItem item = new TableItem(table, SWT.NONE);
+//		System.out.print("Before: " + Integer.toHexString(checksum) + ", student: " + Integer.toHexString(srvStudent.hashCode()));
+//		checksum += srvStudent.hashCode();
+//		System.out.print(", after: " + Integer.toHexString(checksum));
+		fillTableItem(item, srvUser);
+//		System.out.println(" , saved: " + Integer.toHexString(((Student) item.getData()).hashCode()));
+		if (table.getItemCount() == 1) table.select(0);
 	}
+
+	private static void fillTableItem(TableItem item, User user) {
+		item.setData(user);
+		item.setText(0, user.login);
+		item.setText(1, user.admin ? "+" : "");
+	}
+
 }

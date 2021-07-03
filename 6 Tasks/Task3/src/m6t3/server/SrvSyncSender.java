@@ -1,8 +1,8 @@
 package m6t3.server;
 
-import static m6t3.common.Tranciever.CHECKSUM;
-import static m6t3.common.Tranciever.SYNC_INTERVAL;
-import static m6t3.common.Tranciever.createMessage;
+import static m6t3.common.Tranceiver.STUDENTS_CHECKSUM;
+import static m6t3.common.Tranceiver.SYNC_INTERVAL;
+import static m6t3.common.Tranceiver.createMessage;
 
 class SrvSyncSender extends Thread {
 	private final SrvListener server;
@@ -20,7 +20,7 @@ class SrvSyncSender extends Thread {
 		try {
 			while (true) {
 //				System.out.println(Integer.toHexString(server.data.getChecksum()));
-				server.broadcast(createMessage(CHECKSUM, server.data.getChecksum()));
+				server.broadcast(createMessage(STUDENTS_CHECKSUM, server.data.getChecksum()));
 				Thread.sleep(SYNC_INTERVAL >> 1);
 			}
 		} catch (InterruptedException e) {

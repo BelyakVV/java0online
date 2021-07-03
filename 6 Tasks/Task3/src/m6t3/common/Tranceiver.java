@@ -6,16 +6,19 @@ import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.util.LinkedList;
 
-public class Tranciever {
+public class Tranceiver {
 	
-	public static final int CHECKSUM = signatureToInt("CHCK");
-	public static final int SEND_ALL = signatureToInt("BULK");
+	public static final int STUDENTS_CHECKSUM = signatureToInt("CHCK");
+	public static final int SEND_ALL_STUDENTS = signatureToInt("STDS");
 	public static final int SEND_STUDENT = signatureToInt("STUD");
 	public static final int STOP = signatureToInt("STOP");
-	public static final int SYNC_REQUEST = signatureToInt("SYNC");
+	public static final int SYNC_STUDENTS_REQUEST = signatureToInt("SNCS");
 	
 	public static final int NEW_USER = signatureToInt("NUSR");
+	public static final int SEND_ALL_USERS = signatureToInt("USRS");
 	public static final int SEND_USER = signatureToInt("USER");
+	public static final int SYNC_USERS_REQUEST = signatureToInt("SNCU");
+	
 	
 	public static final long SYNC_INTERVAL = 3000;
 	
@@ -77,7 +80,7 @@ public class Tranciever {
 		return getLong(bytes, 0);
 	}
 	
-	public static byte[] recieveBytes(InputStream in, int len) throws IOException {
+	public static byte[] receiveBytes(InputStream in, int len) throws IOException {
 		byte[] result = new byte[len];
 		for (int i = 0; i < len; i++) {
 			int x = in.read();
@@ -91,14 +94,14 @@ public class Tranciever {
 		return result;
 	}
 	
-	public static int recieveInt(InputStream in) throws IOException {
-		byte[] bytes = recieveBytes(in, Integer.BYTES);
+	public static int receiveInt(InputStream in) throws IOException {
+		byte[] bytes = receiveBytes(in, Integer.BYTES);
 //		System.out.println("Recieved int = " + toString(bytes));
 		return getInt(bytes);
 	}
 	
-	public static long recieveLong(InputStream in) throws IOException {
-		byte[] bytes = recieveBytes(in, Long.BYTES);
+	public static long receiveLong(InputStream in) throws IOException {
+		byte[] bytes = receiveBytes(in, Long.BYTES);
 		return getLong(bytes);
 	}
 	
@@ -120,10 +123,10 @@ public class Tranciever {
 		return result.toString();
 	}
 	
-	public static Student recieveStudent(InputStream in) throws IOException {
-		System.out.println("Приём студента");
-		int len = recieveInt(in);
-		byte[] buffer = recieveBytes(in, len);
+	public static Student receiveStudent(InputStream in) throws IOException {
+//		System.out.println("Приём студента");
+		int len = receiveInt(in);
+		byte[] buffer = receiveBytes(in, len);
 		int pos = 0;
 		int id = getInt(buffer, pos);
 		pos += Integer.BYTES;
@@ -148,7 +151,7 @@ public class Tranciever {
 	}
 	
 	public static void transmitStudent(Student student, OutputStream out) throws IOException {
-		System.out.println("Отправка студента");
+//		System.out.println("Отправка студента");
 		byte[] signature = toBytes(SEND_STUDENT);
 		byte[] number = student.getNumber().getBytes();
 		byte[] surname = student.getSurname().getBytes();
@@ -185,12 +188,12 @@ public class Tranciever {
 		out.write(result);
 	}
 	
-	public static LinkedList<Student> recieveStudentsList(InputStream in) throws IOException {
+	public static LinkedList<Student> receiveStudentsList(InputStream in) throws IOException {
 		LinkedList<Student> result = new LinkedList<>();
-		int signature = recieveInt(in);
+		int signature = receiveInt(in);
 		while (signature == SEND_STUDENT) {
-			result.add(recieveStudent(in));
-			signature = recieveInt(in);
+			result.add(receiveStudent(in));
+			signature = receiveInt(in);
 		}
 		if (signature != STOP) {
 			in.close();
@@ -198,10 +201,10 @@ public class Tranciever {
 		return result;
 	}
 	
-	public static User recieveUser(InputStream in) throws IOException {
+	public static User receiveUser(InputStream in) throws IOException {
 		System.out.println("Приём пользователя");
-		int len = recieveInt(in);
-		byte[] buffer = recieveBytes(in, len);
+		int len = receiveInt(in);
+		byte[] buffer = receiveBytes(in, len);
 		int pos = 0;
 		int id = getInt(buffer, pos);
 		pos += Integer.BYTES;

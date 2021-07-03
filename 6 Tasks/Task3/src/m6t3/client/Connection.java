@@ -18,7 +18,7 @@ class Connection {
 	String serverHost;
 	int serverPort;
 	Socket socket;
-	final ClientReciever reciever;
+	final ClientReceiver receiver;
 	final ClientTransmitter transmitter;
 	final Synchronizer synchronizer;
 	
@@ -29,8 +29,8 @@ class Connection {
 		this.serverHost = DEFAULT_SERVER_HOST;
 		this.serverPort = ServerMain.DEFAULT_IP_PORT;
 		this.client = client;
-		reciever = new ClientReciever(this);
-		reciever.start();
+		receiver = new ClientReceiver(this);
+		receiver.start();
 		transmitter = new ClientTransmitter(this);
 		transmitter.start();
 		synchronizer = new Synchronizer(client);
@@ -48,12 +48,13 @@ class Connection {
 					socket.close();
 				} catch (Exception e1) {
 					// TODO Auto-generated catch block
+					System.err.println("Couldn't close the socket");
 					e1.printStackTrace();
 				}
 				socket = new Socket();
 				try {
 					socket.connect(new InetSocketAddress(serverHost, serverPort), DEFAULT_TIMEOUT);
-					reciever.in = socket.getInputStream();
+					receiver.in = socket.getInputStream();
 					transmitter.out = socket.getOutputStream();
 					System.out.println("success");
 					return;

@@ -1,7 +1,7 @@
 package m6t3.client;
 
-import static m6t3.common.Tranciever.SYNC_INTERVAL;
-import static m6t3.common.Tranciever.SYNC_REQUEST;
+import static m6t3.common.Tranceiver.SYNC_INTERVAL;
+import static m6t3.common.Tranceiver.SYNC_STUDENTS_REQUEST;
 
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Table;
@@ -24,21 +24,22 @@ class Synchronizer extends Thread {
 
 	@Override
 	public void run() {
-		client.connection.outQueue.add(SYNC_REQUEST);
+		client.connection.outQueue.add(SYNC_STUDENTS_REQUEST);
 		try {
 			while (true) {
 				display.syncExec(() -> calcChecksum());
 //				System.out.println("Me: " + myChecksum + ", Server: " + srvChecksum);
 				if (myChecksum != srvChecksum) {
 					System.out.println("My: " + Integer.toHexString(myChecksum) + ", server: " + Integer.toHexString(srvChecksum));
-					client.connection.outQueue.add(SYNC_REQUEST);
+					client.connection.outQueue.add(SYNC_STUDENTS_REQUEST);
 				}
 				srvChecksum = 0;
 				Thread.sleep(SYNC_INTERVAL);
 			}
 		} catch (InterruptedException e) {
+			System.out.println("Synchronizer stopped");
 			// TODO Auto-generated catch block
-			e.printStackTrace();
+//			e.printStackTrace();
 		}
 	}
 	

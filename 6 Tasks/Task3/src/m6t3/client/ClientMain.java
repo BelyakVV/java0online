@@ -58,6 +58,7 @@ public class ClientMain {
 		try {
 			client.open();
 		} catch (Exception e) {
+			System.err.println("Couldn't open main client window.");
 			e.printStackTrace();
 		}
 	}
@@ -72,8 +73,13 @@ public class ClientMain {
 		shell.layout();
 		connection  = new Connection(this);
 		while (!shell.isDisposed()) {
-			while (!connection.reciever.queue.isEmpty()) {
-				mergeStudent(connection.reciever.queue.poll());				
+			while (!connection.receiver.studentsQueue.isEmpty()) {
+				Student student = connection.receiver.studentsQueue.poll();
+				if (null == student) {
+					System.err.println("Attempt to merge null into students table");
+				} else {
+					mergeStudent(student);
+				}
 			}
 			if (!display.readAndDispatch()) {
 				display.sleep();

@@ -23,12 +23,17 @@ import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
 import m6t3.common.Student;
+import m6t3.common.User;
 
 class SrvData extends Thread {
 	static final long SAVE_INTERVAL = 5000;	
 
 	final List<Student> students = new LinkedList<>();
-	private int nextId = 0;
+	private int nextStudentId;
+	
+	final List<User> users = new LinkedList<>();
+	private int nextUserId = 0;
+	
 	private volatile boolean changed;
 
 	private final SrvListener server;
@@ -70,14 +75,14 @@ class SrvData extends Thread {
 		synchronized (students) {
 			if (upd.id < 0) {
 				if (upd.getSerial() > 0) {
-					Student student = new Student(nextId++, upd);
+					Student student = new Student(nextStudentId++, upd);
 					if (students.add(student)) {
 						changed = true;
 						checksum += student.hashCode();
 						server.broadcast(student);
 					}
 				} else {
-					System.err.println("Ошибка: студент id < 0 и serial < 1");
+					System.err.println("Error: student id < 0 and serial < 1");
 				}
 				return;
 			}
@@ -95,6 +100,44 @@ class SrvData extends Thread {
 							changed = true;
 							checksum += student.hashCode() - oldHash;
 							server.broadcast(student);
+						}
+					}
+					return;
+				}
+			}
+		}
+	}
+
+	public void updateUser(User upd) {
+		synchronized (users) {
+			if (upd.id < 0) {
+				if (upd.getSerial() > 0) {
+					User user = new User(nextUserId++, upd);
+					if (users.add(user)) {
+						changed = true;
+//						checksum += student.hashCode();
+						server.broadcast(user);
+					}
+				} else {
+					System.err.println("Error: user id < 0 && serial < 1");
+				}
+				return;
+			}
+			for (var user: users) {
+				if (user.id == upd.id) {
+					if (upd.getSerial() < 0) {
+						users.remove(user);
+						changed = true;
+//						checksum -= student.hashCode();
+						server.broadcast(upd);
+					} else {
+						//TODO: check for duplicate login name
+//						int oldHash = student.hashCode();
+						upd.incSerial();
+						if (user.update(upd)) {
+							changed = true;
+//							checksum += student.hashCode() - oldHash;
+							server.broadcast(user);
 						}
 					}
 					return;
@@ -126,6 +169,7 @@ class SrvData extends Thread {
 	
 	void load() throws SAXException, IOException {
 		students.clear();
+		nextStudentId = 0;
 		checksum = 0;
 		Document xmlDoc = dBuilder.parse(new File(fileName));
 		xmlDoc.getDocumentElement().normalize();	//TODO: проверить, надо ли это
@@ -134,6 +178,9 @@ class SrvData extends Thread {
 			Node node = xmlStudents.item(i);
 			Student student = toStudent((Element) node);
 			students.add(student);
+			if (student.id >= nextStudentId) {
+				nextStudentId = student.id + 1;
+			}
 			checksum += student.hashCode();
 		}
 		changed = false;
@@ -163,6 +210,12 @@ class SrvData extends Thread {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 			changed = true;
+		}
+	}
+
+	public void printStudents() {
+		for (var student: students) {
+			System.out.println(student);
 		}
 	}
 }

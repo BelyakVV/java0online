@@ -8,7 +8,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 class SrvLink {
 	final SrvListener server;
 	final Socket socket;
-	final SrvReciever reciever;
+	final SrvReceiver reciever;
 	final SrvTransmitter transmitter;
 	final BlockingQueue<Object> outQueue;
 	volatile boolean running = true;
@@ -19,7 +19,7 @@ class SrvLink {
 		this.server = server;
 		this.socket = socket;
 		outQueue = new LinkedBlockingQueue<>();
-		reciever = new SrvReciever(this);
+		reciever = new SrvReceiver(this);
 		reciever.start();	
 		transmitter = new SrvTransmitter(this);
 		transmitter.start();
