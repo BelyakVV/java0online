@@ -218,4 +218,10 @@ class SrvData extends Thread {
 			System.out.println(student);
 		}
 	}
+
+	public void printUsers() {
+		for (var user: users) {
+			System.out.println(user);
+		}
+	}
 }

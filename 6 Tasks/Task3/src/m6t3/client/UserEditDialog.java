@@ -2,6 +2,7 @@ package m6t3.client;
 
 import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
+import java.util.Arrays;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Dialog;
@@ -53,6 +54,12 @@ public class UserEditDialog extends Dialog {
 		this(client.shell, SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL);
 		this.client = client;
 		user = new User();
+	}
+
+	public UserEditDialog(ClientMain client, User user) {
+		this(client.shell, SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL);
+		this.client = client;
+		this.user = user;
 	}
 
 	/**
@@ -150,16 +157,33 @@ public class UserEditDialog extends Dialog {
 
 	private void submit() {
 		//TODO: check data being sent
-		user.login = txtLogin.getText();
-		try {
-			user.setPassword(txtPass.getTextChars());
-		} catch (NoSuchAlgorithmException | InvalidKeySpecException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+		if (!useLogin()) return;
+		if (!usePassword()) return;
 		user.admin = btnAdmin.getSelection();
 		client.connection.outQueue.add(user);
 		shell.close();
+	}
+
+	private boolean useLogin() {
+		String login = txtLogin.getText();
+		if (login.isEmpty()) return false;
+		user.login = login;
+		return true;
+	}
+
+	private boolean usePassword() {
+		char[] password = txtPass.getTextChars();
+		if ((password.length < 1) || !Arrays.equals(password, txtPassAgain.getTextChars())) return false;
+		try {
+			user.setPassword(password);
+		} catch (Exception e) {
+//		} catch (NoSuchAlgorithmException | InvalidKeySpecException e) {
+			// TODO Auto-generated catch block
+			System.err.println("Password: " + Arrays.toString(password));
+			e.printStackTrace();
+			return false;
+		}
+		return true;
 	}
 
 //	/**

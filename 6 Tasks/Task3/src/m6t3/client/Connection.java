@@ -46,10 +46,10 @@ class Connection {
 				System.out.print(retries + " ");
 				try {
 					socket.close();
-				} catch (Exception e1) {
+				} catch (Exception e) {
 					// TODO Auto-generated catch block
-					System.err.println("Couldn't close the socket");
-					e1.printStackTrace();
+//					System.err.println("Couldn't close the socket");
+//					e.printStackTrace();
 				}
 				socket = new Socket();
 				try {

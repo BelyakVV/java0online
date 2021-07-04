@@ -1,6 +1,7 @@
 package m6t3.common;
 
 import static m6t3.common.Const.INVALID_ID;
+import static m6t3.common.Const.INVALID_SERIAL;
 
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
@@ -67,6 +68,7 @@ public class User {
 	public void setPassword(char[] newPassword) 
             throws NoSuchAlgorithmException, InvalidKeySpecException {
         SecureRandom random = new SecureRandom();
+        salt = new byte[SALT_LENGTH];
         random.nextBytes(salt);
         hash = createHash(newPassword);
         serial++;
@@ -90,4 +92,16 @@ public class User {
 		}
 		return false;
 	}
+
+	@Override
+	public String toString() {
+		return "User [id=" + id + ", serial=" + serial + ", login=" + login 
+//				+ ", hash=" + Arrays.toString(hash) + ", salt=" + Arrays.toString(salt) 
+				+ ", admin=" + admin + "]";
+	}
+
+	public Object suicide() {
+		serial = INVALID_SERIAL;
+		return this;
+	}	
 }

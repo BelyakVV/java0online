@@ -81,6 +81,7 @@ public class ClientMain {
 					mergeStudent(student);
 				}
 			}
+			checkTable();
 			if (!display.readAndDispatch()) {
 				display.sleep();
 			}
@@ -139,15 +140,12 @@ public class ClientMain {
 		progressBar.setLayoutData(fd_progressBar);
 
 		table = new Table(shell, SWT.BORDER | SWT.FULL_SELECTION);
-		table.addFocusListener(new FocusAdapter() {
-			@Override
-			public void focusGained(FocusEvent e) {
-				if (table.getItemCount() > 0) {
-					btnModify.setEnabled(true);
-					btnDelete.setEnabled(true);
-				}
-			}
-		});
+//		table.addFocusListener(new FocusAdapter() {
+//			@Override
+//			public void focusGained(FocusEvent e) {
+//				checkTable();
+//			}
+//		});
 		table.addKeyListener(new KeyAdapter() {
 			@Override
 			public void keyPressed(KeyEvent e) {
@@ -317,5 +315,16 @@ public class ClientMain {
 			mergeStudent(srvStudents.poll());
 		}
 		table.setRedraw(true);
+		checkTable();
+	}
+
+	private void checkTable() {
+		if (table.getItemCount() > 0) {
+			btnModify.setEnabled(true);
+			btnDelete.setEnabled(true);
+		} else {
+			btnModify.setEnabled(false);
+			btnDelete.setEnabled(false);
+		}
 	}
 }

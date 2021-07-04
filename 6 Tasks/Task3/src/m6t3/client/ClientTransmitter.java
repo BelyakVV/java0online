@@ -21,7 +21,7 @@ class ClientTransmitter extends Thread {
 		} catch (Exception e) {
 			System.err.println("Unable to acquire an output stream from the socket");
 			// TODO Auto-generated catch block
-			e.printStackTrace();
+//			e.printStackTrace();
 		}
 	}
 

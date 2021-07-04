@@ -18,7 +18,12 @@ import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.swt.widgets.TableItem;
 
+import m6t3.common.Student;
 import m6t3.common.User;
+import org.eclipse.swt.events.FocusAdapter;
+import org.eclipse.swt.events.FocusEvent;
+import org.eclipse.swt.events.MouseAdapter;
+import org.eclipse.swt.events.MouseEvent;
 
 public class UsersWindow extends Dialog {
 
@@ -29,6 +34,8 @@ public class UsersWindow extends Dialog {
 	private Table table;
 	private TableColumn tblclmnLogin;
 	private TableColumn tblclmnAdmin;
+	private Button btnDelete;
+	private Button btnEdit;
 
 	/**
 	 * Create the dialog.
@@ -57,6 +64,15 @@ public class UsersWindow extends Dialog {
 		shell.layout();
 		Display display = getParent().getDisplay();
 		while (!shell.isDisposed()) {
+			while (!client.connection.receiver.usersQueue.isEmpty()) {
+				User user = client.connection.receiver.usersQueue.poll();
+				if (null == user) {
+					System.err.println("Attempt to merge null into users table");
+				} else {
+					mergeUser(user);
+				}
+			}
+			checkTable();
 			if (!display.readAndDispatch()) {
 				display.sleep();
 			}
@@ -75,6 +91,18 @@ public class UsersWindow extends Dialog {
 		shell.setLayout(new FormLayout());
 		
 		table = new Table(shell, SWT.BORDER | SWT.FULL_SELECTION);
+		table.addMouseListener(new MouseAdapter() {
+			@Override
+			public void mouseDoubleClick(MouseEvent e) {
+				editUser();
+			}
+		});
+//		table.addFocusListener(new FocusAdapter() {
+//			@Override
+//			public void focusGained(FocusEvent e) {
+//				checkTable();
+//			}
+//		});
 		FormData fd_table = new FormData();
 		fd_table.top = new FormAttachment(0);
 		fd_table.left = new FormAttachment(0);
@@ -105,7 +133,15 @@ public class UsersWindow extends Dialog {
 		btnNew.setLayoutData(fd_btnNew);
 		btnNew.setText("Новый");
 		
-		Button btnDelete = new Button(shell, SWT.NONE);
+		btnDelete = new Button(shell, SWT.NONE);
+		btnDelete.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				int index = table.getSelectionIndex();
+				User user = (User) table.getItem(index).getData();
+				client.connection.outQueue.add(user.suicide());
+			}
+		});
 		btnDelete.setEnabled(false);
 		FormData fd_btnDelete = new FormData();
 		fd_btnDelete.bottom = new FormAttachment(btnNew, 0, SWT.BOTTOM);
@@ -125,7 +161,13 @@ public class UsersWindow extends Dialog {
 		btnDone.setLayoutData(fd_btnDone);
 		btnDone.setText("Готово");
 		
-		Button btnEdit = new Button(shell, SWT.NONE);
+		btnEdit = new Button(shell, SWT.NONE);
+		btnEdit.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				editUser();
+			}
+		});
 		btnEdit.setEnabled(false);
 		fd_btnDelete.left = new FormAttachment(btnEdit, 6);
 		FormData fd_btnEdit = new FormData();
@@ -171,6 +213,24 @@ public class UsersWindow extends Dialog {
 		fillTableItem(item, srvUser);
 //		System.out.println(" , saved: " + Integer.toHexString(((Student) item.getData()).hashCode()));
 		if (table.getItemCount() == 1) table.select(0);
+	}
+
+	private void checkTable() {
+		if (table.getItemCount() > 0) {
+			btnDelete.setEnabled(true);
+			btnEdit.setEnabled(true);
+		} else {
+			btnDelete.setEnabled(false);
+			btnEdit.setEnabled(false);
+		}
+	}
+	
+	private void editUser() {
+		int index = table.getSelectionIndex();
+		if (index < 0) return;
+		User user = (User) table.getItem(index).getData();
+		new UserEditDialog(client, user).open();		
+//		table.setFocus();
 	}
 
 	private static void fillTableItem(TableItem item, User user) {

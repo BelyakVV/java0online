@@ -31,17 +31,18 @@ class SrvReceiver extends Thread {
 			while (link.running || in.available() > 0) {				
 				int signature = receiveInt(in);
 				if (SEND_STUDENT == signature) {
-					System.out.println("Received a student");
+//					System.out.println("Received a student");
 					data.updateStudent(receiveStudent(in));
 				} else if (SEND_USER == signature) {
 					System.out.println("Received a user");
 					data.updateUser(receiveUser(in));
 				} else if (SYNC_STUDENTS_REQUEST == signature) {
-					System.out.println("Received a students full sync request");
-					data.printStudents();
+//					System.out.println("Received a students full sync request");
+//					data.printStudents();
 					link.outQueue.addAll(data.students);
 				} else if (SYNC_USERS_REQUEST == signature) {
 					System.out.println("Received a users full sync request");
+					data.printUsers();
 					link.outQueue.addAll(data.users);
 				} else {
 					System.err.println("Unknown request received");

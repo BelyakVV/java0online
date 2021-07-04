@@ -27,7 +27,7 @@ public class ClientReceiver extends Thread {
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			System.err.println("Unable to acquire input stream from the socket");
-			e.printStackTrace();
+//			e.printStackTrace();
 		}
 	}
 	
@@ -40,12 +40,13 @@ public class ClientReceiver extends Thread {
 				if (SEND_STUDENT == signature) {
 //					System.out.println("Приём студента");
 					studentsQueue.add(receiveStudent(in));
-					System.out.println("Received a student: \n" + studentsQueue.peek());
+//					System.out.println("Received a student: \n" + studentsQueue.peek());
 					client.shell.getDisplay().wake();
 				} else if (SEND_USER == signature) {
 //					System.out.println("Приём пользователя");
 					User user = receiveUser(in);
 					if (null != usersQueue) {
+						System.out.println("Received a user: \n" + user);
 						usersQueue.add(user);
 						client.shell.getDisplay().wake();
 					}
@@ -65,7 +66,7 @@ public class ClientReceiver extends Thread {
 					System.out.println("Client receiver stopped.");
 					break;
 				}
-				System.err.println("Client receiving loop abandoned. Reconnecting.");
+				System.err.println("Client receiving loop abandoned or still not started. Reconnecting.");
 				connection.reconnect();
 			}
 		}

@@ -202,7 +202,7 @@ public class Tranceiver {
 	}
 	
 	public static User receiveUser(InputStream in) throws IOException {
-		System.out.println("Приём пользователя");
+//		System.out.println("Приём пользователя");
 		int len = receiveInt(in);
 		byte[] buffer = receiveBytes(in, len);
 		int pos = 0;
@@ -230,7 +230,7 @@ public class Tranceiver {
 	}
 	
 	public static void transmitUser(User user, OutputStream out) throws IOException {
-		System.out.println("Отправка пользователя");
+		System.out.println("Transmitting user:\n" + user);		
 		byte[] signature = toBytes(SEND_USER);
 		byte[] login = user.login.getBytes();
 		int len = (Integer.BYTES * (3 + 3)) //id, serial, admin + login.length, user.hash.length, user.salt.length
