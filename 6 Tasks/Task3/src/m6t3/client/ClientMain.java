@@ -239,8 +239,23 @@ public class ClientMain {
 		btnExit.setLayoutData(fd_btnExit);
 		btnExit.setText("Выход");
 		
-		Menu menu = new Menu(shell, SWT.BAR);
-		shell.setMenuBar(menu);
+		Menu menuBar = new Menu(shell, SWT.BAR);
+		shell.setMenuBar(menuBar);
+		
+		MenuItem menuItem = new MenuItem(menuBar, SWT.CASCADE);
+		menuItem.setText("Меню");
+		
+		Menu menu = new Menu(menuItem);
+		menuItem.setMenu(menu);
+
+		MenuItem mntmChangePass = new MenuItem(menu, SWT.NONE);
+		mntmChangePass.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+//				shell.close();
+			}
+		});
+		mntmChangePass.setText("Изменить свой пароль");
 		
 		MenuItem mntmUsers = new MenuItem(menu, SWT.NONE);
 		mntmUsers.addSelectionListener(new SelectionAdapter() {
@@ -251,6 +266,15 @@ public class ClientMain {
 			}
 		});
 		mntmUsers.setText("Управление пользователями");
+		
+		MenuItem mntmExit = new MenuItem(menu, SWT.NONE);
+		mntmExit.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				shell.close();
+			}
+		});
+		mntmExit.setText("Выход");
 	}	
 	
 	protected void editStudent() {
