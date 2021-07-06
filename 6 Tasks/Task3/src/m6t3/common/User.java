@@ -59,6 +59,20 @@ public class User {
 	public void incSerial() {
 		serial++;
 	}
+
+	public String getLogin() {
+		return login;
+	}
+
+	public boolean setLogin(String login) {
+		if (login.isBlank()) {
+			return false;
+		}
+		if (login.contentEquals(this.login)) return true;
+		this.login = login;
+		serial++;
+		return true;
+	}	
 	
 	public boolean isValidPassword(char[] password) 
             throws NoSuchAlgorithmException, InvalidKeySpecException {
@@ -103,5 +117,5 @@ public class User {
 	public Object suicide() {
 		serial = INVALID_SERIAL;
 		return this;
-	}	
+	}
 }

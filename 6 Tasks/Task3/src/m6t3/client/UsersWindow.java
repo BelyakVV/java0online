@@ -27,7 +27,8 @@ import org.eclipse.swt.events.MouseEvent;
 
 public class UsersWindow extends Dialog {
 
-	ClientMain client;
+	final ClientMain client;
+	private UsersWindow usersWindow;
 	
 	protected Object result;
 	protected Shell shell;
@@ -44,12 +45,15 @@ public class UsersWindow extends Dialog {
 	 */
 	public UsersWindow(Shell parent, int style) {
 		super(parent, style);
+		client = null;
 		setText("Управление пользователями");
 	}
 
 	public UsersWindow(ClientMain client) {
-		this(client.shell, SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL);
+		super(client.shell, SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL);
 		this.client = client;
+		setText("Управление пользователями");
+		usersWindow = this;
 	}
 	
 	/**
@@ -123,7 +127,7 @@ public class UsersWindow extends Dialog {
 		btnNew.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
-				new UserEditDialog(client).open();
+				new UserEditDialog(usersWindow).open();
 			}
 		});
 		fd_table.bottom = new FormAttachment(btnNew, -6);
@@ -229,7 +233,7 @@ public class UsersWindow extends Dialog {
 		int index = table.getSelectionIndex();
 		if (index < 0) return;
 		User user = (User) table.getItem(index).getData();
-		new UserEditDialog(client, user).open();		
+		new UserEditDialog(usersWindow, user).open();		
 //		table.setFocus();
 	}
 
@@ -237,6 +241,16 @@ public class UsersWindow extends Dialog {
 		item.setData(user);
 		item.setText(0, user.login);
 		item.setText(1, user.admin ? "+" : "");
+	}
+
+	public boolean loginIsBusy(String login, int excludeId) {
+		for (int i = 0; i < table.getItemCount(); i++) {
+			TableItem item = table.getItem(i);
+			User user = (User) item.getData();
+			if (user.id == excludeId) continue;
+			if (user.getLogin() == login) return true;
+		}
+		return false;
 	}
 
 }

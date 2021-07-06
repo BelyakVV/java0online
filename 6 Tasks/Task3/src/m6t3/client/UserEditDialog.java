@@ -24,14 +24,17 @@ import org.eclipse.wb.swt.SWTResourceManager;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.Color;
+import org.eclipse.swt.events.FocusAdapter;
+import org.eclipse.swt.events.FocusEvent;
 
 public class UserEditDialog extends Dialog {
 
-	User user;
-	ClientMain client;
+	private User user;
+	private final ClientMain client;
+	private final UsersWindow usersWindow;
 
-	protected Object result;
-	protected Shell shell;
+	private Object result;
+	private Shell shell;
 	private Text txtLogin;
 	private Text txtPass;
 	private Text txtPassAgain;
@@ -39,6 +42,7 @@ public class UserEditDialog extends Dialog {
 	private static Color defBgrdColor;
 	private static final Color RED = SWTResourceManager.getColor(SWT.COLOR_RED);
 	private Button btnAdmin;
+	private boolean loginIsValid;
 	
 	/**
 	 * Create the dialog.
@@ -47,19 +51,28 @@ public class UserEditDialog extends Dialog {
 	 */
 	public UserEditDialog(Shell parent, int style) {
 		super(parent, SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL);
-		setText("Новый пользователь");
+//		setText("Новый пользователь");
+		client = null;
+		usersWindow = null;
+		loginIsValid = false;
 	}
 	
-	public UserEditDialog(ClientMain client) {
-		this(client.shell, SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL);
-		this.client = client;
+	public UserEditDialog(UsersWindow usersWindow) {
+		super(usersWindow.client.shell, SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL);
+		client = usersWindow.client;
+		this.usersWindow = usersWindow;
 		user = new User();
+		loginIsValid = false;
+		setText("Новый пользователь");
 	}
 
-	public UserEditDialog(ClientMain client, User user) {
-		this(client.shell, SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL);
-		this.client = client;
+	public UserEditDialog(UsersWindow usersWindow, User user) {
+		super(usersWindow.client.shell, SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL);
+		client = usersWindow.client;
+		this.usersWindow = usersWindow;
 		this.user = user;
+		loginIsValid = true;
+		setText("Изменить пользователя");
 	}
 
 	/**
@@ -109,6 +122,17 @@ public class UserEditDialog extends Dialog {
 		lblLogin.setText("Логин");
 		
 		txtLogin = new Text(composite, SWT.BORDER);
+		txtLogin.addFocusListener(new FocusAdapter() {
+			@Override
+			public void focusLost(FocusEvent e) {
+				loginIsValid = useLogin();
+				if (loginIsValid) {
+					txtLogin.setBackground(defBgrdColor);
+				} else {
+					txtLogin.setBackground(RED);
+				}
+			}
+		});
 		txtLogin.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
 		txtLogin.setText(user.login);
 		
@@ -155,20 +179,19 @@ public class UserEditDialog extends Dialog {
 
 	}
 
+	private boolean useLogin() {
+		String login = txtLogin.getText();
+		if (usersWindow.loginIsBusy(login, user.id)) return false;
+		return user.setLogin(login);
+	}
+
 	private void submit() {
 		//TODO: check data being sent
-		if (!useLogin()) return;
+		if (!loginIsValid) return;
 		if (!usePassword()) return;
 		user.admin = btnAdmin.getSelection();
 		client.connection.outQueue.add(user);
 		shell.close();
-	}
-
-	private boolean useLogin() {
-		String login = txtLogin.getText();
-		if (login.isEmpty()) return false;
-		user.login = login;
-		return true;
 	}
 
 	private boolean usePassword() {
