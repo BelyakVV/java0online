@@ -26,6 +26,8 @@ import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.events.FocusAdapter;
 import org.eclipse.swt.events.FocusEvent;
+import org.eclipse.swt.events.ModifyListener;
+import org.eclipse.swt.events.ModifyEvent;
 
 public class UserEditDialog extends Dialog {
 
@@ -43,6 +45,7 @@ public class UserEditDialog extends Dialog {
 	private static final Color RED = SWTResourceManager.getColor(SWT.COLOR_RED);
 	private Button btnAdmin;
 	private boolean loginIsValid;
+	private boolean passIsValid;
 	
 	/**
 	 * Create the dialog.
@@ -54,7 +57,6 @@ public class UserEditDialog extends Dialog {
 //		setText("Новый пользователь");
 		client = null;
 		usersWindow = null;
-		loginIsValid = false;
 	}
 	
 	public UserEditDialog(UsersWindow usersWindow) {
@@ -63,6 +65,7 @@ public class UserEditDialog extends Dialog {
 		this.usersWindow = usersWindow;
 		user = new User();
 		loginIsValid = false;
+		passIsValid = false;
 		setText("Новый пользователь");
 	}
 
@@ -72,6 +75,7 @@ public class UserEditDialog extends Dialog {
 		this.usersWindow = usersWindow;
 		this.user = user;
 		loginIsValid = true;
+		passIsValid = true;
 		setText("Изменить пользователя");
 	}
 
@@ -124,6 +128,10 @@ public class UserEditDialog extends Dialog {
 		txtLogin = new Text(composite, SWT.BORDER);
 		txtLogin.addFocusListener(new FocusAdapter() {
 			@Override
+			public void focusGained(FocusEvent e) {
+				((Text) e.widget).selectAll();
+			}
+			@Override
 			public void focusLost(FocusEvent e) {
 				loginIsValid = useLogin();
 				if (loginIsValid) {
@@ -131,6 +139,7 @@ public class UserEditDialog extends Dialog {
 				} else {
 					txtLogin.setBackground(RED);
 				}
+				((Text) e.widget).clearSelection();
 			}
 		});
 		txtLogin.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
@@ -141,6 +150,26 @@ public class UserEditDialog extends Dialog {
 		lblPass.setText("Пароль");
 		
 		txtPass = new Text(composite, SWT.BORDER | SWT.PASSWORD);
+		txtPass.addFocusListener(new FocusAdapter() {
+			@Override
+			public void focusLost(FocusEvent e) {	
+				if (passIsValid) return;
+				if (txtPass.getCharCount() < 1) {
+					txtPass.setBackground(RED);
+					return;
+				}
+				if (Arrays.equals(txtPass.getTextChars(), txtPassAgain.getTextChars())) {
+					txtPass.setBackground(defBgrdColor);
+					txtPassAgain.setBackground(defBgrdColor);
+					passIsValid = true;
+				}
+			}
+		});
+		txtPass.addModifyListener(new ModifyListener() {
+			public void modifyText(ModifyEvent e) {
+				passIsValid = false;
+			}
+		});
 		txtPass.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
 		
 		Label lblPassAgain = new Label(composite, SWT.NONE);
@@ -148,6 +177,29 @@ public class UserEditDialog extends Dialog {
 		lblPassAgain.setText("Подтверждение пароля");
 		
 		txtPassAgain = new Text(composite, SWT.BORDER | SWT.PASSWORD);
+		txtPassAgain.addFocusListener(new FocusAdapter() {
+			@Override
+			public void focusLost(FocusEvent e) {	
+				if (passIsValid) return;
+				if (txtPassAgain.getCharCount() < 1) {
+					txtPassAgain.setBackground(RED);
+					return;
+				}
+				if (Arrays.equals(txtPass.getTextChars(), txtPassAgain.getTextChars())) {
+					txtPass.setBackground(defBgrdColor);
+					txtPassAgain.setBackground(defBgrdColor);
+					passIsValid = true;
+				} else {
+					txtPassAgain.setBackground(RED);
+				}
+				
+			}
+		});
+		txtPassAgain.addModifyListener(new ModifyListener() {
+			public void modifyText(ModifyEvent e) {
+				passIsValid = false;
+			}
+		});
 		txtPassAgain.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
 		defBgrdColor = txtPassAgain.getBackground();
 		
@@ -188,25 +240,18 @@ public class UserEditDialog extends Dialog {
 	private void submit() {
 		//TODO: check data being sent
 		if (!loginIsValid) return;
-		if (!usePassword()) return;
-		user.admin = btnAdmin.getSelection();
-		client.connection.outQueue.add(user);
-		shell.close();
-	}
-
-	private boolean usePassword() {
-		char[] password = txtPass.getTextChars();
-		if ((password.length < 1) || !Arrays.equals(password, txtPassAgain.getTextChars())) return false;
+		if (!passIsValid) return;
 		try {
-			user.setPassword(password);
+			user.setPassword(txtPass.getTextChars());
 		} catch (Exception e) {
 //		} catch (NoSuchAlgorithmException | InvalidKeySpecException e) {
 			// TODO Auto-generated catch block
-			System.err.println("Password: " + Arrays.toString(password));
+			System.err.println("Password: " + txtPass.getText());
 			e.printStackTrace();
-			return false;
 		}
-		return true;
+		user.admin = btnAdmin.getSelection();
+		client.connection.outQueue.add(user);
+		shell.close();
 	}
 
 //	/**
