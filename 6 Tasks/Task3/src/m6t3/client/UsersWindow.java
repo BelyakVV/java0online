@@ -201,7 +201,7 @@ public class UsersWindow extends Dialog {
 //					System.out.print("Before: " + Integer.toHexString(checksum) + ", student: " + Integer.toHexString(student.hashCode()));
 //					checksum += -student.hashCode();
 //					System.out.println(", after: " + Integer.toHexString(checksum));
-					table.remove(i);
+					table.remove(i);					
 					return;
 				} else if (srvUser.getSerial() > user.getSerial()) {
 //					checksum += srvStudent.hashCode() - student.hashCode();
@@ -221,8 +221,14 @@ public class UsersWindow extends Dialog {
 
 	private void checkTable() {
 		if (table.getItemCount() > 0) {
-			btnDelete.setEnabled(true);
 			btnEdit.setEnabled(true);
+			TableItem selectedItem = table.getSelection()[0];
+			User selectedUser = (User) selectedItem.getData();
+			if (selectedUser.isAdmin()) {
+				btnDelete.setEnabled(!noMoreAdmins(selectedUser.id));
+			} else {
+				btnDelete.setEnabled(true);
+			}
 		} else {
 			btnDelete.setEnabled(false);
 			btnEdit.setEnabled(false);
