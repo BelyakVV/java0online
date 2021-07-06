@@ -15,7 +15,10 @@ import java.util.Arrays;
 import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.PBEKeySpec;
 
-public class User implements Transmittable {
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+
+public class User implements Transmittable, XMLable {
     
     static final int SALT_LENGTH = 16;
     static final int ITERATIONS = 10000;
@@ -193,5 +196,31 @@ public class User implements Transmittable {
 		boolean admin = 0 == getInt(buffer, pos) ? false : true;
 				
 		return new User(id, serial, login, hash, salt, admin);
+	}
+
+	@Override
+	public Element toXML(Document xmlDoc) {
+		Element result = xmlDoc.createElement("user");
+		result.setAttribute("id", Integer.toString(id));
+		result.setAttribute("serial", Integer.toString(serial));
+		result.setAttribute("login", login);
+		result.setAttribute("hash", encodeHex(hash));
+		result.setAttribute("salt", encodeHex(salt));
+		result.setAttribute("admin", admin ? "true" : "false");
+		return result;
+	}
+
+	private String encodeHex(byte[] byteArray) {
+		StringBuilder result = new StringBuilder();
+		for (byte b: byteArray) {
+			result.append(encodeHexDigit(b >> 4));
+			result.append(encodeHexDigit(b));
+		}
+		return result.toString();
+	}
+
+	private char encodeHexDigit(int i) {
+		i = i & 0x0f;
+		return (i > 9) ? (char) (i + 'a' - 10) : (char) (i + '0');
 	}
 }

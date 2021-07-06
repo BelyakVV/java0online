@@ -48,8 +48,8 @@ class SrvData extends Thread {
 			try {
 				load();
 			} catch (SAXException | IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+				// Error reading data from XML file. 
+				// Nothing to do as it will be recreated later.
 			}
 		}
 
@@ -61,8 +61,7 @@ class SrvData extends Thread {
 				save();
 			}
 		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
-//			e.printStackTrace();
+			// It's OK. Nothing to do here
 		}
 		save();
 	}
@@ -168,18 +167,30 @@ class SrvData extends Thread {
 	void save() {
 		if (!changed) return;
 		Iterable<Student> outStudents;
+		Iterable<User> outUsers;
 		synchronized (students) {
-			outStudents = new ArrayList<>(students);
-			changed = false;
-		}
+			synchronized (users) {
+				outStudents = new ArrayList<>(students);
+				outUsers = new ArrayList<>(users);
+				changed = false;
+			}
+		}		
 		Document xmlDoc = dBuilder.newDocument();
 		Element root = xmlDoc.createElement("archive");
 		xmlDoc.appendChild(root);
+		
 		Element xmlStudents = xmlDoc.createElement("students");
 		root.appendChild(xmlStudents);
 		for (var student: outStudents) {
 			xmlStudents.appendChild(student.toXML(xmlDoc));
 		}
+		
+		Element xmlUsers = xmlDoc.createElement("users");
+		root.appendChild(xmlUsers);
+		for (var user: outUsers) {
+			xmlUsers.appendChild(user.toXML(xmlDoc));
+		}
+		
 		try {
 			Transformer transformer = TransformerFactory.newInstance().newTransformer();
 			DOMSource source = new DOMSource(xmlDoc);
@@ -187,6 +198,7 @@ class SrvData extends Thread {
 			transformer.transform(source, result);
 		} catch (TransformerFactoryConfigurationError | TransformerException e) {
 			// TODO Auto-generated catch block
+			System.err.println("Couldn't save data");
 			e.printStackTrace();
 			changed = true;
 		}
