@@ -1,12 +1,11 @@
 package m6t3.client;
 
-import static m6t3.common.Tranceiver.*;
+import static m6t3.common.Tranceiver.transmitInt;
 
 import java.io.IOException;
 import java.io.OutputStream;
 
-import m6t3.common.Student;
-import m6t3.common.User;
+import m6t3.common.Transmittable;
 
 class ClientTransmitter extends Thread {
 	final ClientMain client;
@@ -35,13 +34,11 @@ class ClientTransmitter extends Thread {
 				Object obj = connection.outQueue.take();
 				var objClass = obj.getClass();
 				try {
-					if (Student.class == objClass) {
-							transmitStudent((Student) obj, out);
+					if (obj instanceof Transmittable) {
+							((Transmittable) obj).transmit(out);
 					} else if (Integer.class == objClass) {
 						transmitInt((Integer) obj, out);
 //						out.flush();
-					} else if (User.class == objClass) {
-						((User) obj).transmit(out);
 					}
 				} catch (IOException e) {
 					// TODO Auto-generated catch block

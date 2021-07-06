@@ -2,13 +2,11 @@ package m6t3.server;
 
 import static m6t3.common.Tranceiver.transmitInt;
 import static m6t3.common.Tranceiver.transmitLong;
-import static m6t3.common.Tranceiver.transmitStudent;
 
 import java.io.IOException;
 import java.io.OutputStream;
 
-import m6t3.common.Student;
-import m6t3.common.User;
+import m6t3.common.Transmittable;
 
 class SrvTransmitter extends Thread {
 //	final SrvListener server;
@@ -26,14 +24,12 @@ class SrvTransmitter extends Thread {
 		try {
 			while (link.running || !link.outQueue.isEmpty()) {
 				Object obj = link.outQueue.take();
-				if (obj instanceof Student) {
-					transmitStudent((Student) obj, out);
+				if (obj instanceof Transmittable) {
+					((Transmittable) obj).transmit(out);
 				} else if (obj instanceof Long) {
 					transmitLong((Long) obj, out);
 				} else if (obj instanceof Integer) {			
 					transmitInt((Integer) obj, out);
-				} else if (obj instanceof User) {
-					((User) obj).transmit(out);
 				}
 			}
 		} catch (Exception e) {

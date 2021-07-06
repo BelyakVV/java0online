@@ -1,9 +1,9 @@
 package m6t3.client;
 
-import static m6t3.common.Tranceiver.*;
 import static m6t3.common.Tranceiver.SEND_STUDENT;
+import static m6t3.common.Tranceiver.SEND_USER;
+import static m6t3.common.Tranceiver.STUDENTS_CHECKSUM;
 import static m6t3.common.Tranceiver.receiveInt;
-import static m6t3.common.Tranceiver.receiveStudent;
 
 import java.io.InputStream;
 import java.util.LinkedList;
@@ -39,7 +39,7 @@ public class ClientReceiver extends Thread {
 				//				System.out.println(signature);
 				if (SEND_STUDENT == signature) {
 //					System.out.println("Приём студента");
-					studentsQueue.add(receiveStudent(in));
+					studentsQueue.add(Student.receive(in));
 //					System.out.println("Received a student: \n" + studentsQueue.peek());
 					client.shell.getDisplay().wake();
 				} else if (SEND_USER == signature) {

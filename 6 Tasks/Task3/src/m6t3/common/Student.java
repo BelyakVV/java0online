@@ -1,15 +1,20 @@
 package m6t3.common;
 
-import static m6t3.common.Const.INVALID_SERIAL;
+import static m6t3.common.Const.*;
+import static m6t3.common.Tranceiver.*;
 
-public class Student {
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+
+public class Student implements Transmittable {
 	
 	public final int id;
-	int serial;
-	String number;
-	String surname;
-	String name;
-	String patronymic;
+	private int serial;
+	private String number;
+	private String surname;
+	private String name;
+	private String patronymic;
 	
 	/**
 	 * @param number
@@ -36,7 +41,7 @@ public class Student {
 	}
 	
 	public Student() {
-		id = -1;	
+		id = INVALID_ID;	
 		serial = 1;
 		number = "";
 		surname = "";
@@ -56,32 +61,52 @@ public class Student {
 		return number;
 	}
 	
-	public void setNumber(String number) {
-		this.number = number.strip();
+	public boolean setNumber(String number) {
+		number = number.strip();
+		if (number.isEmpty()) return false;
+		if (number.contentEquals(this.number)) return true;
+		this.number = number;
+		serial++;
+		return true;
 	}
 
 	public String getSurname() {
 		return surname;
 	}
 
-	public void setSurname(String surname) {
-		this.surname = surname.strip();
+	public boolean setSurname(String surname) {
+		surname = surname.strip();
+		if (surname.isEmpty()) return false;
+		if (surname.contentEquals(this.surname)) return true;
+		this.surname = surname;
+		serial++;
+		return true;
 	}
 
 	public String getName() {
 		return name;
 	}
 
-	public void setName(String name) {
-		this.name = name.strip();
+	public boolean setName(String name) {
+		name = name.strip();
+		if (name.isEmpty()) return false;
+		if (name.contentEquals(this.name)) return true;
+		this.name = name;
+		serial++;
+		return true;
 	}
 
 	public String getPatronymic() {
 		return patronymic;
 	}
 
-	public void setPatronymic(String patronymic) {
-		this.patronymic = patronymic.strip();
+	public boolean setPatronymic(String patronymic) {
+		patronymic = patronymic.strip();
+		if (patronymic.isEmpty()) return false;
+		if (patronymic.contentEquals(this.patronymic)) return true;
+		this.patronymic = patronymic;
+		serial++;
+		return true;
 	}
 
 	public String getFullName() {
@@ -171,5 +196,71 @@ public class Student {
 			result += student.serial;
 		}
 		return result;
+	}
+
+	@Override
+	public void transmit(OutputStream out) throws IOException {
+//		System.out.println("Отправка студента");
+		byte[] signature = toBytes(SEND_STUDENT);
+		byte[] number = this.number.getBytes();
+		byte[] surname = this.surname.getBytes();
+		byte[] name = this.name.getBytes();
+		byte[] patronymic = this.patronymic.getBytes();	
+		//length of data packet
+		int len = (Integer.BYTES * (2 + 4)) //id, serial + number.length, surname.length, name.length, patronymic.length
+				+ number.length + surname.length + name.length + patronymic.length;
+		byte[] result = new byte[signature.length + Integer.BYTES + len];
+		int i = 0; //position in result array
+		System.arraycopy(signature, 0, result, i, signature.length);
+		i += signature.length;
+		System.arraycopy(toBytes(len), 0, result, i, Integer.BYTES);
+		i += Integer.BYTES;
+		System.arraycopy(toBytes(id), 0, result, i, Integer.BYTES);
+		i += Integer.BYTES;
+		System.arraycopy(toBytes(serial), 0, result, i, Integer.BYTES);
+		i += Integer.BYTES;
+		System.arraycopy(toBytes(number.length), 0, result, i, Integer.BYTES);
+		i += Integer.BYTES;
+		System.arraycopy(number, 0, result, i, number.length);
+		i += number.length;
+		System.arraycopy(toBytes(surname.length), 0, result, i, Integer.BYTES);
+		i += Integer.BYTES;
+		System.arraycopy(surname, 0, result, i, surname.length);
+		i += surname.length;
+		System.arraycopy(toBytes(name.length), 0, result, i, Integer.BYTES);
+		i += Integer.BYTES;
+		System.arraycopy(name, 0, result, i, name.length);
+		i += name.length;
+		System.arraycopy(toBytes(patronymic.length), 0, result, i, Integer.BYTES);
+		i += Integer.BYTES;
+		System.arraycopy(patronymic, 0, result, i, patronymic.length);
+		out.write(result);
+	}
+	
+	public static Student receive(InputStream in) throws IOException {
+//		System.out.println("Приём студента");
+		int len = receiveInt(in);
+		byte[] buffer = receiveBytes(in, len);
+		int pos = 0;
+		int id = getInt(buffer, pos);
+		pos += Integer.BYTES;
+		int serial = getInt(buffer, pos);
+		pos += Integer.BYTES;	
+		int numLen = getInt(buffer, pos);
+		pos += Integer.BYTES;	
+		String number = new String(buffer, pos, numLen);
+		pos += numLen; 
+		int surLen = getInt(buffer, pos);
+		pos += Integer.BYTES;	
+		String surname = new String(buffer, pos, surLen);
+		pos += surLen; 
+		int nameLen = getInt(buffer, pos);
+		pos += Integer.BYTES;	
+		String name = new String(buffer, pos, nameLen);
+		pos += nameLen; 
+		int patLen = getInt(buffer, pos);
+		pos += Integer.BYTES;	
+		String patronymic = new String(buffer, pos, patLen);
+		return new Student(id, serial, number, surname, name, patronymic);
 	}
 }
