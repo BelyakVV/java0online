@@ -245,8 +245,8 @@ public class UsersWindow extends Dialog {
 
 	private static void fillTableItem(TableItem item, User user) {
 		item.setData(user);
-		item.setText(0, user.login);
-		item.setText(1, user.admin ? "+" : "");
+		item.setText(0, user.getLogin());
+		item.setText(1, user.isAdmin() ? "+" : "");
 	}
 
 	public boolean loginIsBusy(String login, int excludedId) {

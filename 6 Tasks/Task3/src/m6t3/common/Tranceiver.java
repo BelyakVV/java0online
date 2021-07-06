@@ -201,65 +201,65 @@ public class Tranceiver {
 		return result;
 	}
 	
-	public static User receiveUser(InputStream in) throws IOException {
-//		System.out.println("Приём пользователя");
-		int len = receiveInt(in);
-		byte[] buffer = receiveBytes(in, len);
-		int pos = 0;
-		int id = getInt(buffer, pos);
-		pos += Integer.BYTES;
-		int serial = getInt(buffer, pos);
-		pos += Integer.BYTES;
-		int loginLength = getInt(buffer, pos);	
-		pos += Integer.BYTES;
-		String login = new String(buffer, pos, loginLength);
-		pos += loginLength;
-		int hashLength = getInt(buffer, pos);
-		pos += Integer.BYTES;
-		byte[] hash = new byte[hashLength];
-		System.arraycopy(buffer, pos, hash, 0, hashLength);
-		pos += hashLength;
-		int saltLength = getInt(buffer, pos);
-		pos += Integer.BYTES;
-		byte salt[] = new byte[saltLength];
-		System.arraycopy(buffer, pos, salt, 0, saltLength);
-		pos += saltLength;
-		boolean admin = 0 == getInt(buffer, pos) ? false : true;
-				
-		return new User(id, serial, login, hash, salt, admin);
-	}
-	
-	public static void transmitUser(User user, OutputStream out) throws IOException {
-		System.out.println("Transmitting user:\n" + user);		
-		byte[] signature = toBytes(SEND_USER);
-		byte[] login = user.login.getBytes();
-		int len = (Integer.BYTES * (3 + 3)) //id, serial, admin + login.length, user.hash.length, user.salt.length
-				+ login.length + user.hash.length + user.salt.length;
-		byte[] result = new byte[signature.length + Integer.BYTES + len];
-		int pos = 0;
-		System.arraycopy(signature, 0, result, pos, signature.length);
-		pos += signature.length;
-		System.arraycopy(toBytes(len), 0, result, pos, Integer.BYTES);
-		pos += Integer.BYTES;
-		System.arraycopy(toBytes(user.id), 0, result, pos, Integer.BYTES);
-		pos += Integer.BYTES;
-		System.arraycopy(toBytes(user.getSerial()), 0, result, pos, Integer.BYTES);
-		pos += Integer.BYTES;
-		System.arraycopy(toBytes(login.length), 0, result, pos, Integer.BYTES);
-		pos += Integer.BYTES;
-		System.arraycopy(login, 0, result, pos, login.length);
-		pos += login.length;
-		System.arraycopy(toBytes(user.hash.length), 0, result, pos, Integer.BYTES);
-		pos += Integer.BYTES;
-		System.arraycopy(user.hash, 0, result, pos, user.hash.length);
-		pos += user.hash.length;
-		System.arraycopy(toBytes(user.salt.length), 0, result, pos, Integer.BYTES);
-		pos += Integer.BYTES;
-		System.arraycopy(user.salt, 0, result, pos, user.salt.length);
-		pos += user.salt.length;
-		System.arraycopy(toBytes(user.admin ? 1 : 0), 0, result, pos, Integer.BYTES);
+//	public static User receiveUser(InputStream in) throws IOException {
+////		System.out.println("Приём пользователя");
+//		int len = receiveInt(in);
+//		byte[] buffer = receiveBytes(in, len);
+//		int pos = 0;
+//		int id = getInt(buffer, pos);
 //		pos += Integer.BYTES;
-		
-		out.write(result);
-	}
+//		int serial = getInt(buffer, pos);
+//		pos += Integer.BYTES;
+//		int loginLength = getInt(buffer, pos);	
+//		pos += Integer.BYTES;
+//		String login = new String(buffer, pos, loginLength);
+//		pos += loginLength;
+//		int hashLength = getInt(buffer, pos);
+//		pos += Integer.BYTES;
+//		byte[] hash = new byte[hashLength];
+//		System.arraycopy(buffer, pos, hash, 0, hashLength);
+//		pos += hashLength;
+//		int saltLength = getInt(buffer, pos);
+//		pos += Integer.BYTES;
+//		byte salt[] = new byte[saltLength];
+//		System.arraycopy(buffer, pos, salt, 0, saltLength);
+//		pos += saltLength;
+//		boolean admin = 0 == getInt(buffer, pos) ? false : true;
+//				
+//		return new User(id, serial, login, hash, salt, admin);
+//	}
+	
+//	public static void transmitUser(User user, OutputStream out) throws IOException {
+//		System.out.println("Transmitting user:\n" + user);		
+//		byte[] signature = toBytes(SEND_USER);
+//		byte[] login = user.login.getBytes();
+//		int len = (Integer.BYTES * (3 + 3)) //id, serial, admin + login.length, user.hash.length, user.salt.length
+//				+ login.length + user.hash.length + user.salt.length;
+//		byte[] result = new byte[signature.length + Integer.BYTES + len];
+//		int pos = 0;
+//		System.arraycopy(signature, 0, result, pos, signature.length);
+//		pos += signature.length;
+//		System.arraycopy(toBytes(len), 0, result, pos, Integer.BYTES);
+//		pos += Integer.BYTES;
+//		System.arraycopy(toBytes(user.id), 0, result, pos, Integer.BYTES);
+//		pos += Integer.BYTES;
+//		System.arraycopy(toBytes(user.getSerial()), 0, result, pos, Integer.BYTES);
+//		pos += Integer.BYTES;
+//		System.arraycopy(toBytes(login.length), 0, result, pos, Integer.BYTES);
+//		pos += Integer.BYTES;
+//		System.arraycopy(login, 0, result, pos, login.length);
+//		pos += login.length;
+//		System.arraycopy(toBytes(user.hash.length), 0, result, pos, Integer.BYTES);
+//		pos += Integer.BYTES;
+//		System.arraycopy(user.hash, 0, result, pos, user.hash.length);
+//		pos += user.hash.length;
+//		System.arraycopy(toBytes(user.salt.length), 0, result, pos, Integer.BYTES);
+//		pos += Integer.BYTES;
+//		System.arraycopy(user.salt, 0, result, pos, user.salt.length);
+//		pos += user.salt.length;
+//		System.arraycopy(toBytes(user.admin ? 1 : 0), 0, result, pos, Integer.BYTES);
+////		pos += Integer.BYTES;
+//		
+//		out.write(result);
+//	}
 }

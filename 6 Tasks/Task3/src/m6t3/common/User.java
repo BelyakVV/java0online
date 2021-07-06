@@ -2,7 +2,11 @@ package m6t3.common;
 
 import static m6t3.common.Const.INVALID_ID;
 import static m6t3.common.Const.INVALID_SERIAL;
+import static m6t3.common.Tranceiver.*;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.security.spec.InvalidKeySpecException;
@@ -11,22 +15,22 @@ import java.util.Arrays;
 import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.PBEKeySpec;
 
-public class User {
+public class User implements Transmittable {
     
     static final int SALT_LENGTH = 16;
     static final int ITERATIONS = 10000;
     static final int KEY_LENGTH = 256;
     
 	public final int id;
-	int serial;
-	public String login;
+	private int serial;
+	private String login;
 	
-	byte[] hash;
-	byte[] salt;// = new byte[SALT_LENGTH];
+	private byte[] hash;
+	private byte[] salt;// = new byte[SALT_LENGTH];
 	
-	public boolean admin;
+	private boolean admin;
 	
-	public User(int id, int serial, String login, byte[] hash, byte[] salt, boolean admin) {
+	private User(int id, int serial, String login, byte[] hash, byte[] salt, boolean admin) {
 		this.id = id;
 		this.serial = serial;
 		this.login = login;
@@ -124,8 +128,70 @@ public class User {
 				+ ", admin=" + admin + "]";
 	}
 
-	public Object suicide() {
+	public User suicide() {
 		serial = INVALID_SERIAL;
 		return this;
+	}
+
+	@Override
+	public void transmit(OutputStream out) throws IOException {
+		System.out.println("Transmitting user:\n" + this);		
+		byte[] signature = toBytes(SEND_USER);
+		byte[] login = this.login.getBytes();
+		int len = (Integer.BYTES * (3 + 3)) //id, serial, admin + login.length, hash.length, salt.length
+				+ login.length + hash.length + salt.length;
+		byte[] result = new byte[signature.length + Integer.BYTES + len];
+		int pos = 0;
+		System.arraycopy(signature, 0, result, pos, signature.length);
+		pos += signature.length;
+		System.arraycopy(toBytes(len), 0, result, pos, Integer.BYTES);
+		pos += Integer.BYTES;
+		System.arraycopy(toBytes(id), 0, result, pos, Integer.BYTES);
+		pos += Integer.BYTES;
+		System.arraycopy(toBytes(serial), 0, result, pos, Integer.BYTES);
+		pos += Integer.BYTES;
+		System.arraycopy(toBytes(login.length), 0, result, pos, Integer.BYTES);
+		pos += Integer.BYTES;
+		System.arraycopy(login, 0, result, pos, login.length);
+		pos += login.length;
+		System.arraycopy(toBytes(hash.length), 0, result, pos, Integer.BYTES);
+		pos += Integer.BYTES;
+		System.arraycopy(hash, 0, result, pos, hash.length);
+		pos += hash.length;
+		System.arraycopy(toBytes(salt.length), 0, result, pos, Integer.BYTES);
+		pos += Integer.BYTES;
+		System.arraycopy(salt, 0, result, pos, salt.length);
+		pos += salt.length;
+		System.arraycopy(toBytes(admin ? 1 : 0), 0, result, pos, Integer.BYTES);
+		
+		out.write(result);
+	}
+
+	public static User receive(InputStream in) throws IOException {
+//		System.out.println("Приём пользователя");
+		int len = receiveInt(in);
+		byte[] buffer = receiveBytes(in, len);
+		int pos = 0;
+		int id = getInt(buffer, pos);
+		pos += Integer.BYTES;
+		int serial = getInt(buffer, pos);
+		pos += Integer.BYTES;
+		int loginLength = getInt(buffer, pos);	
+		pos += Integer.BYTES;
+		String login = new String(buffer, pos, loginLength);
+		pos += loginLength;
+		int hashLength = getInt(buffer, pos);
+		pos += Integer.BYTES;
+		byte[] hash = new byte[hashLength];
+		System.arraycopy(buffer, pos, hash, 0, hashLength);
+		pos += hashLength;
+		int saltLength = getInt(buffer, pos);
+		pos += Integer.BYTES;
+		byte salt[] = new byte[saltLength];
+		System.arraycopy(buffer, pos, salt, 0, saltLength);
+		pos += saltLength;
+		boolean admin = 0 == getInt(buffer, pos) ? false : true;
+				
+		return new User(id, serial, login, hash, salt, admin);
 	}
 }

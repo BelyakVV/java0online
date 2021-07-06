@@ -6,10 +6,11 @@ import static m6t3.common.Tranceiver.SYNC_STUDENTS_REQUEST;
 import static m6t3.common.Tranceiver.SYNC_USERS_REQUEST;
 import static m6t3.common.Tranceiver.receiveInt;
 import static m6t3.common.Tranceiver.receiveStudent;
-import static m6t3.common.Tranceiver.receiveUser;
 
 import java.io.IOException;
 import java.io.InputStream;
+
+import m6t3.common.User;
 
 class SrvReceiver extends Thread {
 //	final SrvListener server;
@@ -35,7 +36,7 @@ class SrvReceiver extends Thread {
 					data.updateStudent(receiveStudent(in));
 				} else if (SEND_USER == signature) {
 					System.out.println("Received a user");
-					data.updateUser(receiveUser(in));
+					data.updateUser(User.receive(in));
 				} else if (SYNC_STUDENTS_REQUEST == signature) {
 //					System.out.println("Received a students full sync request");
 //					data.printStudents();

@@ -44,7 +44,7 @@ public class ClientReceiver extends Thread {
 					client.shell.getDisplay().wake();
 				} else if (SEND_USER == signature) {
 //					System.out.println("Приём пользователя");
-					User user = receiveUser(in);
+					User user = User.receive(in);
 					if (null != usersQueue) {
 						System.out.println("Received a user: \n" + user);
 						usersQueue.add(user);

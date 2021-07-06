@@ -143,7 +143,7 @@ public class UserEditDialog extends Dialog {
 			}
 		});
 		txtLogin.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
-		txtLogin.setText(user.login);
+		txtLogin.setText(user.getLogin());
 		
 		Label lblPass = new Label(composite, SWT.NONE);
 		lblPass.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1));
@@ -223,7 +223,7 @@ public class UserEditDialog extends Dialog {
 				btnAdmin.setBackground(defBgrdColor);
 			}
 		});
-		btnAdmin.setSelection(user.admin);
+		btnAdmin.setSelection(user.isAdmin());
 		
 		FormData fd_btnOk = new FormData();
 		fd_btnOk.top = new FormAttachment(composite, 6);

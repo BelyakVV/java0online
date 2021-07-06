@@ -3,7 +3,6 @@ package m6t3.server;
 import static m6t3.common.Tranceiver.transmitInt;
 import static m6t3.common.Tranceiver.transmitLong;
 import static m6t3.common.Tranceiver.transmitStudent;
-import static m6t3.common.Tranceiver.transmitUser;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -34,7 +33,7 @@ class SrvTransmitter extends Thread {
 				} else if (obj instanceof Integer) {			
 					transmitInt((Integer) obj, out);
 				} else if (obj instanceof User) {
-					transmitUser((User) obj, out);
+					((User) obj).transmit(out);
 				}
 			}
 		} catch (Exception e) {

@@ -41,7 +41,7 @@ class ClientTransmitter extends Thread {
 						transmitInt((Integer) obj, out);
 //						out.flush();
 					} else if (User.class == objClass) {
-						transmitUser((User) obj, out);
+						((User) obj).transmit(out);
 					}
 				} catch (IOException e) {
 					// TODO Auto-generated catch block
