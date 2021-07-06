@@ -208,6 +208,21 @@ public class UserEditDialog extends Dialog {
 		lblAdmin.setText("Администратор");
 		
 		btnAdmin = new Button(composite, SWT.CHECK);
+		btnAdmin.addFocusListener(new FocusAdapter() {
+			@Override
+			public void focusLost(FocusEvent e) {
+				if (!btnAdmin.getSelection()) {
+					if (usersWindow.noMoreAdmins(user.id)) {
+						btnAdmin.setBackground(RED);
+						return;
+					}
+					user.setAdmin(false);
+				} else {
+					user.setAdmin(true);
+				}
+				btnAdmin.setBackground(defBgrdColor);
+			}
+		});
 		btnAdmin.setSelection(user.admin);
 		
 		FormData fd_btnOk = new FormData();
@@ -238,7 +253,6 @@ public class UserEditDialog extends Dialog {
 	}
 
 	private void submit() {
-		//TODO: check data being sent
 		if (!loginIsValid) return;
 		if (!passIsValid) return;
 		try {
@@ -249,19 +263,14 @@ public class UserEditDialog extends Dialog {
 			System.err.println("Password: " + txtPass.getText());
 			e.printStackTrace();
 		}
-		user.admin = btnAdmin.getSelection();
+		if (!btnAdmin.getSelection()) {
+			if (usersWindow.noMoreAdmins(user.id)) {
+				btnAdmin.setBackground(RED);
+				return;
+			}
+		} 
+		btnAdmin.setBackground(defBgrdColor);
 		client.connection.outQueue.add(user);
 		shell.close();
 	}
-
-//	/**
-//	 * Actually update the user on the server or return false if it is impossible
-//	 * TODO: pull this method out of this class
-//	 * @param user User to be updated or created (if user.id == INVALID_ID)
-//	 * @return true if success
-//	 */
-//	boolean doUpdateTransaction(User user) {
-//		// TODO Auto-generated method stub
-//		return false;
-//	}
 }

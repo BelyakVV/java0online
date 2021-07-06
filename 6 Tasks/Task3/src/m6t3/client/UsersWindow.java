@@ -243,14 +243,24 @@ public class UsersWindow extends Dialog {
 		item.setText(1, user.admin ? "+" : "");
 	}
 
-	public boolean loginIsBusy(String login, int excludeId) {
+	public boolean loginIsBusy(String login, int excludedId) {
 		for (int i = 0; i < table.getItemCount(); i++) {
 			TableItem item = table.getItem(i);
 			User user = (User) item.getData();
-			if (user.id == excludeId) continue;
+			if (user.id == excludedId) continue;
 			if (user.getLogin() == login) return true;
 		}
 		return false;
+	}
+
+	public boolean noMoreAdmins(int excludedId) {
+		for (int i = 0; i < table.getItemCount(); i++) {
+			TableItem item = table.getItem(i);
+			User user = (User) item.getData();
+			if (user.id == excludedId) continue;
+			if (user.isAdmin()) return false;
+		}
+		return true;
 	}
 
 }

@@ -94,6 +94,16 @@ public class User {
         var factory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA1");
         return factory.generateSecret(spec).getEncoded();
     }
+	
+	public boolean isAdmin() {
+		return admin;
+	}
+
+	public void setAdmin(boolean admin) {
+		if (admin == this.admin) return;
+		this.admin = admin;
+		serial++;
+	}
 
 	public boolean update(User upd) {
 		if (upd.serial > serial) {
