@@ -145,27 +145,6 @@ class SrvData extends Thread {
 			}
 		}
 	}
-
-	Element toXML(Student student, Document xmlDoc) {
-		Element result = xmlDoc.createElement("student");
-		result.setAttribute("id", Integer.toString(student.id));
-		result.setAttribute("serial", Integer.toString(student.getSerial()));
-		result.setAttribute("number", student.getNumber());
-		result.setAttribute("surname", student.getSurname());
-		result.setAttribute("name", student.getName());
-		result.setAttribute("patronymic", student.getPatronymic());
-		return result;
-	}
-	
-	Student toStudent(Element elem) {
-		int id = Integer.parseInt(elem.getAttribute("id"));
-		int serial = Integer.parseInt(elem.getAttribute("serial"));
-		String number = elem.getAttribute("number");
-		String surname = elem.getAttribute("surname");
-		String name = elem.getAttribute("name");
-		String patronymic = elem.getAttribute("patronymic");
-		return new Student(id, serial, number, surname, name, patronymic);
-	}
 	
 	void load() throws SAXException, IOException {
 		students.clear();
@@ -176,7 +155,7 @@ class SrvData extends Thread {
 		NodeList xmlStudents = xmlDoc.getElementsByTagName("student");
 		for (int i = 0; i < xmlStudents.getLength(); i++) {
 			Node node = xmlStudents.item(i);
-			Student student = toStudent((Element) node);
+			Student student = Student.fromXML((Element) node);
 			students.add(student);
 			if (student.id >= nextStudentId) {
 				nextStudentId = student.id + 1;
@@ -199,7 +178,7 @@ class SrvData extends Thread {
 		Element xmlStudents = xmlDoc.createElement("students");
 		root.appendChild(xmlStudents);
 		for (var student: outStudents) {
-			xmlStudents.appendChild(toXML(student, xmlDoc));
+			xmlStudents.appendChild(student.toXML(xmlDoc));
 		}
 		try {
 			Transformer transformer = TransformerFactory.newInstance().newTransformer();

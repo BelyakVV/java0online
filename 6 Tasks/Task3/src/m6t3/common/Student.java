@@ -7,7 +7,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
-public class Student implements Transmittable {
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+
+public class Student implements Transmittable, XMLable {
 	
 	public final int id;
 	private int serial;
@@ -261,6 +264,28 @@ public class Student implements Transmittable {
 		int patLen = getInt(buffer, pos);
 		pos += Integer.BYTES;	
 		String patronymic = new String(buffer, pos, patLen);
+		return new Student(id, serial, number, surname, name, patronymic);
+	}
+
+	@Override
+	public Element toXML(Document xmlDoc) {
+		Element result = xmlDoc.createElement("student");
+		result.setAttribute("id", Integer.toString(id));
+		result.setAttribute("serial", Integer.toString(serial));
+		result.setAttribute("number", number);
+		result.setAttribute("surname", surname);
+		result.setAttribute("name", name);
+		result.setAttribute("patronymic", patronymic);
+		return result;
+	}
+	
+	public static Student fromXML(Element elem) {
+		int id = Integer.parseInt(elem.getAttribute("id"));
+		int serial = Integer.parseInt(elem.getAttribute("serial"));
+		String number = elem.getAttribute("number");
+		String surname = elem.getAttribute("surname");
+		String name = elem.getAttribute("name");
+		String patronymic = elem.getAttribute("patronymic");
 		return new Student(id, serial, number, surname, name, patronymic);
 	}
 }
