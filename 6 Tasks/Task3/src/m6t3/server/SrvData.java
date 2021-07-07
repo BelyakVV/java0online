@@ -107,7 +107,7 @@ class SrvData extends Thread {
 		}
 	}
 
-	public void updateUser(User upd) {
+	public boolean updateUser(User upd) {
 		synchronized (users) {
 			if (upd.id < 0) {
 				if (upd.getSerial() > 0) {
@@ -119,8 +119,9 @@ class SrvData extends Thread {
 					}
 				} else {
 					System.err.println("Error: user id < 0 && serial < 1");
+					return false;
 				}
-				return;
+				return true;
 			}
 			for (var user: users) {
 				if (user.id == upd.id) {
@@ -139,9 +140,10 @@ class SrvData extends Thread {
 							server.broadcast(user);
 						}
 					}
-					return;
+					return true;
 				}
 			}
+			return true;
 		}
 	}
 	
@@ -227,5 +229,13 @@ class SrvData extends Thread {
 		for (var user: users) {
 			System.out.println(user);
 		}
+	}
+
+	public boolean noOtherAdmins(int excludedId) {
+		for (var user: users) {
+			if (user.id == excludedId) continue;
+			if (user.isAdmin()) return false;
+		}
+		return true;
 	}
 }

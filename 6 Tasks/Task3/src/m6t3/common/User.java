@@ -58,6 +58,15 @@ public class User implements Transmittable, XMLable {
 		this.salt = origin.salt;
 		this.admin = origin.admin;
 	}
+	
+	public static User createAdmin(String login, char[] pass) 
+			throws NoSuchAlgorithmException, InvalidKeySpecException {
+		User result = new User();
+		result.setLogin(login);
+		result.setPassword(pass);
+		result.admin = true;
+		return result;
+	}
 
 	public int getSerial() {
 		return serial;
