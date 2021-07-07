@@ -146,11 +146,12 @@ class SrvData extends Thread {
 	}
 	
 	void load() throws SAXException, IOException {
+		Document xmlDoc = dBuilder.parse(new File(fileName));
+		xmlDoc.getDocumentElement().normalize();	//TODO: проверить, надо ли это
+		
 		students.clear();
 		nextStudentId = 0;
 		checksum = 0;
-		Document xmlDoc = dBuilder.parse(new File(fileName));
-		xmlDoc.getDocumentElement().normalize();	//TODO: проверить, надо ли это
 		NodeList xmlStudents = xmlDoc.getElementsByTagName("student");
 		for (int i = 0; i < xmlStudents.getLength(); i++) {
 			Node node = xmlStudents.item(i);
@@ -160,6 +161,18 @@ class SrvData extends Thread {
 				nextStudentId = student.id + 1;
 			}
 			checksum += student.hashCode();
+		}
+		
+		users.clear();
+		nextUserId = 0;
+		NodeList xmlUsers = xmlDoc.getElementsByTagName("user");
+		for (int i = 0; i < xmlUsers.getLength(); i++) {
+			Node node = xmlUsers.item(i);
+			User user = User.fromXML((Element) node);
+			users.add(user);
+			if (user.id >= nextUserId) {
+				nextUserId = user.id + 1;
+			}
 		}
 		changed = false;
 	}

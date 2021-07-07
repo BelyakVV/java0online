@@ -210,7 +210,7 @@ public class User implements Transmittable, XMLable {
 		return result;
 	}
 
-	private String encodeHex(byte[] byteArray) {
+	private static String encodeHex(byte[] byteArray) {
 		StringBuilder result = new StringBuilder();
 		for (byte b: byteArray) {
 			result.append(encodeHexDigit(b >> 4));
@@ -219,8 +219,39 @@ public class User implements Transmittable, XMLable {
 		return result.toString();
 	}
 
-	private char encodeHexDigit(int i) {
+	private static char encodeHexDigit(int i) {
 		i = i & 0x0f;
 		return (i > 9) ? (char) (i + 'a' - 10) : (char) (i + '0');
+	}
+
+	private static int decodeHexDigit(char digit) {
+		if (digit < '0') return 0;
+		if (digit <= '9') return digit - '0';
+		digit = Character.toLowerCase(digit);
+		if (digit < 'a' || digit > 'f') return 0;
+		return digit - 'a' + 10;
+	}
+	
+	public static User fromXML(Element elem) {
+		int id = Integer.parseInt(elem.getAttribute("id"));
+		int serial = Integer.parseInt(elem.getAttribute("serial"));
+		String login = elem.getAttribute("login");
+		String hash = elem.getAttribute("hash");
+		String salt = elem.getAttribute("salt");
+		String admin = elem.getAttribute("admin");
+		return new User(id, serial, login, 
+				toByteArray(hash), toByteArray(salt), 
+				admin.equalsIgnoreCase("true") ? true : false);
+	}
+
+	private static byte[] toByteArray(String string) {
+		char[] charArray = string.toCharArray();
+		byte[] result = new byte[charArray.length >> 1]; 
+		for (int i = 0; i < result.length; i++) {
+			result[i] = (byte) ((decodeHexDigit(charArray[i << 1]) << 4)
+					+ decodeHexDigit(charArray[(i << 1) + 1]));
+			
+		}
+		return result;
 	}
 }
