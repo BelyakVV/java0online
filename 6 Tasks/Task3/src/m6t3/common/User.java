@@ -216,7 +216,7 @@ public class User implements Transmittable, XMLable {
 		byte salt[] = new byte[saltLength];
 		System.arraycopy(buffer, pos, salt, 0, saltLength);
 		pos += saltLength;
-		boolean admin = 0 == getInt(buffer, pos) ? false : true;
+		boolean admin = (0 == getInt(buffer, pos)) ? false : true;
 				
 		return new User(id, serial, login, hash, salt, admin);
 	}

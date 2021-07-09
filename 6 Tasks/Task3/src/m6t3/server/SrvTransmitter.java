@@ -1,11 +1,13 @@
 package m6t3.server;
 
+import static m6t3.common.Const.ANTI_BRUTEFORCE_DELAY;
 import static m6t3.common.Tranceiver.transmitInt;
 import static m6t3.common.Tranceiver.transmitLong;
 
 import java.io.IOException;
 import java.io.OutputStream;
 
+import m6t3.common.AuthAcknowledgement;
 import m6t3.common.Transmittable;
 
 class SrvTransmitter extends Thread {
@@ -22,6 +24,9 @@ class SrvTransmitter extends Thread {
 	@Override
 	public void run() {
 		try {
+			sleep(ANTI_BRUTEFORCE_DELAY);
+			new AuthAcknowledgement(link.user).transmit(out);
+			if (null == link.user) link.close();
 			while (link.running || !link.outQueue.isEmpty()) {
 				Object obj = link.outQueue.take();
 				if (obj instanceof Transmittable) {

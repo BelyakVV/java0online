@@ -15,20 +15,20 @@ import m6t3.common.User;
 public class ClientReceiver extends Thread {
 	final ClientMain client;
 	final Connection connection;
-	InputStream in;
+	InputStream in = null;
 	Queue<Student> studentsQueue = new LinkedList<>();
 	Queue<User> usersQueue = null;
 
 	ClientReceiver(Connection connection) {
 		this.connection = connection;
 		client = connection.client;
-		try {
-			in = connection.socket.getInputStream();
-		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			System.err.println("Unable to acquire input stream from the socket");
-//			e.printStackTrace();
-		}
+//		try {
+//			in = connection.socket.getInputStream();
+//		} catch (Exception e) {
+//			// TODO Auto-generated catch block
+//			System.err.println("Unable to acquire input stream from the socket");
+////			e.printStackTrace();
+//		}
 	}
 	
 	@Override

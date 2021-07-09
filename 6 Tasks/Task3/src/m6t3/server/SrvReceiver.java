@@ -28,7 +28,7 @@ class SrvReceiver extends Thread {
 
 	@Override
 	public void run() {
-		try {
+		try {		
 			while (link.running || in.available() > 0) {				
 				int signature = receiveInt(in);
 				if (SEND_STUDENT == signature) {
@@ -51,8 +51,7 @@ class SrvReceiver extends Thread {
 				}
 			}
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
-//			e.printStackTrace();
+			//Nothing to do here
 		}
 		System.out.println("Receiver is stopped");
 		link.close();

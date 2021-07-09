@@ -238,4 +238,13 @@ class SrvData extends Thread {
 		}
 		return true;
 	}
+
+	public User getUser(String login) {
+		for (var user: users) {
+			if (user.getLogin().equalsIgnoreCase(login)) {
+				return user;
+			}
+		}
+		return null;
+	}
 }

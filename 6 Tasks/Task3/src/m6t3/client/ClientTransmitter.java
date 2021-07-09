@@ -10,18 +10,18 @@ import m6t3.common.Transmittable;
 class ClientTransmitter extends Thread {
 	final ClientMain client;
 	final Connection connection;
-	OutputStream out;
+	OutputStream out = null;
 
 	ClientTransmitter(Connection connection) {
 		client = connection.client;
 		this.connection = connection;
-		try {
-			out = connection.socket.getOutputStream();
-		} catch (Exception e) {
-			System.err.println("Unable to acquire an output stream from the socket");
-			// TODO Auto-generated catch block
-//			e.printStackTrace();
-		}
+//		try {
+//			out = connection.socket.getOutputStream();
+//		} catch (Exception e) {
+//			System.err.println("Unable to acquire an output stream from the socket");
+//			// TODO Auto-generated catch block
+////			e.printStackTrace();
+//		}
 	}
 
 	@Override
@@ -54,8 +54,7 @@ class ClientTransmitter extends Thread {
 		try {
 			connection.socket.close();
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
-//			e.printStackTrace();
+			//Nothing to do here
 		}
 	}	
 }
