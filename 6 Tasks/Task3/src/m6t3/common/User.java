@@ -2,7 +2,11 @@ package m6t3.common;
 
 import static m6t3.common.Const.INVALID_ID;
 import static m6t3.common.Const.INVALID_SERIAL;
-import static m6t3.common.Tranceiver.*;
+import static m6t3.common.Tranceiver.SEND_USER;
+import static m6t3.common.Tranceiver.getInt;
+import static m6t3.common.Tranceiver.receiveBytes;
+import static m6t3.common.Tranceiver.receiveInt;
+import static m6t3.common.Tranceiver.toBytes;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -20,6 +24,7 @@ import org.w3c.dom.Element;
 
 public class User implements Transmittable, XMLable {
     
+	static final String ALGORITHM = "PBKDF2WithHmacSHA1";
     static final int SALT_LENGTH = 16;
     static final int ITERATIONS = 10000;
     static final int KEY_LENGTH = 256;
@@ -41,10 +46,6 @@ public class User implements Transmittable, XMLable {
 		this.salt = salt;
 		this.admin = admin;
 	}
-	
-//	public User(int id, String login, boolean admin) {
-//		this(id, 0, login, admin);
-//	}
 	
 	public User() {
 		this(INVALID_ID, 0, "", null, null, false);
@@ -92,7 +93,7 @@ public class User implements Transmittable, XMLable {
 	
 	public boolean isValidPassword(char[] password) 
             throws NoSuchAlgorithmException, InvalidKeySpecException {
-        return Arrays.equals(hash, createHash(password));
+        return Arrays.equals(hash, createHash(password, salt));
     }
 	
 	public void setPassword(char[] newPassword) 
@@ -100,16 +101,29 @@ public class User implements Transmittable, XMLable {
         SecureRandom random = new SecureRandom();
         salt = new byte[SALT_LENGTH];
         random.nextBytes(salt);
-        hash = createHash(newPassword);
+        hash = createHash(newPassword, salt);
         serial++;
     }
 	
-	byte[] createHash(char[] password) 
+	static byte[] createHash(char[] password, byte[] salt) 
             throws NoSuchAlgorithmException, InvalidKeySpecException {
         var spec = new PBEKeySpec(password, salt, ITERATIONS, KEY_LENGTH);
-        var factory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA1");
+        var factory = SecretKeyFactory.getInstance(ALGORITHM);
         return factory.generateSecret(spec).getEncoded();
     }
+	
+	public AuthChallenge createChallenge() {
+        SecureRandom random = new SecureRandom();
+        byte[] challenge = new byte[SALT_LENGTH];
+        random.nextBytes(challenge);
+        return new AuthChallenge(challenge, salt);
+	}
+	
+	public boolean isValidResponse(AuthChallenge challenge, AuthResponse response) 
+			throws NoSuchAlgorithmException, InvalidKeySpecException {
+		byte[] validResponse = createHash(toCharArray(hash), challenge.challenge);
+		return Arrays.mismatch(response.response, validResponse) < 0 ? true : false;
+	}
 	
 	public boolean isAdmin() {
 		return admin;
@@ -147,16 +161,16 @@ public class User implements Transmittable, XMLable {
 
 	@Override
 	public void transmit(OutputStream out) throws IOException {
-		System.out.println("Transmitting user:\n" + this);		
+//		System.out.println("Transmitting user:\n" + this);		
 		byte[] signature = toBytes(SEND_USER);
 		byte[] login = this.login.getBytes();
-		int len = (Integer.BYTES * (3 + 3)) //id, serial, admin + login.length, hash.length, salt.length
+		int length = (Integer.BYTES * (3 + 3)) //id, serial, admin + login.length, hash.length, salt.length
 				+ login.length + hash.length + salt.length;
-		byte[] result = new byte[signature.length + Integer.BYTES + len];
+		byte[] result = new byte[signature.length + Integer.BYTES + length];
 		int pos = 0;
 		System.arraycopy(signature, 0, result, pos, signature.length);
 		pos += signature.length;
-		System.arraycopy(toBytes(len), 0, result, pos, Integer.BYTES);
+		System.arraycopy(toBytes(length), 0, result, pos, Integer.BYTES);
 		pos += Integer.BYTES;
 		System.arraycopy(toBytes(id), 0, result, pos, Integer.BYTES);
 		pos += Integer.BYTES;
@@ -181,8 +195,8 @@ public class User implements Transmittable, XMLable {
 
 	public static User receive(InputStream in) throws IOException {
 //		System.out.println("Приём пользователя");
-		int len = receiveInt(in);
-		byte[] buffer = receiveBytes(in, len);
+		int length = receiveInt(in);
+		byte[] buffer = receiveBytes(in, length);
 		int pos = 0;
 		int id = getInt(buffer, pos);
 		pos += Integer.BYTES;
@@ -260,6 +274,16 @@ public class User implements Transmittable, XMLable {
 			result[i] = (byte) ((decodeHexDigit(charArray[i << 1]) << 4)
 					+ decodeHexDigit(charArray[(i << 1) + 1]));
 			
+		}
+		return result;
+	}
+
+	static char[] toCharArray(byte[] byteArray) {
+		char[] result = new char[byteArray.length >> 1];
+		for (int i = 0; i < result.length; i++) {
+			int hi = byteArray[i << 1];
+			int lo = byteArray[(i << 1) + 1];
+			result[i] = (char) ((hi << 8) + lo);
 		}
 		return result;
 	}

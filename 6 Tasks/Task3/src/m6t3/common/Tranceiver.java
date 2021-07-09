@@ -8,6 +8,10 @@ import java.util.LinkedList;
 
 public class Tranceiver {
 	
+	public static final int LOGIN_REQUEST = signatureToInt("LOGN");
+	public static final int AUTH_CHALLENGE = signatureToInt("CHLG");
+	public static final int AUTH_RESPONSE = signatureToInt("RSPS");
+	
 	public static final int STUDENTS_CHECKSUM = signatureToInt("CHCK");
 	public static final int SEND_ALL_STUDENTS = signatureToInt("STDS");
 	public static final int SEND_STUDENT = signatureToInt("STUD");
