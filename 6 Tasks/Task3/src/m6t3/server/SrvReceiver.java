@@ -47,7 +47,8 @@ class SrvReceiver extends Thread {
 					link.outQueue.addAll(data.users);
 				} else {
 					System.err.println("Unknown request received");
-					in.skipNBytes(in.available());
+//					in.skipNBytes(in.available());
+					in.skip(in.available());
 				}
 			}
 		} catch (Exception e) {

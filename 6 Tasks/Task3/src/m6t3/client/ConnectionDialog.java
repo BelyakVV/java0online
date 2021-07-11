@@ -122,7 +122,5 @@ public class ConnectionDialog extends Dialog {
 		connection.serverPort = spnPort.getSelection();
 		result = true;
 		shell.close();
-	}
-	
-	
+	}	
 }

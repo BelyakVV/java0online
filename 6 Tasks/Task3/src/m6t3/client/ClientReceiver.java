@@ -56,7 +56,8 @@ public class ClientReceiver extends Thread {
 					connection.synchronizer.srvChecksum = t;
 				} else {
 					System.err.println("Invalid transmittion detected");
-					in.skipNBytes(in.available());
+//					in.skipNBytes(in.available());
+					in.skip(in.available());
 //					connection.reconnect();
 				}
 			} catch (Exception e) {
