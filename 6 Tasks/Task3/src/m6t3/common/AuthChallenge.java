@@ -6,6 +6,7 @@ import static m6t3.common.Tranceiver.receiveBytes;
 import static m6t3.common.Tranceiver.receiveInt;
 import static m6t3.common.Tranceiver.toBytes;
 import static m6t3.common.User.createHash;
+import static m6t3.common.User.createSalt;
 import static m6t3.common.User.toCharArray;
 
 import java.io.IOException;
@@ -13,6 +14,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
+import java.util.Arrays;
 
 /**
  *	Authentication challenge is sent by a server upon receiving a login request.
@@ -23,8 +25,8 @@ public class AuthChallenge implements Transmittable {
 	
 	/** A random bytes to be processed into response by a client */
 	final byte[] challenge;
-	final byte[] salt;
-	private char[] hash = null;
+	private byte[] salt;
+	private byte[] hash = null;
 
 	AuthChallenge(byte[] challenge, byte[] salt) {
 		this.challenge = challenge;
@@ -33,15 +35,29 @@ public class AuthChallenge implements Transmittable {
 
 	public AuthResponse createResponse(AuthChallenge previous) 
 			throws NoSuchAlgorithmException, InvalidKeySpecException {
-		if (previous != this) hash = previous.hash;
-		byte[] result = createHash(hash, challenge);		
+		if (previous != this) {
+			hash = previous.hash;
+			salt = previous.salt;
+		}
+		byte[] result = createHash(toCharArray(hash), challenge);		
 		return new AuthResponse(result);		
 	}
 	
 	public AuthResponse createResponse(char[] password) 
 			throws NoSuchAlgorithmException, InvalidKeySpecException {
-		hash = toCharArray(createHash(password, salt));
+		hash = createHash(password, salt);
 		return createResponse(this);
+	}
+	
+	public ChangePassRequest createChangePassRequest(char[] oldPass, char[] newPass) 
+			throws NoSuchAlgorithmException, InvalidKeySpecException {
+		byte[] oldHash = createHash(oldPass, salt);
+		System.out.println(Arrays.toString(oldHash));
+		System.out.println(Arrays.toString(hash));
+		if (!Arrays.equals(hash, oldHash)) return null;
+        salt = createSalt();
+        hash = createHash(newPass, salt);
+        return new ChangePassRequest(hash, salt);
 	}
 
 	@Override

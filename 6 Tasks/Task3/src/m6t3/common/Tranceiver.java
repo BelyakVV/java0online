@@ -22,8 +22,9 @@ public class Tranceiver {
 	public static final int NEW_USER = signatureToInt("NUSR");
 	public static final int SEND_ALL_USERS = signatureToInt("USRS");
 	public static final int SEND_USER = signatureToInt("USER");
-	public static final int SYNC_USERS_REQUEST = signatureToInt("SNCU");
-	
+	public static final int SYNC_USERS_REQUEST = signatureToInt("SNCU");	
+
+	public static final int CHANGE_PASS_REQUEST = signatureToInt("CHPS");
 	
 	public static final long SYNC_INTERVAL = 3000;
 	

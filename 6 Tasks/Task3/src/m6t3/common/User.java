@@ -98,12 +98,23 @@ public class User implements Transmittable, XMLable {
 	
 	public void setPassword(char[] newPassword) 
             throws NoSuchAlgorithmException, InvalidKeySpecException {
-        SecureRandom random = new SecureRandom();
-        salt = new byte[SALT_LENGTH];
-        random.nextBytes(salt);
+        salt = createSalt();
         hash = createHash(newPassword, salt);
         serial++;
     }
+
+	public void setPassword(ChangePassRequest request) {
+		hash = request.newHash;
+		salt = request.newSalt;
+		serial++;
+	}
+
+	static byte[] createSalt() {
+		SecureRandom random = new SecureRandom();
+        byte[] result = new byte[SALT_LENGTH];
+        random.nextBytes(result);
+        return result;
+	}
 	
 	static byte[] createHash(char[] password, byte[] salt) 
             throws NoSuchAlgorithmException, InvalidKeySpecException {

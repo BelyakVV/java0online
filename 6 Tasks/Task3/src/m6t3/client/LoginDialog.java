@@ -1,20 +1,28 @@
 package m6t3.client;
 
-import org.eclipse.swt.widgets.Dialog;
-import org.eclipse.swt.widgets.Display;
-import org.eclipse.swt.widgets.Shell;
-import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.swt.widgets.Label;
+import static m6t3.client.StudentEditDialog.SELECT_ALL_TEXT;
+import static m6t3.client.StudentEditDialog.TRAVERSE_OR_EXIT;
+
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.layout.GridData;
-import org.eclipse.swt.widgets.Group;
-import org.eclipse.swt.layout.FormLayout;
-import org.eclipse.swt.layout.FormData;
-import org.eclipse.swt.layout.FormAttachment;
-import org.eclipse.swt.widgets.Text;
-import org.eclipse.swt.widgets.Button;
+import org.eclipse.swt.events.KeyAdapter;
+import org.eclipse.swt.events.KeyEvent;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.graphics.Color;
+import org.eclipse.swt.layout.FormAttachment;
+import org.eclipse.swt.layout.FormData;
+import org.eclipse.swt.layout.FormLayout;
+import org.eclipse.swt.layout.GridData;
+import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.widgets.Button;
+import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Dialog;
+import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Group;
+import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Shell;
+import org.eclipse.swt.widgets.Text;
+import org.eclipse.wb.swt.SWTResourceManager;
 
 public class LoginDialog extends Dialog {
 
@@ -24,6 +32,9 @@ public class LoginDialog extends Dialog {
 	private Text txtPass;
 	
 	final ClientMain client;
+	
+	public static Color defBgrdColor;
+	public static final Color RED = SWTResourceManager.getColor(SWT.COLOR_RED);
 
 	/**
 	 * Create the dialog.
@@ -83,6 +94,9 @@ public class LoginDialog extends Dialog {
 		txtLogin = new Text(group, SWT.BORDER);
 		txtLogin.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
 		txtLogin.setText(client.connection.login);
+		txtLogin.addFocusListener(SELECT_ALL_TEXT);
+		txtLogin.addKeyListener(TRAVERSE_OR_EXIT);
+		defBgrdColor = txtLogin.getBackground();
 		
 		Label lblPass = new Label(group, SWT.NONE);
 		lblPass.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1));
@@ -90,6 +104,17 @@ public class LoginDialog extends Dialog {
 		
 		txtPass = new Text(group, SWT.BORDER | SWT.PASSWORD);
 		txtPass.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+		txtPass.addFocusListener(SELECT_ALL_TEXT);
+		txtPass.addKeyListener(new KeyAdapter() {
+			@Override
+			public void keyPressed(KeyEvent e) {
+				if (SWT.CR == e.character) {
+					submit();
+				} else if (e.character == SWT.ESC) {
+					((Control) e.widget).getShell().close();
+				}
+			}
+		});
 		
 		Button btnOk = new Button(shell, SWT.NONE);
 		btnOk.addSelectionListener(new SelectionAdapter() {

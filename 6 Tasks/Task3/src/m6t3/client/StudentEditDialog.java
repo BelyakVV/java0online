@@ -1,4 +1,7 @@
 package m6t3.client;
+import static m6t3.client.LoginDialog.RED;
+import static m6t3.client.LoginDialog.defBgrdColor;
+
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.FocusAdapter;
 import org.eclipse.swt.events.FocusEvent;
@@ -8,7 +11,6 @@ import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.TraverseEvent;
 import org.eclipse.swt.events.TraverseListener;
-import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.layout.FormAttachment;
 import org.eclipse.swt.layout.FormData;
 import org.eclipse.swt.layout.FormLayout;
@@ -22,7 +24,6 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
-import org.eclipse.wb.swt.SWTResourceManager;
 
 import m6t3.common.Student;
 
@@ -37,8 +38,6 @@ public class StudentEditDialog extends Dialog {
 	private Text txtName;
 	private Text txtPatronymic;
 
-	private static Color defBgrdColor;
-	private static final Color RED = SWTResourceManager.getColor(SWT.COLOR_RED);
 	/**
 	 * Create the dialog.
 	 * @param parent
@@ -168,7 +167,6 @@ public class StudentEditDialog extends Dialog {
 		lblNumber.setText("Номер");
 		
 		txtNumber = new Text(composite, SWT.BORDER);
-		defBgrdColor = txtNumber.getBackground();
 		txtNumber.addFocusListener(SELECT_ALL_TEXT);
 		txtNumber.addTraverseListener(CHECK_BLANK);
 		txtNumber.addKeyListener(TRAVERSE_OR_EXIT);

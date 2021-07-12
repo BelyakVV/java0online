@@ -1,5 +1,6 @@
 package m6t3.server;
 
+import static m6t3.common.Tranceiver.CHANGE_PASS_REQUEST;
 import static m6t3.common.Tranceiver.SEND_STUDENT;
 import static m6t3.common.Tranceiver.SEND_USER;
 import static m6t3.common.Tranceiver.SYNC_STUDENTS_REQUEST;
@@ -9,6 +10,7 @@ import static m6t3.common.Tranceiver.receiveInt;
 import java.io.IOException;
 import java.io.InputStream;
 
+import m6t3.common.ChangePassRequest;
 import m6t3.common.Student;
 import m6t3.common.User;
 
@@ -45,6 +47,10 @@ class SrvReceiver extends Thread {
 					System.out.println("Received a users full sync request");
 					data.printUsers();
 					link.outQueue.addAll(data.users);
+				} else if (CHANGE_PASS_REQUEST == signature) {
+					link.user.setPassword(ChangePassRequest.receive(in));
+					data.touch();
+					link.server.broadcast(link.user);
 				} else {
 					System.err.println("Unknown request received");
 //					in.skipNBytes(in.available());

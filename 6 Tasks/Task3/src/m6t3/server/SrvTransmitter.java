@@ -9,6 +9,7 @@ import java.io.OutputStream;
 
 import m6t3.common.AuthAcknowledgement;
 import m6t3.common.Transmittable;
+import m6t3.common.User;
 
 class SrvTransmitter extends Thread {
 //	final SrvListener server;
@@ -29,6 +30,7 @@ class SrvTransmitter extends Thread {
 			if (null == link.user) link.close();
 			while (link.running || !link.outQueue.isEmpty()) {
 				Object obj = link.outQueue.take();
+				if ((obj instanceof User) && !link.user.isAdmin()) continue;
 				if (obj instanceof Transmittable) {
 					((Transmittable) obj).transmit(out);
 				} else if (obj instanceof Long) {

@@ -70,6 +70,10 @@ class SrvData extends Thread {
 		return checksum;
 	}
 
+	public void touch() {
+		changed = true;
+	}
+
 	public void updateStudent(Student upd) {
 		synchronized (students) {
 			if (upd.id < 0) {

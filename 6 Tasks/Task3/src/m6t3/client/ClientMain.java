@@ -250,7 +250,7 @@ public class ClientMain {
 		mntmChangePass.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
-//				shell.close();
+				new ChangePassDialog(client).open();
 			}
 		});
 		mntmChangePass.setText("Изменить свой пароль");
