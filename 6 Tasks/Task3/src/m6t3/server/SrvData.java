@@ -132,12 +132,12 @@ class SrvData extends Thread {
 					if (upd.getSerial() < 0) {
 						users.remove(user);
 						changed = true;
-//						checksum -= student.hashCode();
+						server.disconnect(upd);
 						server.broadcast(upd);
 					} else {
 						//TODO: check for duplicate login name
 //						int oldHash = student.hashCode();
-						upd.incSerial();
+//						upd.incSerial();
 						if (user.update(upd)) {
 							changed = true;
 //							checksum += student.hashCode() - oldHash;

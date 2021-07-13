@@ -110,7 +110,8 @@ class Connection {
 		if (receiveInt(in) != AUTH_ACKNOWLEDGEMENT) return false;
 		AuthAcknowledgement acknowledgement = AuthAcknowledgement.receive(in);
 		if (INVALID_ID == acknowledgement.userId) return false;
-		client.shell.getDisplay().syncExec(() -> client.shell.setText("Архив (" + login + ')'));
+		client.shell.getDisplay().syncExec(
+				() -> client.shell.setText("Архив (" + login + ')'));
 		lastChallenge = challenge;
 		needAskLogin = false;
 		return true;

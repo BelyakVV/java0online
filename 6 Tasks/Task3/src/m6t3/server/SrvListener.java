@@ -7,6 +7,8 @@ import java.util.Queue;
 
 import javax.xml.parsers.ParserConfigurationException;
 
+import m6t3.common.User;
+
 class SrvListener extends Thread {
 	final ServerSocket socket;
 	final Queue<SrvLink> links = new LinkedList<>();
@@ -57,6 +59,19 @@ class SrvListener extends Thread {
 		for (var link: links) {
 			link.outQueue.add(obj);
 		}		
+	}
+
+	/**
+	 * 	Disconnect all clients which are logged in as user given.
+	 * 
+	 * @param user User to be disconnected
+	 */
+	public void disconnect(User user) {
+		for (var link: links) {
+			if (link.user.id == user.id) {
+				link.close();
+			}
+		}
 	}
 	
 	public void close() throws InterruptedException {

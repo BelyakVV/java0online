@@ -30,7 +30,7 @@ class SrvTransmitter extends Thread {
 			if (null == link.user) link.close();
 			while (link.running || !link.outQueue.isEmpty()) {
 				Object obj = link.outQueue.take();
-				if ((obj instanceof User) && !link.user.isAdmin()) continue;
+//				if ((obj instanceof User) && !link.user.isAdmin()) continue;
 				if (obj instanceof Transmittable) {
 					((Transmittable) obj).transmit(out);
 				} else if (obj instanceof Long) {
