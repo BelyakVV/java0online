@@ -10,6 +10,7 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerConfigurationException;
 import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.TransformerFactoryConfigurationError;
@@ -118,7 +119,6 @@ class SrvData extends Thread {
 					User user = new User(nextUserId++, upd);
 					if (users.add(user)) {
 						changed = true;
-//						checksum += student.hashCode();
 						server.broadcast(user);
 					}
 				} else {
@@ -209,17 +209,26 @@ class SrvData extends Thread {
 		for (var user: outUsers) {
 			xmlUsers.appendChild(user.toXML(xmlDoc));
 		}
-		
+
+		Transformer transformer;
 		try {
-			Transformer transformer = TransformerFactory.newInstance().newTransformer();
-			DOMSource source = new DOMSource(xmlDoc);
-			StreamResult result = new StreamResult(new File(fileName));
-			transformer.transform(source, result);
-		} catch (TransformerFactoryConfigurationError | TransformerException e) {
+			transformer = TransformerFactory.newInstance().newTransformer();
+		} catch (TransformerConfigurationException | TransformerFactoryConfigurationError e) {
 			// TODO Auto-generated catch block
-			System.err.println("Couldn't save data");
 			e.printStackTrace();
+			return;
+		}
+		DOMSource source = new DOMSource(xmlDoc);
+		File file = new File(fileName);
+		File parent = file.getParentFile();
+		if (!parent.exists()) parent.mkdirs();
+		StreamResult result = new StreamResult(file);
+		try {
+			transformer.transform(source, result);
+		} catch (TransformerException e) {
 			changed = true;
+			System.err.println("Не удалось записать файл \"" 
+					+ file.getAbsolutePath() + "\"");
 		}
 	}
 

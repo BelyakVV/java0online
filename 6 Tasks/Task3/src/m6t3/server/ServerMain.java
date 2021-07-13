@@ -78,7 +78,7 @@ public class ServerMain {
 	private static String readLine(String hint) {
 		Console console = ConsoleHelper.getConsoleInstance();
 		if (console != null) {
-			return console.readLine(hint + ": ", null);
+			return console.readLine(hint + ": ");
 		} else {
 			return myReadLine(hint);
 		}
@@ -91,7 +91,7 @@ public class ServerMain {
 	private static char[] readPassword(String hint) {
 		Console console = ConsoleHelper.getConsoleInstance();
 		if (console != null) {
-			return console.readPassword(hint + ": ", null);
+			return console.readPassword(hint + ": ");
 		} else {
 			return myReadLine(hint).toCharArray();
 		}
