@@ -34,19 +34,21 @@ class SrvReceiver extends Thread {
 			while (link.running || in.available() > 0) {				
 				int signature = receiveInt(in);
 				if (SEND_STUDENT == signature) {
+					Student student = Student.receive(in);
 //					System.out.println("Received a student");
-					data.updateStudent(Student.receive(in));
+					if (link.user.isAdmin()) data.updateStudent(student);
 				} else if (SEND_USER == signature) {
-					System.out.println("Received a user");
-					data.updateUser(User.receive(in));
+					User user = User.receive(in);
+//					System.out.println("Received a user");
+					if (link.user.isAdmin()) data.updateUser(user);
 				} else if (SYNC_STUDENTS_REQUEST == signature) {
 //					System.out.println("Received a students full sync request");
 //					data.printStudents();
 					link.outQueue.addAll(data.students);
 				} else if (SYNC_USERS_REQUEST == signature) {
-					System.out.println("Received a users full sync request");
-					data.printUsers();
-					link.outQueue.addAll(data.users);
+//					System.out.println("Received a users full sync request");
+//					data.printUsers();
+					if (link.user.isAdmin()) link.outQueue.addAll(data.users);
 				} else if (CHANGE_PASS_REQUEST == signature) {
 					link.user.setPassword(ChangePassRequest.receive(in));
 					data.touch();

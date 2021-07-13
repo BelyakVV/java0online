@@ -108,10 +108,13 @@ class Connection {
 			challenge.createResponse(lastChallenge).transmit(out);
 		}
 		if (receiveInt(in) != AUTH_ACKNOWLEDGEMENT) return false;
-		AuthAcknowledgement acknowledgement = AuthAcknowledgement.receive(in);
-		if (INVALID_ID == acknowledgement.userId) return false;
-		client.shell.getDisplay().syncExec(
-				() -> client.shell.setText("Архив (" + login + ')'));
+		AuthAcknowledgement authAck = AuthAcknowledgement.receive(in);
+		if (INVALID_ID == authAck.userId) return false;
+		client.shell.getDisplay().syncExec(() ->
+		{
+			client.shell.setText("Архив (" + login + ')');
+			client.setAdmin(authAck.admin);
+		});
 		lastChallenge = challenge;
 		needAskLogin = false;
 		return true;

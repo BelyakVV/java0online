@@ -46,6 +46,10 @@ public class ClientMain {
 	private Button btnExit;
 
 	private Button btnDelete;
+
+	private boolean admin = false;
+
+	private MenuItem mntmUsers;
 	
 	/**
 	 * Launch the application.
@@ -156,11 +160,6 @@ public class ClientMain {
 				editStudent();
 			}
 		});
-		table.addSelectionListener(new SelectionAdapter() {
-			@Override
-			public void widgetSelected(SelectionEvent e) {
-			}
-		});
 		FormData fd_table = new FormData();
 		fd_table.left = new FormAttachment(0, 10);
 		fd_table.right = new FormAttachment(100, -10);
@@ -171,6 +170,7 @@ public class ClientMain {
 		
 		btnAdd = new Button(shell, SWT.NONE);
 		fd_table.bottom = new FormAttachment(btnAdd, -6);
+		btnAdd.setEnabled(false);
 		btnAdd.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
@@ -255,7 +255,7 @@ public class ClientMain {
 		});
 		mntmChangePass.setText("Изменить свой пароль");
 		
-		MenuItem mntmUsers = new MenuItem(menu, SWT.NONE);
+		mntmUsers = new MenuItem(menu, SWT.NONE);
 		mntmUsers.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
@@ -263,6 +263,7 @@ public class ClientMain {
 				new UsersWindow(client).open();
 			}
 		});
+		mntmUsers.setEnabled(false);
 		mntmUsers.setText("Управление пользователями");
 		
 		MenuItem mntmExit = new MenuItem(menu, SWT.NONE);
@@ -275,7 +276,8 @@ public class ClientMain {
 		mntmExit.setText("Выход");
 	}	
 	
-	protected void editStudent() {
+	private void editStudent() {
+		if (!admin) return;
 		int index = table.getSelectionIndex();
 		if (index < 0) return;
 		Student student = (Student) table.getItem(index).getData();
@@ -341,6 +343,7 @@ public class ClientMain {
 	}
 
 	private void checkTable() {
+		if (!admin) return;
 		if (table.getItemCount() > 0) {
 			btnModify.setEnabled(true);
 			btnDelete.setEnabled(true);
@@ -348,5 +351,11 @@ public class ClientMain {
 			btnModify.setEnabled(false);
 			btnDelete.setEnabled(false);
 		}
+	}
+
+	public void setAdmin(boolean admin) {
+		this.admin = admin;
+		btnAdd.setEnabled(admin);
+		mntmUsers.setEnabled(admin);
 	}
 }
