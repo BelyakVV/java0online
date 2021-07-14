@@ -24,8 +24,7 @@ public class ServerMain {
 	
 	static SrvListener server;
 	
-	public static void main(String[] args) 
-			throws IOException, ParserConfigurationException, InterruptedException {
+	public static void main(String[] args) {
 		if (args.length > 0) {
 			try {
 				port = Integer.parseInt(args[0]);
@@ -33,7 +32,12 @@ public class ServerMain {
 				//Оставить номер порта по умолчанию
 			}
 		}
-		server = new SrvListener(port, fileName);
+		try {
+			server = new SrvListener(port, fileName);
+		} catch (IOException | ParserConfigurationException e) {
+			System.err.println("Не удалось открыть порт " + port);
+			return;
+		}
 		server.start();
 		if (server.data.noOtherAdmins(INVALID_ID)) {
 			System.out.println("Ошибка: в базе нет ни одного администратора.");

@@ -70,13 +70,17 @@ class SrvListener extends Thread {
 		}
 	}
 	
-	public void close() throws InterruptedException {
+	public void close() {
 		running = false;
 		try {
 			socket.close();
 		} catch (IOException e) {
 			//Nothing to do here
 		}
-		this.join();
+		try {
+			this.join();
+		} catch (InterruptedException e) {
+			//Nothing to do here
+		}
 	}
 }
