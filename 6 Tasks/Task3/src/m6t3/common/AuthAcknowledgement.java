@@ -1,11 +1,11 @@
 package m6t3.common;
 
+import static m6t3.common.Const.INVALID_ID;
 import static m6t3.common.Tranceiver.AUTH_ACKNOWLEDGEMENT;
 import static m6t3.common.Tranceiver.getInt;
 import static m6t3.common.Tranceiver.receiveBytes;
 import static m6t3.common.Tranceiver.receiveInt;
 import static m6t3.common.Tranceiver.toBytes;
-import static m6t3.common.Const.*;
 
 import java.io.IOException;
 import java.io.InputStream;

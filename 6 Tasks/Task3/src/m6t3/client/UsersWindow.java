@@ -24,8 +24,8 @@ import m6t3.common.User;
 
 public class UsersWindow extends Dialog {
 
-	private final Connection connection;
-	private UsersWindow me = this;
+	final ClientTransmitter transmitter;
+	final UsersWindow me = this;
 	
 	protected Object result;
 	protected Shell shell;
@@ -43,14 +43,14 @@ public class UsersWindow extends Dialog {
 	public UsersWindow(Shell parent, int style) {
 		super(parent, style);
 		setText("Управление пользователями");
-		connection = null;
+		transmitter = null;
 	}
 
 	public UsersWindow(Shell parent, Connection connection) {
 		super(parent, SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL);
 		setText("Управление пользователями");
 //		usersWindow = this;
-		this.connection = connection;
+		transmitter = connection.transmitter;
 	}
 	
 	/**
@@ -58,20 +58,12 @@ public class UsersWindow extends Dialog {
 	 * @return the result
 	 */
 	public Object open() {
-		connection.outQueue.add(SYNC_USERS_REQUEST);
+		transmitter.send(SYNC_USERS_REQUEST);
 		createContents();
 		shell.open();
 		shell.layout();
 		Display display = getParent().getDisplay();
 		while (!shell.isDisposed()) {
-			while (!connection.receiver.usersQueue.isEmpty()) {
-				User user = connection.receiver.usersQueue.poll();
-				if (null == user) {
-					System.err.println("Attempt to merge null into users table");
-				} else {
-					mergeUser(user);
-				}
-			}
 			checkTable();
 			if (!display.readAndDispatch()) {
 				display.sleep();
@@ -122,7 +114,7 @@ public class UsersWindow extends Dialog {
 		btnNew.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
-				new UserEditDialog(shell, me, connection).open();
+				new UserEditDialog(shell, me).open();
 			}
 		});
 		fd_table.bottom = new FormAttachment(btnNew, -6);
@@ -138,7 +130,7 @@ public class UsersWindow extends Dialog {
 			public void widgetSelected(SelectionEvent e) {
 				int index = table.getSelectionIndex();
 				User user = (User) table.getItem(index).getData();
-				connection.outQueue.add(user.suicide());
+				transmitter.send(user.suicide());
 			}
 		});
 		btnDelete.setEnabled(false);
@@ -174,8 +166,8 @@ public class UsersWindow extends Dialog {
 		fd_btnEdit.left = new FormAttachment(btnNew, 6);
 		btnEdit.setLayoutData(fd_btnEdit);
 		btnEdit.setText("Изменить");
-	}	
-
+	}
+	
 	public void mergeUser(User srvUser) {
 		for (int i = 0; i < table.getItemCount(); i++) {
 			TableItem item = table.getItem(i);
@@ -193,24 +185,16 @@ public class UsersWindow extends Dialog {
 //							btnModify.setEnabled(false);
 						}
 					}
-//					System.out.print("Before: " + Integer.toHexString(checksum) + ", student: " + Integer.toHexString(student.hashCode()));
-//					checksum += -student.hashCode();
-//					System.out.println(", after: " + Integer.toHexString(checksum));
 					table.remove(i);					
 					return;
 				} else if (srvUser.getSerial() > user.getSerial()) {
-//					checksum += srvStudent.hashCode() - student.hashCode();
 					fillTableItem(item, srvUser);
 				}
 				return;
 			}
 		}
 		TableItem item = new TableItem(table, SWT.NONE);
-//		System.out.print("Before: " + Integer.toHexString(checksum) + ", student: " + Integer.toHexString(srvStudent.hashCode()));
-//		checksum += srvStudent.hashCode();
-//		System.out.print(", after: " + Integer.toHexString(checksum));
 		fillTableItem(item, srvUser);
-//		System.out.println(" , saved: " + Integer.toHexString(((Student) item.getData()).hashCode()));
 		if (table.getItemCount() == 1) table.select(0);
 	}
 
@@ -234,8 +218,7 @@ public class UsersWindow extends Dialog {
 		int index = table.getSelectionIndex();
 		if (index < 0) return;
 		User user = (User) table.getItem(index).getData();
-		new UserEditDialog(shell, me, connection, user).open();		
-//		table.setFocus();
+		new UserEditDialog(shell, me, user).open();	
 	}
 
 	private static void fillTableItem(TableItem item, User user) {

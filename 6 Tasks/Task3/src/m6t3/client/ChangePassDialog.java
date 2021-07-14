@@ -32,11 +32,10 @@ public class ChangePassDialog extends Dialog {
 
 	Object result;
 	private Shell shell;
-//	private final ClientMain client;
 	private Text txtOldPass;
 	private Text txtNewPass;
 	private Text txtNewPassAgain;
-	private Connection connection;
+	final Connection connection;
 
 	/**
 	 * Create the dialog.
@@ -45,7 +44,7 @@ public class ChangePassDialog extends Dialog {
 	 */
 	public ChangePassDialog(Shell parent, int style) {
 		super(parent, style);
-//		client = null;
+		connection = null;
 	}
 
 	public ChangePassDialog(Shell parent, Connection connection) {

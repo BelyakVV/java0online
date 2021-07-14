@@ -1,7 +1,12 @@
 package m6t3.common;
 
-import static m6t3.common.Const.*;
-import static m6t3.common.Tranceiver.*;
+import static m6t3.common.Const.INVALID_ID;
+import static m6t3.common.Const.INVALID_SERIAL;
+import static m6t3.common.Tranceiver.SEND_STUDENT;
+import static m6t3.common.Tranceiver.getInt;
+import static m6t3.common.Tranceiver.receiveBytes;
+import static m6t3.common.Tranceiver.receiveInt;
+import static m6t3.common.Tranceiver.toBytes;
 
 import java.io.IOException;
 import java.io.InputStream;

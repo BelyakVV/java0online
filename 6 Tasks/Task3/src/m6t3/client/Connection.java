@@ -14,8 +14,8 @@ import java.net.Socket;
 import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
 import java.util.Arrays;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.LinkedBlockingQueue;
+
+import org.eclipse.swt.widgets.Table;
 
 import m6t3.common.AuthAcknowledgement;
 import m6t3.common.AuthChallenge;
@@ -29,7 +29,6 @@ class Connection {
 	static final int RETRIES_COUNT = 3;
 	
 	final ClientMain client;
-//	final Display display;
 	private String serverHost;
 	private int serverPort;
 	private Socket socket;
@@ -41,12 +40,10 @@ class Connection {
 	private char[] password = null;
 	private AuthChallenge lastChallenge = null;
 	
-//	final Queue<Student> inQueue = new LinkedList<>();
-	final BlockingQueue<Object> outQueue = new LinkedBlockingQueue<>();
 	private boolean connected = false;
 	private boolean terminated = false;
 
-	public Connection(ClientMain client) {
+	public Connection(ClientMain client, Table table) {
 		this.serverHost = DEFAULT_SERVER_HOST;
 		this.serverPort = DEFAULT_IP_PORT;
 		this.client = client;
@@ -54,9 +51,8 @@ class Connection {
 		receiver.start();
 		transmitter = new ClientTransmitter(this);
 		transmitter.start();
-		synchronizer = new Synchronizer(client);
+		synchronizer = new Synchronizer(client, table, this);
 		synchronizer.start();
-//		outQueue.add(SYNC_REQUEST);
 	}
 
 	void reconnect() {
@@ -146,15 +142,7 @@ class Connection {
 //		System.out.println("Terminating...");
 		connected = false;
 		synchronizer.interrupt();
-		if (outQueue.isEmpty()) {
-//			System.out.println("Interrupting transmitter...");
-			transmitter.interrupt();
-		}
-		try {
-			transmitter.join();
-		} catch (InterruptedException e) {
-			//Nothing to do here
-		}
+		transmitter.terminate();
 		try {
 			socket.close();
 		} catch (Exception e) {
@@ -207,7 +195,7 @@ class Connection {
 		try {
 			ChangePassRequest request = lastChallenge.createChangePassRequest(oldPass, newPass);
 			if (request != null) {
-				outQueue.add(request);
+				transmitter.send(request);
 				return true;
 			}
 		} catch (NoSuchAlgorithmException | InvalidKeySpecException e) {
@@ -216,4 +204,8 @@ class Connection {
 		}
 		return false;
 	}
+
+//	public void send(Object obj) {
+//		transmitter.send(obj);
+//	}
 }

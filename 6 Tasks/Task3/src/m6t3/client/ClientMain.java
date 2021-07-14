@@ -1,7 +1,5 @@
 package m6t3.client;
 
-import java.util.Queue;
-
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.KeyAdapter;
 import org.eclipse.swt.events.KeyEvent;
@@ -28,20 +26,21 @@ import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.swt.widgets.TableItem;
 
 import m6t3.common.Student;
+import m6t3.common.User;
 
 public class ClientMain {
 	
-	static ClientMain me;
+	private static ClientMain me;
 
-	Connection connection;	
+	private Connection connection;	
 	
 	private boolean running = true;
 	
 	int syncProgress;
 	private Display display;
 	private Shell shell;
-	Table table;
-//	private volatile int checksum = 0;
+	private Table table;
+
 	private Button btnAdd;
 	private Button btnModify;
 	private Button btnExit;
@@ -55,6 +54,8 @@ public class ClientMain {
 	private boolean connectionDialogActive = false;
 
 	private boolean loginDialogActive;
+
+	private UsersWindow usersWindow = null;
 	
 	/**
 	 * Launch the application.
@@ -78,16 +79,8 @@ public class ClientMain {
 		createContents();
 		shell.open();
 		shell.layout();
-		connection  = new Connection(this);
+		connection  = new Connection(this, table);
 		while (!shell.isDisposed()) {
-			while (!connection.receiver.studentsQueue.isEmpty()) {
-				Student student = connection.receiver.studentsQueue.poll();
-				if (null == student) {
-					System.err.println("Attempt to merge null into students table");
-				} else {
-					mergeStudent(student);
-				}
-			}
 			checkTable();
 			if (!display.readAndDispatch()) {
 				display.sleep();
@@ -147,12 +140,6 @@ public class ClientMain {
 		progressBar.setLayoutData(fd_progressBar);
 
 		table = new Table(shell, SWT.BORDER | SWT.FULL_SELECTION);
-//		table.addFocusListener(new FocusAdapter() {
-//			@Override
-//			public void focusGained(FocusEvent e) {
-//				checkTable();
-//			}
-//		});
 		table.addKeyListener(new KeyAdapter() {
 			@Override
 			public void keyPressed(KeyEvent e) {
@@ -211,7 +198,7 @@ public class ClientMain {
 			public void widgetSelected(SelectionEvent e) {
 				int index = table.getSelectionIndex();
 				Student student = (Student) table.getItem(index).getData();
-				connection.outQueue.add(student.suicide());
+				connection.transmitter.send(student.suicide());
 			}
 		});
 		FormData fd_btnDelete = new FormData();
@@ -264,8 +251,9 @@ public class ClientMain {
 		mntmUsers.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
-//				new UsersWindow(shell, SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL).open();
-				new UsersWindow(shell, connection).open();
+				usersWindow = new UsersWindow(shell, connection);
+				usersWindow.open();
+				usersWindow = null;
 			}
 		});
 		mntmUsers.setEnabled(false);
@@ -289,12 +277,12 @@ public class ClientMain {
 		new StudentEditDialog(shell, connection , student).open();		
 //		table.setFocus();
 	}
-	
-//	public int getChecksum() {
-//		return checksum;
-//	}
 
 	public void mergeStudent(Student srvStudent) {
+		display.asyncExec(()-> mergeStudent0(srvStudent));
+	}
+	
+	private void mergeStudent0(Student srvStudent) {
 		for (int i = 0; i < table.getItemCount(); i++) {
 			TableItem item = table.getItem(i);
 			Student student = (Student) item.getData();
@@ -338,15 +326,6 @@ public class ClientMain {
 		item.setText(1, student.getFullName());
 	}
 
-	public void mergeStudents(Queue<Student> srvStudents) {
-		table.setRedraw(false);
-		while (!srvStudents.isEmpty()) {
-			mergeStudent(srvStudents.poll());
-		}
-		table.setRedraw(true);
-		checkTable();
-	}
-
 	private void checkTable() {
 		if (!admin) return;
 		if (table.getItemCount() > 0) {
@@ -365,11 +344,6 @@ public class ClientMain {
 			mntmUsers.setEnabled(admin);
 		});
 	}
-
-//	public void close() {
-//		running = false;
-////		display.asyncExec(()-> shell.close());
-//	}
 
 	public boolean isRunning() {
 		return running;
@@ -407,5 +381,14 @@ public class ClientMain {
 
 	public void setLogin(String login) {
 		display.syncExec(()-> shell.setText("Архив (" + login + ')'));
+	}
+
+	public void mergeUser(User srvUser) {
+		if (!admin || null == usersWindow) return;
+		display.asyncExec(()-> usersWindow.mergeUser(srvUser));
+	}
+
+	public Connection getConnection() {
+		return connection;
 	}	
 }

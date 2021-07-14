@@ -32,7 +32,6 @@ public class LoginDialog extends Dialog {
 	private Text txtLogin;
 	private Text txtPass;
 	
-//	final ClientMain client;
 	final Connection connection;
 	
 	public static Color defBgrdColor;

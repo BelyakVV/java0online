@@ -36,9 +36,8 @@ import m6t3.common.User;
 public class UserEditDialog extends Dialog {
 
 	private final User user;
-//	private final ClientMain client;
-	private final Connection connection;
-	private final UsersWindow usersWindow;
+	final UsersWindow usersWindow;
+	final ClientTransmitter transmitter;
 
 	private Object result;
 	private Shell shell;
@@ -60,25 +59,25 @@ public class UserEditDialog extends Dialog {
 //		setText("Новый пользователь");
 		user = null;
 		usersWindow = null;
-		connection = null;
+		transmitter = null;
 	}
 	
-	public UserEditDialog(Shell parent, UsersWindow usersWindow, Connection connection) {
+	public UserEditDialog(Shell parent, UsersWindow usersWindow) {
 		super(parent, SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL);
 		setText("Новый пользователь");
 		user = new User();
 		this.usersWindow = usersWindow;
-		this.connection = connection;
+		transmitter = usersWindow.transmitter;
 		loginIsValid = false;
 		passHasChanged = true;
 	}
 
-	public UserEditDialog(Shell parent, UsersWindow usersWindow, Connection connection, User user) {
+	public UserEditDialog(Shell parent, UsersWindow usersWindow, User user) {
 		super(parent, SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL);
 		setText("Изменить пользователя");
 		this.user = user;
 		this.usersWindow = usersWindow;
-		this.connection = connection;
+		transmitter = usersWindow.transmitter;
 		loginIsValid = true;
 		passHasChanged = false;
 	}
@@ -140,7 +139,6 @@ public class UserEditDialog extends Dialog {
 				} else {
 					txtLogin.setBackground(RED);
 				}
-//				((Text) e.widget).clearSelection();
 			}
 		});
 		txtLogin.addKeyListener(TRAVERSE_OR_EXIT);
@@ -163,7 +161,6 @@ public class UserEditDialog extends Dialog {
 				if (Arrays.equals(txtPass.getTextChars(), txtPassAgain.getTextChars())) {
 					txtPass.setBackground(defBgrdColor);
 					txtPassAgain.setBackground(defBgrdColor);
-//					passHasChanged = false;
 				}
 			}
 		});
@@ -191,7 +188,6 @@ public class UserEditDialog extends Dialog {
 				if (Arrays.equals(txtPass.getTextChars(), txtPassAgain.getTextChars())) {
 					txtPass.setBackground(defBgrdColor);
 					txtPassAgain.setBackground(defBgrdColor);
-//					passHasChanged = false;
 				} else {
 					txtPassAgain.setBackground(RED);
 				}
@@ -232,8 +228,6 @@ public class UserEditDialog extends Dialog {
 			public void keyPressed(KeyEvent e) {
 				if (SWT.CR == e.character) {
 					submit();
-//				} else if (e.character == SWT.ESC) {
-//					((Control) e.widget).getShell().close();
 				}
 			}
 		});
@@ -272,10 +266,8 @@ public class UserEditDialog extends Dialog {
 			if (txtPass.getCharCount() < 1) return;
 			try {
 				user.setPassword(txtPass.getTextChars());
-				//			} catch (Exception e) {
 			} catch (NoSuchAlgorithmException | InvalidKeySpecException e) {
 				// TODO Auto-generated catch block
-				//				System.err.println("Password: " + txtPass.getText());
 				e.printStackTrace();
 			}
 		}
@@ -285,8 +277,7 @@ public class UserEditDialog extends Dialog {
 				return;
 			}
 		} 
-//		btnAdmin.setBackground(defBgrdColor);
-		connection.outQueue.add(user);
+		transmitter.send(user);
 		shell.close();
 	}
 }

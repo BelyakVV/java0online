@@ -12,26 +12,28 @@ class Synchronizer extends Thread {
 	final ClientMain client;
 	final Display display;
 	private int srvChecksum = 0;
-	private final Table table;
+	final Table table;
 	private int myChecksum = 0;
+	final ClientTransmitter transmitter;
 	
-	Synchronizer(ClientMain client) {
+	Synchronizer(ClientMain client, Table table, Connection connection) {
 		this.client = client;
 		display = client.getDisplay();
-		table = client.table;
+		transmitter = connection.transmitter;
+		this.table = table;
 //		System.out.println("Создание синхронизатора");
 	}
 
 	@Override
 	public void run() {
-		client.connection.outQueue.add(SYNC_STUDENTS_REQUEST);
+		transmitter.send(SYNC_STUDENTS_REQUEST);
 		try {
 			while (client.isRunning()) {
 				display.syncExec(() -> calcChecksum());
 //				System.out.println("Me: " + myChecksum + ", Server: " + srvChecksum);
 				if (myChecksum != srvChecksum) {
 //					System.out.println("My: " + Integer.toHexString(myChecksum) + ", server: " + Integer.toHexString(srvChecksum));
-					client.connection.outQueue.add(SYNC_STUDENTS_REQUEST);
+					transmitter.send(SYNC_STUDENTS_REQUEST);
 				}
 				srvChecksum = 0;
 				Thread.sleep(SYNC_INTERVAL);

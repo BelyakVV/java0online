@@ -24,7 +24,8 @@ public class ServerMain {
 	
 	static SrvListener server;
 	
-	public static void main(String[] args) throws IOException, ParserConfigurationException, InterruptedException {
+	public static void main(String[] args) 
+			throws IOException, ParserConfigurationException, InterruptedException {
 		if (args.length > 0) {
 			try {
 				port = Integer.parseInt(args[0]);

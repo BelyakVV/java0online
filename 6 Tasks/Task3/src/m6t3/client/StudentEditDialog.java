@@ -31,8 +31,7 @@ import m6t3.common.Student;
 public class StudentEditDialog extends Dialog {
 
 	private final Student student;
-//	ClientMain client;
-	private final Connection connection;
+	final ClientTransmitter transmitter;
 	protected Object result;
 	protected Shell shell;
 	private Text txtNumber;
@@ -48,7 +47,7 @@ public class StudentEditDialog extends Dialog {
 	 */
 	public StudentEditDialog(Shell parent, int style) {
 		super(parent, SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL);
-		this.connection = null;
+		this.transmitter = null;
 		setText("Новый студент");
 		student = new Student();
 	}
@@ -56,7 +55,7 @@ public class StudentEditDialog extends Dialog {
 	public StudentEditDialog(Shell parent, Connection connection) {
 		super(parent, SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL);
 		setText("Новый студент");
-		this.connection = connection;
+		transmitter = connection.transmitter;
 		student = new Student();
 	}
 
@@ -64,7 +63,7 @@ public class StudentEditDialog extends Dialog {
 		super(parent, SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL);
 		setText("Редактирование студента");
 		this.student = student;
-		this.connection = connection;
+		transmitter = connection.transmitter;
 	}
 	
 	public static final FocusAdapter SELECT_ALL_TEXT = new FocusAdapter() {
@@ -241,7 +240,7 @@ public class StudentEditDialog extends Dialog {
 		student.setSurname(txtSurname.getText());
 		student.setName(txtName.getText());
 		student.setPatronymic(txtPatronymic.getText());
-		connection.outQueue.add(student);
+		transmitter.send(student);
 		shell.close();
 	}
 	
