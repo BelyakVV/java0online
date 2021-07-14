@@ -1,5 +1,8 @@
 package m6t3.client;
 
+import java.util.LinkedList;
+import java.util.Queue;
+
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.KeyAdapter;
 import org.eclipse.swt.events.KeyEvent;
@@ -39,6 +42,9 @@ public class ClientMain {
 	int syncProgress;
 	private Display display;
 	private Shell shell;
+	
+	final Queue<Student> inQueue = new LinkedList<>();
+	
 	private Table table;
 
 	private Button btnAdd;
@@ -81,8 +87,11 @@ public class ClientMain {
 		shell.layout();
 		connection  = new Connection(this, table);
 		while (!shell.isDisposed()) {
+			while (!inQueue.isEmpty()) {
+				mergeStudent0(inQueue.poll());
+			}
 			checkTable();
-			if (!display.readAndDispatch()) {
+			if (!display.readAndDispatch()) {				
 				display.sleep();
 			}
 		}
@@ -279,7 +288,7 @@ public class ClientMain {
 	}
 
 	public void mergeStudent(Student srvStudent) {
-		display.asyncExec(()-> mergeStudent0(srvStudent));
+		inQueue.add(srvStudent);
 	}
 	
 	private void mergeStudent0(Student srvStudent) {
@@ -376,7 +385,7 @@ public class ClientMain {
 
 	public void mergeUser(User srvUser) {
 		if (!admin || null == usersWindow) return;
-		display.asyncExec(()-> usersWindow.mergeUser(srvUser));
+		usersWindow.inQueue.add(srvUser);
 	}
 
 	public Connection getConnection() {

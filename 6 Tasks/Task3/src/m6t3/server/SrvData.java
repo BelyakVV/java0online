@@ -98,6 +98,7 @@ class SrvData extends Thread {
 					} else {
 						int oldHash = student.hashCode();
 						if (student.update(upd)) {
+							student.incSerial();
 							changed = true;
 							checksum += student.hashCode() - oldHash;
 							server.broadcast(student);
@@ -133,6 +134,7 @@ class SrvData extends Thread {
 					} else {
 						//TODO: check for duplicate login name
 						if (user.update(upd)) {
+							user.incSerial();
 							changed = true;
 							server.broadcast(user);
 						}

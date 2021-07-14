@@ -2,6 +2,9 @@ package m6t3.client;
 
 import static m6t3.common.Tranceiver.SYNC_USERS_REQUEST;
 
+import java.util.LinkedList;
+import java.util.Queue;
+
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.KeyAdapter;
 import org.eclipse.swt.events.KeyEvent;
@@ -34,6 +37,7 @@ public class UsersWindow extends Dialog {
 	private TableColumn tblclmnAdmin;
 	private Button btnDelete;
 	private Button btnEdit;
+	final Queue<User> inQueue = new LinkedList<>();
 
 	/**
 	 * Create the dialog.
@@ -63,6 +67,9 @@ public class UsersWindow extends Dialog {
 		shell.layout();
 		Display display = getParent().getDisplay();
 		while (!shell.isDisposed()) {
+			while (!inQueue.isEmpty()) {
+				mergeUser(inQueue.poll());
+			}
 			checkTable();
 			if (!display.readAndDispatch()) {
 				display.sleep();
@@ -167,7 +174,7 @@ public class UsersWindow extends Dialog {
 		btnEdit.setText("Изменить");
 	}
 	
-	public void mergeUser(User srvUser) {
+	private void mergeUser(User srvUser) {
 		for (int i = 0; i < table.getItemCount(); i++) {
 			TableItem item = table.getItem(i);
 			User user = (User) item.getData();
