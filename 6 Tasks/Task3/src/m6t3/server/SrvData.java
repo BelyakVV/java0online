@@ -85,8 +85,6 @@ class SrvData extends Thread {
 						checksum += student.hashCode();
 						server.broadcast(student);
 					}
-				} else {
-					System.err.println("Error: student id < 0 and serial < 1");
 				}
 				return;
 			}
@@ -99,7 +97,6 @@ class SrvData extends Thread {
 						server.broadcast(upd);
 					} else {
 						int oldHash = student.hashCode();
-						upd.incSerial();
 						if (student.update(upd)) {
 							changed = true;
 							checksum += student.hashCode() - oldHash;
@@ -122,7 +119,6 @@ class SrvData extends Thread {
 						server.broadcast(user);
 					}
 				} else {
-					System.err.println("Error: user id < 0 && serial < 1");
 					return false;
 				}
 				return true;
@@ -136,11 +132,8 @@ class SrvData extends Thread {
 						server.broadcast(upd);
 					} else {
 						//TODO: check for duplicate login name
-//						int oldHash = student.hashCode();
-//						upd.incSerial();
 						if (user.update(upd)) {
 							changed = true;
-//							checksum += student.hashCode() - oldHash;
 							server.broadcast(user);
 						}
 					}
@@ -229,18 +222,6 @@ class SrvData extends Thread {
 			changed = true;
 			System.err.println("Не удалось записать файл \"" 
 					+ file.getAbsolutePath() + "\"");
-		}
-	}
-
-	public void printStudents() {
-		for (var student: students) {
-			System.out.println(student);
-		}
-	}
-
-	public void printUsers() {
-		for (var user: users) {
-			System.out.println(user);
 		}
 	}
 

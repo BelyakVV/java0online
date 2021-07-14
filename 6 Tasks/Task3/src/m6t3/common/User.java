@@ -34,7 +34,7 @@ public class User implements Transmittable, XMLable {
 	private String login;
 	
 	private byte[] hash;
-	private byte[] salt;// = new byte[SALT_LENGTH];
+	private byte[] salt;
 	
 	private boolean admin;
 	
@@ -158,13 +158,6 @@ public class User implements Transmittable, XMLable {
 		return false;
 	}
 
-	@Override
-	public String toString() {
-		return "User [id=" + id + ", serial=" + serial + ", login=" + login 
-//				+ ", hash=" + Arrays.toString(hash) + ", salt=" + Arrays.toString(salt) 
-				+ ", admin=" + admin + "]";
-	}
-
 	public User suicide() {
 		serial = INVALID_SERIAL;
 		return this;
@@ -172,7 +165,6 @@ public class User implements Transmittable, XMLable {
 
 	@Override
 	public void transmit(OutputStream out) throws IOException {
-//		System.out.println("Transmitting user:\n" + this);		
 		byte[] signature = toBytes(SEND_USER);
 		byte[] login = this.login.getBytes();
 		int length = (Integer.BYTES * (3 + 3)) //id, serial, admin + login.length, hash.length, salt.length
@@ -205,7 +197,6 @@ public class User implements Transmittable, XMLable {
 	}
 
 	public static User receive(InputStream in) throws IOException {
-//		System.out.println("Приём пользователя");
 		int length = receiveInt(in);
 		byte[] buffer = receiveBytes(in, length);
 		int pos = 0;

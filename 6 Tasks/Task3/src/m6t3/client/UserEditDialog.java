@@ -56,7 +56,6 @@ public class UserEditDialog extends Dialog {
 	 */
 	public UserEditDialog(Shell parent, int style) {
 		super(parent, SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL);
-//		setText("Новый пользователь");
 		user = null;
 		usersWindow = null;
 		transmitter = null;

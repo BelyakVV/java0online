@@ -286,7 +286,6 @@ public class ClientMain {
 		for (int i = 0; i < table.getItemCount(); i++) {
 			TableItem item = table.getItem(i);
 			Student student = (Student) item.getData();
-//			System.out.println("Student " + i + ": " + student.getSerial());
 			if (student.id == srvStudent.id) {
 				if (srvStudent.getSerial() < 0) {
 					if (table.isSelected(i)) {
@@ -299,24 +298,16 @@ public class ClientMain {
 							btnModify.setEnabled(false);
 						}
 					}
-//					System.out.print("Before: " + Integer.toHexString(checksum) + ", student: " + Integer.toHexString(student.hashCode()));
-//					checksum += -student.hashCode();
-//					System.out.println(", after: " + Integer.toHexString(checksum));
 					table.remove(i);
 					return;
 				} else if (srvStudent.getSerial() > student.getSerial()) {
-//					checksum += srvStudent.hashCode() - student.hashCode();
 					fillTableItem(item, srvStudent);
 				}
 				return;
 			}
 		}
 		TableItem item = new TableItem(table, SWT.NONE);
-//		System.out.print("Before: " + Integer.toHexString(checksum) + ", student: " + Integer.toHexString(srvStudent.hashCode()));
-//		checksum += srvStudent.hashCode();
-//		System.out.print(", after: " + Integer.toHexString(checksum));
 		fillTableItem(item, srvStudent);
-//		System.out.println(" , saved: " + Integer.toHexString(((Student) item.getData()).hashCode()));
 		if (table.getItemCount() == 1) table.select(0);
 	}
 

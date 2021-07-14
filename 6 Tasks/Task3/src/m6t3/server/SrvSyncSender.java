@@ -11,22 +11,15 @@ class SrvSyncSender extends Thread {
 		this.server = server;
 	}
 
-//	public int getChecksum() {
-//		return checksum;
-//	}
-
 	@Override
 	public void run() {
 		try {
 			while (true) {
-//				System.out.println(Integer.toHexString(server.data.getChecksum()));
 				server.broadcast(createMessage(STUDENTS_CHECKSUM, server.data.getChecksum()));
 				Thread.sleep(SYNC_INTERVAL >> 1);
 			}
 		} catch (InterruptedException e) {
-			//Ничего не надо делать
+			//Nothing to do here
 		}
 	}	
-
-	
 }

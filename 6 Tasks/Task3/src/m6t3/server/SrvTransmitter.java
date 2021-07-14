@@ -12,12 +12,10 @@ import m6t3.common.Transmittable;
 import m6t3.common.User;
 
 class SrvTransmitter extends Thread {
-//	final SrvListener server;
 	final SrvLink link;
 	final OutputStream out;
 	
 	SrvTransmitter(SrvLink link) throws IOException {
-//		server = link.server;
 		this.link = link;
 		out = link.socket.getOutputStream();
 	}
@@ -31,7 +29,6 @@ class SrvTransmitter extends Thread {
 			while (link.running || !link.outQueue.isEmpty()) {
 				Object obj = link.outQueue.take();
 				if ((obj instanceof User) && !link.user.isAdmin()) continue;
-//				System.out.println(obj.getClass().getSimpleName());
 				if (obj instanceof Transmittable) {
 					((Transmittable) obj).transmit(out);
 				} else if (obj instanceof Long) {
@@ -43,8 +40,6 @@ class SrvTransmitter extends Thread {
 		} catch (Exception e) {
 			//Nothing to do here
 		}
-		System.out.println("Transmitter is stopped");
 		link.close();
-	}
-	
+	}	
 }

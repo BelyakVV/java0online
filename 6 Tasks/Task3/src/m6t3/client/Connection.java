@@ -57,11 +57,9 @@ class Connection {
 
 	void reconnect() {
 		while (!terminated) {
-//			System.out.print("Reconnection ");
 			int retries = RETRIES_COUNT;
 			while (retries-- > 0) {
 				connected = false;
-//				System.out.print(retries + " ");
 				try {
 					socket.close();
 				} catch (Exception e) {
@@ -72,9 +70,7 @@ class Connection {
 					socket.connect(new InetSocketAddress(serverHost, serverPort), DEFAULT_TIMEOUT);
 					InputStream in = socket.getInputStream();
 					OutputStream out = socket.getOutputStream();
-//					System.out.print("success. Now authenticating...");
 					if (authenticate(in, out)) {
-//						System.out.println("Ok.");
 						receiver.in = in;
 						transmitter.out = out;
 						connected = true;
@@ -84,16 +80,13 @@ class Connection {
 					//Nothing to do here
 				} catch (NoSuchAlgorithmException | InvalidKeySpecException e) {
 					// TODO Auto-generated catch block
-//					System.err.println("Cryptographic error");
 					e.printStackTrace();
 				}
 				if (terminated) return;
 			}
-//			System.out.println("failed.");
 			if (terminated) return;
 			client.showReconnDlg();
 		}
-//		System.out.println("No more reconnects");
 		terminate();
 	}
 	
@@ -124,22 +117,9 @@ class Connection {
 		return true;
 	}
 
-//	private void showLoginDialog() {
-//		if (!(boolean) new LoginDialog(client).open()) {
-//			client.close();
-//		}
-//	}
-//
-//	private void showReconnDlg() {
-//		if (!(boolean) new ConnectionDialog(this).open()) {
-//			client.close();
-//		}
-//	}
-
 	public void terminate() {
 		if (terminated) return;
 		terminated = true;
-//		System.out.println("Terminating...");
 		connected = false;
 		synchronizer.interrupt();
 		transmitter.terminate();
@@ -148,7 +128,6 @@ class Connection {
 		} catch (Exception e) {
 			//Nothing to do here
 		}
-//		System.out.println("Terminated");
 	}
 
 	public String getServerHost() {
@@ -204,8 +183,4 @@ class Connection {
 		}
 		return false;
 	}
-
-//	public void send(Object obj) {
-//		transmitter.send(obj);
-//	}
 }

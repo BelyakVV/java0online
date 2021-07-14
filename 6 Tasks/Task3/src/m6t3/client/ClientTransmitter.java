@@ -19,13 +19,6 @@ class ClientTransmitter extends Thread {
 	ClientTransmitter(Connection connection) {
 		client = connection.client;
 		this.connection = connection;
-//		try {
-//			out = connection.socket.getOutputStream();
-//		} catch (Exception e) {
-//			System.err.println("Unable to acquire an output stream from the socket");
-//			// TODO Auto-generated catch block
-////			e.printStackTrace();
-//		}
 	}
 
 	@Override
@@ -43,26 +36,20 @@ class ClientTransmitter extends Thread {
 							((Transmittable) obj).transmit(out);
 					} else if (Integer.class == objClass) {
 						transmitInt((Integer) obj, out);
-//						out.flush();
 					}
 				} catch (IOException e) {
-					// TODO Auto-generated catch block
-//					e.printStackTrace();
 					outQueue.add(obj);
 					out = null;
 					connection.reconnect();
 				}
 			}
 		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
-//			e.printStackTrace();
-//			System.out.println("Client transmitter stopped. Closing the socket.");
+			//Nothing to do here
 		}
 	}
 
 	public void terminate() {
 		if (outQueue.isEmpty()) {
-//			System.out.println("Interrupting transmitter...");
 			this.interrupt();
 		}
 		try {

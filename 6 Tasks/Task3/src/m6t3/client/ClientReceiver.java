@@ -26,25 +26,18 @@ public class ClientReceiver extends Thread {
 			try {
 				int signature = receiveInt(in);
 				if (SEND_STUDENT == signature) {
-//					System.out.println("Приём студента");
 					client.mergeStudent(Student.receive(in));
 				} else if (SEND_USER == signature) {
-//					System.out.println("Приём пользователя");
 					client.mergeUser(User.receive(in));
 				} else if (STUDENTS_CHECKSUM == signature) {
 					int checksum = receiveInt(in);
 					connection.synchronizer.setSrvChecksum(checksum);
 				} else {
 					System.err.println("Invalid transmittion detected");
-//					in.skipNBytes(in.available());
 					in.skip(in.available());
-//					connection.reconnect();
 				}
 			} catch (Exception e) {
-				if (!client.isRunning()) {
-					break;
-				}
-//				System.err.println("Client receiving loop abandoned or still not started. Reconnecting.");
+				if (!client.isRunning()) break;
 				connection.reconnect();
 			}
 		}

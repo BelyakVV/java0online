@@ -131,11 +131,6 @@ public class Student implements Transmittable, XMLable {
 		result = prime * result + ((patronymic == null) ? 0 : patronymic.hashCode());
 		result = prime * result + serial;
 		result = prime * result + ((surname == null) ? 0 : surname.hashCode());
-//		StringBuilder sb = new StringBuilder(" id=");
-//		sb.append(id).append(", serial=");
-//		sb.append(serial).append(", hash=");
-//		sb.append(Integer.toHexString(result));
-//		System.out.println(sb.toString());
 		return result;
 	}
 
@@ -175,12 +170,6 @@ public class Student implements Transmittable, XMLable {
 		return true;
 	}
 
-	@Override
-	public String toString() {
-		return "Student [id=" + id + ", serial=" + serial + ", number=" + number + ", surname=" + surname + ", name="
-				+ name + ", patronymic=" + patronymic + "]";
-	}
-
 	public boolean update(Student upd) {
 		if (upd.serial > serial) {
 			serial = upd.serial;
@@ -208,45 +197,42 @@ public class Student implements Transmittable, XMLable {
 
 	@Override
 	public void transmit(OutputStream out) throws IOException {
-//		System.out.println("Отправка студента");
 		byte[] signature = toBytes(SEND_STUDENT);
 		byte[] number = this.number.getBytes();
 		byte[] surname = this.surname.getBytes();
 		byte[] name = this.name.getBytes();
 		byte[] patronymic = this.patronymic.getBytes();	
-		//length of data packet
-		int len = (Integer.BYTES * (2 + 4)) //id, serial + number.length, surname.length, name.length, patronymic.length
+		int length = (Integer.BYTES * (2 + 4)) //id, serial + number.length, surname.length, name.length, patronymic.length
 				+ number.length + surname.length + name.length + patronymic.length;
-		byte[] result = new byte[signature.length + Integer.BYTES + len];
-		int i = 0; //position in result array
-		System.arraycopy(signature, 0, result, i, signature.length);
-		i += signature.length;
-		System.arraycopy(toBytes(len), 0, result, i, Integer.BYTES);
-		i += Integer.BYTES;
-		System.arraycopy(toBytes(id), 0, result, i, Integer.BYTES);
-		i += Integer.BYTES;
-		System.arraycopy(toBytes(serial), 0, result, i, Integer.BYTES);
-		i += Integer.BYTES;
-		System.arraycopy(toBytes(number.length), 0, result, i, Integer.BYTES);
-		i += Integer.BYTES;
-		System.arraycopy(number, 0, result, i, number.length);
-		i += number.length;
-		System.arraycopy(toBytes(surname.length), 0, result, i, Integer.BYTES);
-		i += Integer.BYTES;
-		System.arraycopy(surname, 0, result, i, surname.length);
-		i += surname.length;
-		System.arraycopy(toBytes(name.length), 0, result, i, Integer.BYTES);
-		i += Integer.BYTES;
-		System.arraycopy(name, 0, result, i, name.length);
-		i += name.length;
-		System.arraycopy(toBytes(patronymic.length), 0, result, i, Integer.BYTES);
-		i += Integer.BYTES;
-		System.arraycopy(patronymic, 0, result, i, patronymic.length);
+		byte[] result = new byte[signature.length + Integer.BYTES + length];
+		int pos = 0;
+		System.arraycopy(signature, 0, result, pos, signature.length);
+		pos += signature.length;
+		System.arraycopy(toBytes(length), 0, result, pos, Integer.BYTES);
+		pos += Integer.BYTES;
+		System.arraycopy(toBytes(id), 0, result, pos, Integer.BYTES);
+		pos += Integer.BYTES;
+		System.arraycopy(toBytes(serial), 0, result, pos, Integer.BYTES);
+		pos += Integer.BYTES;
+		System.arraycopy(toBytes(number.length), 0, result, pos, Integer.BYTES);
+		pos += Integer.BYTES;
+		System.arraycopy(number, 0, result, pos, number.length);
+		pos += number.length;
+		System.arraycopy(toBytes(surname.length), 0, result, pos, Integer.BYTES);
+		pos += Integer.BYTES;
+		System.arraycopy(surname, 0, result, pos, surname.length);
+		pos += surname.length;
+		System.arraycopy(toBytes(name.length), 0, result, pos, Integer.BYTES);
+		pos += Integer.BYTES;
+		System.arraycopy(name, 0, result, pos, name.length);
+		pos += name.length;
+		System.arraycopy(toBytes(patronymic.length), 0, result, pos, Integer.BYTES);
+		pos += Integer.BYTES;
+		System.arraycopy(patronymic, 0, result, pos, patronymic.length);
 		out.write(result);
 	}
 	
 	public static Student receive(InputStream in) throws IOException {
-//		System.out.println("Приём студента");
 		int len = receiveInt(in);
 		byte[] buffer = receiveBytes(in, len);
 		int pos = 0;

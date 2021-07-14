@@ -49,7 +49,6 @@ public class UsersWindow extends Dialog {
 	public UsersWindow(Shell parent, Connection connection) {
 		super(parent, SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL);
 		setText("Управление пользователями");
-//		usersWindow = this;
 		transmitter = connection.transmitter;
 	}
 	
@@ -172,7 +171,6 @@ public class UsersWindow extends Dialog {
 		for (int i = 0; i < table.getItemCount(); i++) {
 			TableItem item = table.getItem(i);
 			User user = (User) item.getData();
-//			System.out.println("Student " + i + ": " + student.getSerial());
 			if (user.id == srvUser.id) {
 				if (srvUser.getSerial() < 0) {
 					if (table.isSelected(i)) {
@@ -180,10 +178,7 @@ public class UsersWindow extends Dialog {
 							table.select(i + 1);
 						} else if (i > 0) {
 							table.select(i - 1);
-						} else {
-//							btnDelete.setEnabled(false);
-//							btnModify.setEnabled(false);
-						}
+						} 
 					}
 					table.remove(i);					
 					return;
@@ -246,5 +241,4 @@ public class UsersWindow extends Dialog {
 		}
 		return true;
 	}
-
 }

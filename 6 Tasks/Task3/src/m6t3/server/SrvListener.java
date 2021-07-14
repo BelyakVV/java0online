@@ -31,9 +31,7 @@ class SrvListener extends Thread {
 			try {
 				links.add(new SrvLink(this, socket.accept()));
 			} catch (IOException e) {
-				if (!running) break;
-				// TODO Auto-generated catch block
-//				e.printStackTrace();
+				if (!running) break;				
 			}
 		}
 		syncSender.interrupt();
@@ -43,15 +41,13 @@ class SrvListener extends Thread {
 		try {
 			socket.close();
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			//Nothing to do here
 		}
 		data.interrupt();
 		try {
 			data.join();
 		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			//Nothing to do here
 		}
 	}
 
@@ -79,8 +75,7 @@ class SrvListener extends Thread {
 		try {
 			socket.close();
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			//Nothing to do here
 		}
 		this.join();
 	}

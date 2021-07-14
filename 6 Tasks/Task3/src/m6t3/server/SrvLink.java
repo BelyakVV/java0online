@@ -26,8 +26,6 @@ class SrvLink {
 	final BlockingQueue<Object> outQueue;
 	User user;
 	volatile boolean running = true;
-	
-//	static final long STOP_TIMEOUT = 1000;
 
 	SrvLink(SrvListener server, Socket socket) throws IOException {
 		this.server = server;
@@ -66,30 +64,25 @@ class SrvLink {
 			if (socket.getInputStream().available() < 1) {
 				socket.getInputStream().close();
 			}
-		} catch (IOException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
+		} catch (IOException e) {
+			//Nothing to do here
 		}
 		try {
 			if (Thread.currentThread() != reciever) reciever.join();
-		} catch (InterruptedException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
+		} catch (InterruptedException e) {
+			//Nothing to do here
 		}
 		transmitter.interrupt();
 		try {
 			if (Thread.currentThread() != transmitter) transmitter.join();
-		} catch (InterruptedException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
+		} catch (InterruptedException e) {
+			//Nothing to do here
 		}
 		try {
 			socket.close();
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			//Nothing to do here
 		}
 		server.links.remove(this);
-		System.out.println("Link is shut down");
 	}	
 }

@@ -21,7 +21,6 @@ class Synchronizer extends Thread {
 		display = client.getDisplay();
 		transmitter = connection.transmitter;
 		this.table = table;
-//		System.out.println("Создание синхронизатора");
 	}
 
 	@Override
@@ -30,9 +29,7 @@ class Synchronizer extends Thread {
 		try {
 			while (client.isRunning()) {
 				display.syncExec(() -> calcChecksum());
-//				System.out.println("Me: " + myChecksum + ", Server: " + srvChecksum);
 				if (myChecksum != srvChecksum) {
-//					System.out.println("My: " + Integer.toHexString(myChecksum) + ", server: " + Integer.toHexString(srvChecksum));
 					transmitter.send(SYNC_STUDENTS_REQUEST);
 				}
 				srvChecksum = 0;
@@ -41,7 +38,6 @@ class Synchronizer extends Thread {
 		} catch (InterruptedException e) {
 			//Nothing to do here
 		}
-//		System.out.println("Synchronizer stopped");
 	}
 	
 	void calcChecksum() {
