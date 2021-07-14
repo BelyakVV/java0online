@@ -1,15 +1,23 @@
 package m6t3.client;
 
+import static m6t3.client.LoginDialog.RED;
+import static m6t3.client.LoginDialog.defBgrdColor;
+import static m6t3.client.StudentEditDialog.SELECT_ALL_TEXT;
+import static m6t3.client.StudentEditDialog.TRAVERSE_OR_EXIT;
+
+import java.security.NoSuchAlgorithmException;
+import java.security.spec.InvalidKeySpecException;
 import java.util.Arrays;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.FocusAdapter;
 import org.eclipse.swt.events.FocusEvent;
+import org.eclipse.swt.events.KeyAdapter;
+import org.eclipse.swt.events.KeyEvent;
 import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
-import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.layout.FormAttachment;
 import org.eclipse.swt.layout.FormData;
 import org.eclipse.swt.layout.FormLayout;
@@ -22,14 +30,14 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
-import org.eclipse.wb.swt.SWTResourceManager;
 
 import m6t3.common.User;
 
 public class UserEditDialog extends Dialog {
 
-	private User user;
-	private final ClientMain client;
+	private final User user;
+//	private final ClientMain client;
+	private final Connection connection;
 	private final UsersWindow usersWindow;
 
 	private Object result;
@@ -38,11 +46,9 @@ public class UserEditDialog extends Dialog {
 	private Text txtPass;
 	private Text txtPassAgain;
 
-	private static Color defBgrdColor;
-	private static final Color RED = SWTResourceManager.getColor(SWT.COLOR_RED);
 	private Button btnAdmin;
 	private boolean loginIsValid;
-	private boolean passIsValid;
+	private boolean passHasChanged;
 	
 	/**
 	 * Create the dialog.
@@ -52,28 +58,29 @@ public class UserEditDialog extends Dialog {
 	public UserEditDialog(Shell parent, int style) {
 		super(parent, SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL);
 //		setText("Новый пользователь");
-		client = null;
+		user = null;
 		usersWindow = null;
+		connection = null;
 	}
 	
-	public UserEditDialog(UsersWindow usersWindow) {
-		super(usersWindow.client.shell, SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL);
-		client = usersWindow.client;
-		this.usersWindow = usersWindow;
-		user = new User();
-		loginIsValid = false;
-		passIsValid = false;
+	public UserEditDialog(Shell parent, UsersWindow usersWindow, Connection connection) {
+		super(parent, SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL);
 		setText("Новый пользователь");
+		user = new User();
+		this.usersWindow = usersWindow;
+		this.connection = connection;
+		loginIsValid = false;
+		passHasChanged = true;
 	}
 
-	public UserEditDialog(UsersWindow usersWindow, User user) {
-		super(usersWindow.client.shell, SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL);
-		client = usersWindow.client;
-		this.usersWindow = usersWindow;
-		this.user = user;
-		loginIsValid = true;
-		passIsValid = true;
+	public UserEditDialog(Shell parent, UsersWindow usersWindow, Connection connection, User user) {
+		super(parent, SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL);
 		setText("Изменить пользователя");
+		this.user = user;
+		this.usersWindow = usersWindow;
+		this.connection = connection;
+		loginIsValid = true;
+		passHasChanged = false;
 	}
 
 	/**
@@ -123,11 +130,8 @@ public class UserEditDialog extends Dialog {
 		lblLogin.setText("Логин");
 		
 		txtLogin = new Text(composite, SWT.BORDER);
+		txtLogin.addFocusListener(SELECT_ALL_TEXT);
 		txtLogin.addFocusListener(new FocusAdapter() {
-			@Override
-			public void focusGained(FocusEvent e) {
-				((Text) e.widget).selectAll();
-			}
 			@Override
 			public void focusLost(FocusEvent e) {
 				loginIsValid = useLogin();
@@ -136,9 +140,10 @@ public class UserEditDialog extends Dialog {
 				} else {
 					txtLogin.setBackground(RED);
 				}
-				((Text) e.widget).clearSelection();
+//				((Text) e.widget).clearSelection();
 			}
 		});
+		txtLogin.addKeyListener(TRAVERSE_OR_EXIT);
 		txtLogin.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
 		txtLogin.setText(user.getLogin());
 		
@@ -150,7 +155,7 @@ public class UserEditDialog extends Dialog {
 		txtPass.addFocusListener(new FocusAdapter() {
 			@Override
 			public void focusLost(FocusEvent e) {	
-				if (passIsValid) return;
+				if (!passHasChanged) return;
 				if (txtPass.getCharCount() < 1) {
 					txtPass.setBackground(RED);
 					return;
@@ -158,13 +163,14 @@ public class UserEditDialog extends Dialog {
 				if (Arrays.equals(txtPass.getTextChars(), txtPassAgain.getTextChars())) {
 					txtPass.setBackground(defBgrdColor);
 					txtPassAgain.setBackground(defBgrdColor);
-					passIsValid = true;
+//					passHasChanged = false;
 				}
 			}
 		});
+		txtPass.addKeyListener(TRAVERSE_OR_EXIT);
 		txtPass.addModifyListener(new ModifyListener() {
 			public void modifyText(ModifyEvent e) {
-				passIsValid = false;
+				passHasChanged = true;
 			}
 		});
 		txtPass.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
@@ -177,7 +183,7 @@ public class UserEditDialog extends Dialog {
 		txtPassAgain.addFocusListener(new FocusAdapter() {
 			@Override
 			public void focusLost(FocusEvent e) {	
-				if (passIsValid) return;
+				if (!passHasChanged) return;
 				if (txtPassAgain.getCharCount() < 1) {
 					txtPassAgain.setBackground(RED);
 					return;
@@ -185,16 +191,17 @@ public class UserEditDialog extends Dialog {
 				if (Arrays.equals(txtPass.getTextChars(), txtPassAgain.getTextChars())) {
 					txtPass.setBackground(defBgrdColor);
 					txtPassAgain.setBackground(defBgrdColor);
-					passIsValid = true;
+//					passHasChanged = false;
 				} else {
 					txtPassAgain.setBackground(RED);
 				}
 				
 			}
 		});
+		txtPassAgain.addKeyListener(TRAVERSE_OR_EXIT);
 		txtPassAgain.addModifyListener(new ModifyListener() {
 			public void modifyText(ModifyEvent e) {
-				passIsValid = false;
+				passHasChanged = true;
 			}
 		});
 		txtPassAgain.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
@@ -218,6 +225,16 @@ public class UserEditDialog extends Dialog {
 					user.setAdmin(true);
 				}
 				btnAdmin.setBackground(defBgrdColor);
+			}
+		});
+		btnAdmin.addKeyListener(new KeyAdapter() {
+			@Override
+			public void keyPressed(KeyEvent e) {
+				if (SWT.CR == e.character) {
+					submit();
+//				} else if (e.character == SWT.ESC) {
+//					((Control) e.widget).getShell().close();
+				}
 			}
 		});
 		btnAdmin.setSelection(user.isAdmin());
@@ -251,14 +268,16 @@ public class UserEditDialog extends Dialog {
 
 	private void submit() {
 		if (!loginIsValid) return;
-		if (!passIsValid) return;
-		try {
-			user.setPassword(txtPass.getTextChars());
-		} catch (Exception e) {
-//		} catch (NoSuchAlgorithmException | InvalidKeySpecException e) {
-			// TODO Auto-generated catch block
-			System.err.println("Password: " + txtPass.getText());
-			e.printStackTrace();
+		if (passHasChanged) {
+			if (txtPass.getCharCount() < 1) return;
+			try {
+				user.setPassword(txtPass.getTextChars());
+				//			} catch (Exception e) {
+			} catch (NoSuchAlgorithmException | InvalidKeySpecException e) {
+				// TODO Auto-generated catch block
+				//				System.err.println("Password: " + txtPass.getText());
+				e.printStackTrace();
+			}
 		}
 		if (!btnAdmin.getSelection()) {
 			if (usersWindow.noMoreAdmins(user.id)) {
@@ -266,8 +285,8 @@ public class UserEditDialog extends Dialog {
 				return;
 			}
 		} 
-		btnAdmin.setBackground(defBgrdColor);
-		client.connection.outQueue.add(user);
+//		btnAdmin.setBackground(defBgrdColor);
+		connection.outQueue.add(user);
 		shell.close();
 	}
 }

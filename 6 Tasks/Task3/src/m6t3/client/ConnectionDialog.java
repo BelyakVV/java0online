@@ -1,6 +1,12 @@
 package m6t3.client;
 
+import static m6t3.client.LoginDialog.RED;
+import static m6t3.client.LoginDialog.defBgrdColor;
+import static m6t3.client.StudentEditDialog.TRAVERSE_OR_EXIT;
+
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.FocusAdapter;
+import org.eclipse.swt.events.FocusEvent;
 import org.eclipse.swt.events.KeyAdapter;
 import org.eclipse.swt.events.KeyEvent;
 import org.eclipse.swt.events.SelectionAdapter;
@@ -15,7 +21,8 @@ import org.eclipse.swt.widgets.Text;
 
 public class ConnectionDialog extends Dialog {
 	
-	Connection connection;
+	static final int MAX_PORT = 65535;
+	final Connection connection;
 	protected Object result = false;
 	protected Shell shell;
 	private Text txtHost;
@@ -27,14 +34,14 @@ public class ConnectionDialog extends Dialog {
 	 * @param parent
 	 * @param style
 	 */
-	public ConnectionDialog(ClientMain client) {
-		super(client.shell, SWT.NONE);
-		connection = client.connection;
-		setText("Соединение с сервером");
+	ConnectionDialog(Shell parent, Connection connection) {
+		super(parent, SWT.NONE);
+		this.connection = connection;
 	}
 	
 	public ConnectionDialog(Shell parent, int style) {
 		super(parent, style);
+		connection = null;
 	}
 
 	/**
@@ -58,6 +65,7 @@ public class ConnectionDialog extends Dialog {
 	 * Create contents of the dialog.
 	 */
 	private void createContents() {
+		setText("Соединение с сервером");
 		shell = new Shell(getParent(), SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL);
 		shell.setSize(227, 167);
 		shell.setText(getText());
@@ -67,15 +75,14 @@ public class ConnectionDialog extends Dialog {
 		lblHost.setText("Сервер");
 		
 		txtHost = new Text(shell, SWT.BORDER);
-		txtHost.addKeyListener(new KeyAdapter() {
+		txtHost.addFocusListener(new FocusAdapter() {
 			@Override
-			public void keyPressed(KeyEvent e) {
-				if (SWT.CR == e.character) {
-					spnPort.setFocus();
-				}
+			public void focusLost(FocusEvent e) {
+				checkHostname();
 			}
 		});
-		txtHost.setText(connection.serverHost);
+		txtHost.addKeyListener(TRAVERSE_OR_EXIT);
+		txtHost.setText(connection.getServerHost());
 		txtHost.setBounds(64, 10, 147, 26);
 		
 		lblPort = new Label(shell, SWT.NONE);
@@ -91,9 +98,9 @@ public class ConnectionDialog extends Dialog {
 				}
 			}
 		});
-		spnPort.setMaximum(65536);
+		spnPort.setMaximum(MAX_PORT);
 		spnPort.setBounds(64, 42, 147, 44);
-		spnPort.setSelection(connection.serverPort);
+		spnPort.setSelection(connection.getServerPort());
 		
 		Button btnOk = new Button(shell, SWT.NONE);
 		btnOk.addSelectionListener(new SelectionAdapter() {
@@ -117,9 +124,17 @@ public class ConnectionDialog extends Dialog {
 
 	}
 
+	private void checkHostname() {
+		if (txtHost.getCharCount() > 0) {
+			txtHost.setBackground(defBgrdColor);
+		} else {
+			txtHost.setBackground(RED);
+		}
+	}
+
 	protected void submit() {
-		connection.serverHost = txtHost.getText().trim();
-		connection.serverPort = spnPort.getSelection();
+		connection.setServerHost(txtHost.getText());
+		connection.setServerPort(spnPort.getSelection());
 		result = true;
 		shell.close();
 	}	

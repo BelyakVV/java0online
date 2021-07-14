@@ -1,4 +1,5 @@
 package m6t3.client;
+
 import static m6t3.client.LoginDialog.RED;
 import static m6t3.client.LoginDialog.defBgrdColor;
 
@@ -29,8 +30,9 @@ import m6t3.common.Student;
 
 public class StudentEditDialog extends Dialog {
 
-	Student student;
-	ClientMain client;
+	private final Student student;
+//	ClientMain client;
+	private final Connection connection;
 	protected Object result;
 	protected Shell shell;
 	private Text txtNumber;
@@ -46,26 +48,23 @@ public class StudentEditDialog extends Dialog {
 	 */
 	public StudentEditDialog(Shell parent, int style) {
 		super(parent, SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL);
+		this.connection = null;
 		setText("Новый студент");
 		student = new Student();
 	}
 	
-	public StudentEditDialog(ClientMain client) {
-		super(client.shell, SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL);
-		this.client = client;
+	public StudentEditDialog(Shell parent, Connection connection) {
+		super(parent, SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL);
 		setText("Новый студент");
+		this.connection = connection;
 		student = new Student();
 	}
 
-	public StudentEditDialog(ClientMain client, Student student) {
-		super(client.shell, SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL);
-		this.client = client;
+	public StudentEditDialog(Shell parent, Connection connection, Student student) {
+		super(parent, SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL);
 		setText("Редактирование студента");
 		this.student = student;
-	}
-	
-	public StudentEditDialog(Shell parent, Student student) {
-		super(parent, SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL);
+		this.connection = connection;
 	}
 	
 	public static final FocusAdapter SELECT_ALL_TEXT = new FocusAdapter() {
@@ -73,6 +72,18 @@ public class StudentEditDialog extends Dialog {
 		public void focusGained(FocusEvent e) {
 			((Text) e.widget).selectAll();
 		}
+	};
+	
+	public static final FocusAdapter CANNOT_BE_EMPTY = new FocusAdapter() {
+		@Override
+		public void focusLost(FocusEvent e) {
+			Text text = (Text) e.widget;
+			if (text.getCharCount() > 0) {
+				text.setBackground(defBgrdColor);
+			} else {
+				text.setBackground(RED);
+			}
+		}		
 	};
 	
 	public static final KeyAdapter TRAVERSE_OR_EXIT = new KeyAdapter() {
@@ -230,7 +241,7 @@ public class StudentEditDialog extends Dialog {
 		student.setSurname(txtSurname.getText());
 		student.setName(txtName.getText());
 		student.setPatronymic(txtPatronymic.getText());
-		client.connection.outQueue.add(student);
+		connection.outQueue.add(student);
 		shell.close();
 	}
 	

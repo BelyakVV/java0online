@@ -11,13 +11,13 @@ import m6t3.common.Student;
 class Synchronizer extends Thread {
 	final ClientMain client;
 	final Display display;
-	public volatile int srvChecksum = 0;
-	Table table;
+	private int srvChecksum = 0;
+	private final Table table;
 	private int myChecksum = 0;
 	
 	Synchronizer(ClientMain client) {
 		this.client = client;
-		display = client.shell.getDisplay();
+		display = client.getDisplay();
 		table = client.table;
 //		System.out.println("Создание синхронизатора");
 	}
@@ -26,21 +26,20 @@ class Synchronizer extends Thread {
 	public void run() {
 		client.connection.outQueue.add(SYNC_STUDENTS_REQUEST);
 		try {
-			while (true) {
+			while (client.isRunning()) {
 				display.syncExec(() -> calcChecksum());
 //				System.out.println("Me: " + myChecksum + ", Server: " + srvChecksum);
 				if (myChecksum != srvChecksum) {
-					System.out.println("My: " + Integer.toHexString(myChecksum) + ", server: " + Integer.toHexString(srvChecksum));
+//					System.out.println("My: " + Integer.toHexString(myChecksum) + ", server: " + Integer.toHexString(srvChecksum));
 					client.connection.outQueue.add(SYNC_STUDENTS_REQUEST);
 				}
 				srvChecksum = 0;
 				Thread.sleep(SYNC_INTERVAL);
 			}
 		} catch (InterruptedException e) {
-			System.out.println("Synchronizer stopped");
-			// TODO Auto-generated catch block
-//			e.printStackTrace();
+			//Nothing to do here
 		}
+//		System.out.println("Synchronizer stopped");
 	}
 	
 	void calcChecksum() {
@@ -48,5 +47,9 @@ class Synchronizer extends Thread {
 		for (int i = 0; i < table.getItemCount(); i++) {
 			myChecksum += ((Student) table.getItem(i).getData()).hashCode();
 		}		
+	}
+
+	public void setSrvChecksum(int checksum) {
+		srvChecksum = checksum;
 	}
 }

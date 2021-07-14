@@ -8,6 +8,7 @@ import java.io.OutputStream;
 import m6t3.common.Transmittable;
 
 class ClientTransmitter extends Thread {
+	private static final long WAIT_UNTIL_LINK_IS_READY = 100;
 	final ClientMain client;
 	final Connection connection;
 	OutputStream out = null;
@@ -29,7 +30,8 @@ class ClientTransmitter extends Thread {
 		try {
 			while (true) {
 				while (null == out) {
-					Thread.sleep(100);
+					if (!client.isRunning()) return;
+					Thread.sleep(WAIT_UNTIL_LINK_IS_READY);
 				}
 				Object obj = connection.outQueue.take();
 				var objClass = obj.getClass();
@@ -42,19 +44,16 @@ class ClientTransmitter extends Thread {
 					}
 				} catch (IOException e) {
 					// TODO Auto-generated catch block
-					e.printStackTrace();
+//					e.printStackTrace();
 					connection.outQueue.add(obj);
+					out = null;
+					connection.reconnect();
 				}
 			}
 		} catch (InterruptedException e) {
 			// TODO Auto-generated catch block
 //			e.printStackTrace();
-			System.out.println("Client transmitter stopped. Closing the socket.");
-		}
-		try {
-			connection.socket.close();
-		} catch (IOException e) {
-			//Nothing to do here
+//			System.out.println("Client transmitter stopped. Closing the socket.");
 		}
 	}	
 }

@@ -5,8 +5,6 @@ import static m6t3.client.LoginDialog.defBgrdColor;
 import static m6t3.client.StudentEditDialog.SELECT_ALL_TEXT;
 import static m6t3.client.StudentEditDialog.TRAVERSE_OR_EXIT;
 
-import java.security.NoSuchAlgorithmException;
-import java.security.spec.InvalidKeySpecException;
 import java.util.Arrays;
 
 import org.eclipse.swt.SWT;
@@ -32,12 +30,13 @@ import org.eclipse.swt.widgets.Text;
 
 public class ChangePassDialog extends Dialog {
 
-	protected Object result;
-	protected Shell shell;
-	private final ClientMain client;
+	Object result;
+	private Shell shell;
+//	private final ClientMain client;
 	private Text txtOldPass;
 	private Text txtNewPass;
 	private Text txtNewPassAgain;
+	private Connection connection;
 
 	/**
 	 * Create the dialog.
@@ -46,12 +45,12 @@ public class ChangePassDialog extends Dialog {
 	 */
 	public ChangePassDialog(Shell parent, int style) {
 		super(parent, style);
-		client = null;
+//		client = null;
 	}
 
-	public ChangePassDialog(ClientMain client) {
-		super(client.shell, SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL);
-		this.client = client;
+	public ChangePassDialog(Shell parent, Connection connection) {
+		super(parent, SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL);
+		this.connection = connection;
 	}
 
 	/**
@@ -198,7 +197,7 @@ public class ChangePassDialog extends Dialog {
 
 	}
 
-	protected void submit() {
+	private void submit() {
 		if (txtNewPass.getCharCount() < 1) return;
 		char[] oldPass = txtOldPass.getTextChars();
 		char[] newPass = txtNewPass.getTextChars();
@@ -209,18 +208,10 @@ public class ChangePassDialog extends Dialog {
 			shell.close();
 			return;
 		}
-		try {
-			var chpassRequest = client.connection.lastChallenge.createChangePassRequest(
-					oldPass, newPass);
-			if (chpassRequest != null) {
-				client.connection.outQueue.add(chpassRequest);
-				shell.close();
-			} else {
-				txtOldPass.setBackground(RED);
-			}
-		} catch (NoSuchAlgorithmException | InvalidKeySpecException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+		if (connection.changePass(oldPass, newPass)) {
+			shell.close();
+		} else {
+			txtOldPass.setBackground(RED);
 		}
 	}
 }

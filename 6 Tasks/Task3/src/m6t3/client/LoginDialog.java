@@ -1,5 +1,6 @@
 package m6t3.client;
 
+import static m6t3.client.StudentEditDialog.CANNOT_BE_EMPTY;
 import static m6t3.client.StudentEditDialog.SELECT_ALL_TEXT;
 import static m6t3.client.StudentEditDialog.TRAVERSE_OR_EXIT;
 
@@ -31,7 +32,8 @@ public class LoginDialog extends Dialog {
 	private Text txtLogin;
 	private Text txtPass;
 	
-	final ClientMain client;
+//	final ClientMain client;
+	final Connection connection;
 	
 	public static Color defBgrdColor;
 	public static final Color RED = SWTResourceManager.getColor(SWT.COLOR_RED);
@@ -43,13 +45,12 @@ public class LoginDialog extends Dialog {
 	 */
 	public LoginDialog(Shell parent, int style) {
 		super(parent, style);
-		client = null;
-//		setText("SWT Dialog");
+		connection = null;
 	}
 	
-	LoginDialog(ClientMain client) {
-		super(client.shell, SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL);
-		this.client = client; 
+	LoginDialog(Shell parent, Connection connection) {
+		super(parent, SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL);
+		this.connection = connection; 
 	}
 
 	/**
@@ -93,7 +94,8 @@ public class LoginDialog extends Dialog {
 		
 		txtLogin = new Text(group, SWT.BORDER);
 		txtLogin.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
-		txtLogin.setText(client.connection.login);
+		txtLogin.setText(connection.getLogin());
+		txtLogin.addFocusListener(CANNOT_BE_EMPTY);
 		txtLogin.addFocusListener(SELECT_ALL_TEXT);
 		txtLogin.addKeyListener(TRAVERSE_OR_EXIT);
 		defBgrdColor = txtLogin.getBackground();
@@ -104,6 +106,7 @@ public class LoginDialog extends Dialog {
 		
 		txtPass = new Text(group, SWT.BORDER | SWT.PASSWORD);
 		txtPass.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+		txtPass.addFocusListener(CANNOT_BE_EMPTY);
 		txtPass.addFocusListener(SELECT_ALL_TEXT);
 		txtPass.addKeyListener(new KeyAdapter() {
 			@Override
@@ -146,8 +149,13 @@ public class LoginDialog extends Dialog {
 	}
 
 	private void submit() {
-		client.connection.login = txtLogin.getText();
-		client.connection.password = txtPass.getTextChars();
+		if (txtLogin.getCharCount() < 1) return;
+		if (txtPass.getCharCount() < 1) {
+			txtPass.setBackground(RED);
+			return;
+		}
+		connection.setLogin(txtLogin.getText());
+		connection.setPassword(txtPass.getTextChars());
 		result = true;
 		shell.close();
 	}

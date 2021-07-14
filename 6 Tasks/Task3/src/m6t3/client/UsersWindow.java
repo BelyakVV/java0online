@@ -2,9 +2,9 @@ package m6t3.client;
 
 import static m6t3.common.Tranceiver.SYNC_USERS_REQUEST;
 
-import java.util.LinkedList;
-
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.KeyAdapter;
+import org.eclipse.swt.events.KeyEvent;
 import org.eclipse.swt.events.MouseAdapter;
 import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.events.SelectionAdapter;
@@ -24,8 +24,8 @@ import m6t3.common.User;
 
 public class UsersWindow extends Dialog {
 
-	final ClientMain client;
-	private UsersWindow usersWindow;
+	private final Connection connection;
+	private UsersWindow me = this;
 	
 	protected Object result;
 	protected Shell shell;
@@ -42,15 +42,15 @@ public class UsersWindow extends Dialog {
 	 */
 	public UsersWindow(Shell parent, int style) {
 		super(parent, style);
-		client = null;
 		setText("Управление пользователями");
+		connection = null;
 	}
 
-	public UsersWindow(ClientMain client) {
-		super(client.shell, SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL);
-		this.client = client;
+	public UsersWindow(Shell parent, Connection connection) {
+		super(parent, SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL);
 		setText("Управление пользователями");
-		usersWindow = this;
+//		usersWindow = this;
+		this.connection = connection;
 	}
 	
 	/**
@@ -58,15 +58,14 @@ public class UsersWindow extends Dialog {
 	 * @return the result
 	 */
 	public Object open() {
-		client.connection.receiver.usersQueue = new LinkedList<>();
-		client.connection.outQueue.add(SYNC_USERS_REQUEST);
+		connection.outQueue.add(SYNC_USERS_REQUEST);
 		createContents();
 		shell.open();
 		shell.layout();
 		Display display = getParent().getDisplay();
 		while (!shell.isDisposed()) {
-			while (!client.connection.receiver.usersQueue.isEmpty()) {
-				User user = client.connection.receiver.usersQueue.poll();
+			while (!connection.receiver.usersQueue.isEmpty()) {
+				User user = connection.receiver.usersQueue.poll();
 				if (null == user) {
 					System.err.println("Attempt to merge null into users table");
 				} else {
@@ -78,7 +77,6 @@ public class UsersWindow extends Dialog {
 				display.sleep();
 			}
 		}
-		client.connection.receiver.usersQueue = null; //won't receive users anymore
 		return result;
 	}
 
@@ -92,18 +90,18 @@ public class UsersWindow extends Dialog {
 		shell.setLayout(new FormLayout());
 		
 		table = new Table(shell, SWT.BORDER | SWT.FULL_SELECTION);
+		table.addKeyListener(new KeyAdapter() {
+			@Override
+			public void keyPressed(KeyEvent e) {
+				if (SWT.CR == e.character) editUser();
+			}
+		});
 		table.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mouseDoubleClick(MouseEvent e) {
 				editUser();
 			}
 		});
-//		table.addFocusListener(new FocusAdapter() {
-//			@Override
-//			public void focusGained(FocusEvent e) {
-//				checkTable();
-//			}
-//		});
 		FormData fd_table = new FormData();
 		fd_table.top = new FormAttachment(0);
 		fd_table.left = new FormAttachment(0);
@@ -124,7 +122,7 @@ public class UsersWindow extends Dialog {
 		btnNew.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
-				new UserEditDialog(usersWindow).open();
+				new UserEditDialog(shell, me, connection).open();
 			}
 		});
 		fd_table.bottom = new FormAttachment(btnNew, -6);
@@ -140,7 +138,7 @@ public class UsersWindow extends Dialog {
 			public void widgetSelected(SelectionEvent e) {
 				int index = table.getSelectionIndex();
 				User user = (User) table.getItem(index).getData();
-				client.connection.outQueue.add(user.suicide());
+				connection.outQueue.add(user.suicide());
 			}
 		});
 		btnDelete.setEnabled(false);
@@ -236,7 +234,7 @@ public class UsersWindow extends Dialog {
 		int index = table.getSelectionIndex();
 		if (index < 0) return;
 		User user = (User) table.getItem(index).getData();
-		new UserEditDialog(usersWindow, user).open();		
+		new UserEditDialog(shell, me, connection, user).open();		
 //		table.setFocus();
 	}
 

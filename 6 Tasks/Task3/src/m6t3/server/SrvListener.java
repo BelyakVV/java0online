@@ -30,10 +30,10 @@ class SrvListener extends Thread {
 		while (true) {
 			try {
 				links.add(new SrvLink(this, socket.accept()));
-			} catch (IOException e1) {
+			} catch (IOException e) {
 				if (!running) break;
 				// TODO Auto-generated catch block
-				e1.printStackTrace();
+//				e.printStackTrace();
 			}
 		}
 		syncSender.interrupt();

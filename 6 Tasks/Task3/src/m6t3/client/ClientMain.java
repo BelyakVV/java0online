@@ -31,14 +31,15 @@ import m6t3.common.Student;
 
 public class ClientMain {
 	
-	static ClientMain client;
+	static ClientMain me;
 
 	Connection connection;	
 	
-	boolean running = true;
+	private boolean running = true;
 	
 	int syncProgress;
-	Shell shell;
+	private Display display;
+	private Shell shell;
 	Table table;
 //	private volatile int checksum = 0;
 	private Button btnAdd;
@@ -50,15 +51,19 @@ public class ClientMain {
 	private boolean admin = false;
 
 	private MenuItem mntmUsers;
+
+	private boolean connectionDialogActive = false;
+
+	private boolean loginDialogActive;
 	
 	/**
 	 * Launch the application.
 	 * @param args
 	 */
 	public static void main(String[] args) {
-		client = new ClientMain();
+		me = new ClientMain();
 		try {
-			client.open();
+			me.open();
 		} catch (Exception e) {
 			System.err.println("Couldn't open main client window.");
 			e.printStackTrace();
@@ -69,7 +74,7 @@ public class ClientMain {
 	 * Open the window.
 	 */
 	public void open() {
-		Display display = Display.getDefault();
+		display = Display.getDefault();
 		createContents();
 		shell.open();
 		shell.layout();
@@ -99,7 +104,7 @@ public class ClientMain {
 			@Override
 			public void shellClosed(ShellEvent e) {
 				running = false;
-				connection.disconnect();
+				connection.terminate();
 			}
 		});
 		shell.setMinimumSize(new Point(400, 300));
@@ -174,7 +179,7 @@ public class ClientMain {
 		btnAdd.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
-				new StudentEditDialog(client).open();
+				new StudentEditDialog(shell, connection).open();
 			}
 		});
 		FormData fd_btnAdd = new FormData();
@@ -250,7 +255,7 @@ public class ClientMain {
 		mntmChangePass.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
-				new ChangePassDialog(client).open();
+				new ChangePassDialog(shell, connection).open();
 			}
 		});
 		mntmChangePass.setText("Изменить свой пароль");
@@ -260,7 +265,7 @@ public class ClientMain {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
 //				new UsersWindow(shell, SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL).open();
-				new UsersWindow(client).open();
+				new UsersWindow(shell, connection).open();
 			}
 		});
 		mntmUsers.setEnabled(false);
@@ -281,7 +286,7 @@ public class ClientMain {
 		int index = table.getSelectionIndex();
 		if (index < 0) return;
 		Student student = (Student) table.getItem(index).getData();
-		new StudentEditDialog(client, student).open();		
+		new StudentEditDialog(shell, connection , student).open();		
 //		table.setFocus();
 	}
 	
@@ -355,7 +360,52 @@ public class ClientMain {
 
 	public void setAdmin(boolean admin) {
 		this.admin = admin;
-		btnAdd.setEnabled(admin);
-		mntmUsers.setEnabled(admin);
+		display.asyncExec(()-> {			
+			btnAdd.setEnabled(admin);
+			mntmUsers.setEnabled(admin);
+		});
 	}
+
+//	public void close() {
+//		running = false;
+////		display.asyncExec(()-> shell.close());
+//	}
+
+	public boolean isRunning() {
+		return running;
+	}
+
+	public Display getDisplay() {
+		return display;
+	}
+
+	public void showReconnDlg() {
+		if (connectionDialogActive) return;
+		connectionDialogActive = true;
+		display.syncExec(()-> {
+			ConnectionDialog dialog = new ConnectionDialog(shell, connection);
+			dialog.open();
+			if (!(boolean) dialog.result) shell.close();
+		});
+		connectionDialogActive = false;
+	}
+
+	public boolean isAdmin() {
+		return admin;
+	}
+
+	public void showLoginDialog() {
+		if (loginDialogActive) return;
+		loginDialogActive = true;
+		display.syncExec(()-> {
+			LoginDialog dialog = new LoginDialog(shell, connection);
+			dialog.open();
+			if (!(boolean) dialog.result) shell.close();
+		});
+		loginDialogActive = false;
+	}
+
+	public void setLogin(String login) {
+		display.syncExec(()-> shell.setText("Архив (" + login + ')'));
+	}	
 }
