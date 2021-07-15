@@ -393,6 +393,7 @@ public class ClientMain {
 			} else {
 				btnModify.setEnabled(false);
 				btnDelete.setEnabled(false);
+				if (usersWindow != null) usersWindow.shell.close();
 			}
 		});
 	}

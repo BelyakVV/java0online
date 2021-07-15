@@ -103,6 +103,7 @@ class Connection {
 			Arrays.fill(password, (char) 0);
 			password = null;			
 		} else {
+			if (null == lastChallenge) return false; //XXX Impossible, but sometimes happens
 			challenge.createResponse(lastChallenge).transmit(out);
 		}
 		if (receiveInt(in) != AUTH_ACKNOWLEDGEMENT) return false;

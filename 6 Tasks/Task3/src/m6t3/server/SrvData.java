@@ -137,6 +137,7 @@ class SrvData extends Thread {
 							user.incSerial();
 							changed = true;
 							server.broadcast(user);
+							server.disconnect(user);
 						}
 					}
 					return true;
