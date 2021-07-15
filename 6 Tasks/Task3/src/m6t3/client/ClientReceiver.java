@@ -10,9 +10,19 @@ import java.io.InputStream;
 import m6t3.common.Student;
 import m6t3.common.User;
 
+/**
+ * Receiving facility of the client part of a network connection.
+ *
+ * @author aabyodj
+ */
 public class ClientReceiver extends Thread {
+	
+	/** The main window of the client application */
 	final ClientMain client;
+	
+	/** The controller of the client part of a network connection */
 	final Connection connection;
+	
 	InputStream in = null;
 
 	ClientReceiver(Connection connection) {
@@ -33,7 +43,7 @@ public class ClientReceiver extends Thread {
 					int checksum = receiveInt(in);
 					connection.synchronizer.setSrvChecksum(checksum);
 				} else {
-					System.err.println("Invalid transmittion detected");
+					System.err.println("Пакет данных неизвестного формата");
 					in.skip(in.available());
 				}
 			} catch (Exception e) {

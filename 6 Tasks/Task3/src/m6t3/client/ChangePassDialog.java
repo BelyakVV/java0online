@@ -28,17 +28,27 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 
+/**
+ *  Change password dialog. Users both with and without administrative rights 
+ * can use it. A user can enter his current password, then a new password should
+ * be typed twice.
+ * 
+ * @author aabyodj *
+ */
 public class ChangePassDialog extends Dialog {
 
 	Object result;
 	private Shell shell;
+		
 	private Text txtOldPass;
 	private Text txtNewPass;
 	private Text txtNewPassAgain;
+	
+	/** Connection to a server */
 	final Connection connection;
 
 	/**
-	 * Create the dialog.
+	 * Standard constructor for WindowBuilder
 	 * @param parent
 	 * @param style
 	 */
@@ -47,6 +57,11 @@ public class ChangePassDialog extends Dialog {
 		connection = null;
 	}
 
+	/**
+	 * Create the Change Password Dialog
+	 * @param parent
+	 * @param connection Connection to the server
+	 */
 	public ChangePassDialog(Shell parent, Connection connection) {
 		super(parent, SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL);
 		this.connection = connection;
@@ -196,6 +211,7 @@ public class ChangePassDialog extends Dialog {
 
 	}
 
+	/** Try to change the password using data typed into the fields */
 	private void submit() {
 		if (txtNewPass.getCharCount() < 1) return;
 		char[] oldPass = txtOldPass.getTextChars();
@@ -203,13 +219,11 @@ public class ChangePassDialog extends Dialog {
 		if (!Arrays.equals(newPass, txtNewPassAgain.getTextChars())) {
 			return;
 		}
-		if (Arrays.equals(oldPass, newPass)) {
-			shell.close();
-			return;
-		}
 		if (connection.changePass(oldPass, newPass)) {
+			//Success
 			shell.close();
 		} else {
+			//Current password is wrong
 			txtOldPass.setBackground(RED);
 		}
 	}
