@@ -52,8 +52,6 @@ public class AuthChallenge implements Transmittable {
 	public ChangePassRequest createChangePassRequest(char[] oldPass, char[] newPass) 
 			throws NoSuchAlgorithmException, InvalidKeySpecException {
 		byte[] oldHash = createHash(oldPass, salt);
-		System.out.println(Arrays.toString(oldHash));
-		System.out.println(Arrays.toString(hash));
 		if (!Arrays.equals(hash, oldHash)) return null;
         salt = createSalt();
         hash = createHash(newPass, salt);

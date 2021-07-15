@@ -84,7 +84,6 @@ public class ClientMain {
 		try {
 			me.open();
 		} catch (Exception e) {
-			System.err.println("Couldn't open main client window.");
 			e.printStackTrace();
 		}
 	}
