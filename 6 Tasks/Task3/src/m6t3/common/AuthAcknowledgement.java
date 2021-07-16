@@ -20,13 +20,23 @@ import java.io.OutputStream;
 public class AuthAcknowledgement implements Transmittable {
 	
 	public final int userId;
+	
+	/** Whether just authenticated user has administrative rights */
 	public final boolean admin;
 
+	/**
+	 * Create an acknowledge.
+	 * @param user Associated account or null if login has failed 
+	 */
 	public AuthAcknowledgement(User user) {
 		if (null == user) {
+			
+			//Access denied
 			userId = INVALID_ID;
 			admin = false;
 		} else {
+			
+			//Access granted
 			userId = user.id;
 			admin = user.isAdmin();
 		}
