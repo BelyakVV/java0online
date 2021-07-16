@@ -40,7 +40,7 @@ import m6t3.common.User;
  * @author aabyodj
  */
 public class ClientMain {
-	
+		
 	private static ClientMain me;
 	
 	private Display display;
@@ -99,7 +99,7 @@ public class ClientMain {
 		connection  = new Connection(this, table);
 		while (!shell.isDisposed()) {
 			
-			//Include items from queue into the table
+			//Include items from the queue into the table
 			while (!inQueue.isEmpty()) {
 				mergeStudent0(inQueue.poll());
 			}
@@ -380,7 +380,7 @@ public class ClientMain {
 	}
 
 	/**
-	 *  Enable or disable modifying controls according to user's rights.
+	 *  Enable or disable data-modifying controls according to user's rights.
 	 * @param admin Whether the user is administrator
 	 */
 	public void setAdmin(boolean admin) {
@@ -414,7 +414,7 @@ public class ClientMain {
 	 *  Show the Network Connection Settings Dialog. Close the application if 
 	 * the Cancel button is hit.
 	 */
-	public void showReconnDlg() {
+	public void showConnectionDlg() {
 		if (connectionDialogActive) return;
 		connectionDialogActive = true;
 		display.syncExec(()-> {

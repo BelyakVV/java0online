@@ -25,11 +25,18 @@ public class ClientReceiver extends Thread {
 	
 	InputStream in = null;
 
+	/**
+	 * Create an instance of client-side receiving thread.
+	 * @param connection Network connection controller
+	 */
 	ClientReceiver(Connection connection) {
 		this.connection = connection;
 		client = connection.client;
 	}
 	
+	/**
+	 * The body of the receiving thread. It will automatically initiate the socket.
+	 */
 	@Override
 	public void run() {
 		while (true) {				
@@ -48,7 +55,7 @@ public class ClientReceiver extends Thread {
 				}
 			} catch (Exception e) {
 				if (!client.isRunning()) break;
-				connection.reconnect();
+				connection.reconnect();	//Socket initialization upon startup occurs here
 			}
 		}
 	}

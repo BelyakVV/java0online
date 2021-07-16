@@ -1,8 +1,8 @@
 package m6t3.client;
 
+import static m6t3.client.LoginDialog.DEFAULT_BACKGROUND;
 import static m6t3.client.LoginDialog.RED;
-import static m6t3.client.LoginDialog.defBgrdColor;
-import static m6t3.client.StudentEditDialog.TRAVERSE_OR_EXIT;
+import static m6t3.client.LoginDialog.TRAVERSE_OR_EXIT;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.FocusAdapter;
@@ -19,10 +19,20 @@ import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Spinner;
 import org.eclipse.swt.widgets.Text;
 
+/**
+ *  Network Connection Settings dialog. It is shown upon failure to connect to
+ * a server using current host name and port number so a user could change that
+ * settings.
+ *
+ * @author aabyodj
+ */
 public class ConnectionDialog extends Dialog {
 	
 	static final int MAX_PORT = 65535;
+	
+	/** Client-side network connection controller */
 	final Connection connection;
+	
 	protected Object result = false;
 	protected Shell shell;
 	private Text txtHost;
@@ -30,15 +40,20 @@ public class ConnectionDialog extends Dialog {
 	private Spinner spnPort;
 
 	/**
-	 * Create the dialog.
+	 * Create the Network Connection Settings dialog.
 	 * @param parent
-	 * @param style
+	 * @param connection The client-side network connection controller
 	 */
 	ConnectionDialog(Shell parent, Connection connection) {
 		super(parent, SWT.NONE);
 		this.connection = connection;
 	}
 	
+	/**
+	 * Create the dialog. This is the standard constructor for WindowBuilder.
+	 * @param parent
+	 * @param style
+	 */
 	public ConnectionDialog(Shell parent, int style) {
 		super(parent, style);
 		connection = null;
@@ -83,6 +98,7 @@ public class ConnectionDialog extends Dialog {
 		});
 		txtHost.addKeyListener(TRAVERSE_OR_EXIT);
 		txtHost.setText(connection.getServerHost());
+		txtHost.setBackground(DEFAULT_BACKGROUND);
 		txtHost.setBounds(64, 10, 147, 26);
 		
 		lblPort = new Label(shell, SWT.NONE);
@@ -126,13 +142,13 @@ public class ConnectionDialog extends Dialog {
 
 	private void checkHostname() {
 		if (txtHost.getCharCount() > 0) {
-			txtHost.setBackground(defBgrdColor);
+			txtHost.setBackground(DEFAULT_BACKGROUND);
 		} else {
 			txtHost.setBackground(RED);
 		}
 	}
 
-	protected void submit() {
+	private void submit() {
 		connection.setServerHost(txtHost.getText());
 		connection.setServerPort(spnPort.getSelection());
 		result = true;

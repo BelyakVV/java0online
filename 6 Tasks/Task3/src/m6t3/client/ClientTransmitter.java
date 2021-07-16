@@ -9,13 +9,31 @@ import java.util.concurrent.LinkedBlockingQueue;
 
 import m6t3.common.Transmittable;
 
+/**
+ *  Client-side data transmitting thread.
+ *
+ * @author aabyodj
+ */
 class ClientTransmitter extends Thread {
+	
 	static final long WAIT_UNTIL_LINK_IS_READY = 100;
+	
+	/** Client application main window */
 	final ClientMain client;
+	
+	/** Network connection controller */
 	final Connection connection;
+	
+	/** Queue of objects to be transmitted */
 	private final BlockingQueue<Object> outQueue = new LinkedBlockingQueue<>();
+	
 	OutputStream out = null;
 
+	/**
+	 *  Create an instance of client-side data transmitter.
+	 *  
+	 * @param connection Network connection controller
+	 */
 	ClientTransmitter(Connection connection) {
 		client = connection.client;
 		this.connection = connection;
@@ -37,9 +55,9 @@ class ClientTransmitter extends Thread {
 					} else if (Integer.class == objClass) {
 						transmitInt((Integer) obj, out);
 					}
-				} catch (IOException e) {
-					outQueue.add(obj);
-					out = null;
+				} catch (IOException e) {					
+					outQueue.add(obj); 	//Return unsent object back to queue
+					out = null;			//Invalidate output stream
 					connection.reconnect();
 				}
 			}
@@ -48,9 +66,12 @@ class ClientTransmitter extends Thread {
 		}
 	}
 
-	public void terminate() {
+	/**
+	 * Terminate the transmitting thread when closing the application.
+	 */
+	void terminate() {
 		if (outQueue.isEmpty()) {
-			this.interrupt();
+			this.interrupt(); //Probably redundant as there is client.isRunning() inside the loop
 		}
 		try {
 			this.join();
@@ -59,6 +80,11 @@ class ClientTransmitter extends Thread {
 		}
 	}
 
+	/**
+	 *  Asynchronously send an object to the server.
+	 *  
+	 * @param obj An object to be sent
+	 */
 	public void send(Object obj) {
 		outQueue.add(obj);
 	}	

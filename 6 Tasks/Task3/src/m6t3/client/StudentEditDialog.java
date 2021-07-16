@@ -1,17 +1,16 @@
 package m6t3.client;
 
+import static m6t3.client.LoginDialog.CHECK_BLANK;
+import static m6t3.client.LoginDialog.DEFAULT_BACKGROUND;
 import static m6t3.client.LoginDialog.RED;
-import static m6t3.client.LoginDialog.defBgrdColor;
+import static m6t3.client.LoginDialog.SELECT_ALL_TEXT;
+import static m6t3.client.LoginDialog.TRAVERSE_OR_EXIT;
 
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.events.FocusAdapter;
-import org.eclipse.swt.events.FocusEvent;
 import org.eclipse.swt.events.KeyAdapter;
 import org.eclipse.swt.events.KeyEvent;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
-import org.eclipse.swt.events.TraverseEvent;
-import org.eclipse.swt.events.TraverseListener;
 import org.eclipse.swt.layout.FormAttachment;
 import org.eclipse.swt.layout.FormData;
 import org.eclipse.swt.layout.FormLayout;
@@ -28,85 +27,65 @@ import org.eclipse.swt.widgets.Text;
 
 import m6t3.common.Student;
 
+/**
+ *  The Student Edit Dialog may be used by administrators to modify students'
+ * accounts.
+ *
+ * @author aabyodj
+ */
 public class StudentEditDialog extends Dialog {
 
+	/** Student's account being edited */
 	private final Student student;
+	
+	/** The transmitting thread of the network connection */
 	final ClientTransmitter transmitter;
+	
 	protected Object result;
-	protected Shell shell;
+	protected Shell shell;	
 	private Text txtNumber;
 	private Text txtSurname;
 	private Text txtName;
 	private Text txtPatronymic;
 
 	/**
-	 * Create the dialog.
+	 * Create the dialog. This is the default constructor for WindowBuilder.
 	 * @param parent
 	 * @param style
 	 * @wbp.parser.constructor
 	 */
 	public StudentEditDialog(Shell parent, int style) {
 		super(parent, SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL);
-		this.transmitter = null;
 		setText("Новый студент");
-		student = new Student();
+		student = null;
+		transmitter = null;
 	}
 	
-	public StudentEditDialog(Shell parent, Connection connection) {
+	/**
+	 *  Create the Student Edit dialog for using it to create a new student's 
+	 * account.
+	 * @param parent
+	 * @param connection The client-side network connection controller.
+	 */
+	StudentEditDialog(Shell parent, Connection connection) {
 		super(parent, SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL);
 		setText("Новый студент");
 		transmitter = connection.transmitter;
 		student = new Student();
 	}
 
-	public StudentEditDialog(Shell parent, Connection connection, Student student) {
+	/**
+	 * Create the Student Edit dialog.
+	 * @param parent
+	 * @param connection The client-side network connection controller
+	 * @param student A student's account to be edited
+	 */
+	StudentEditDialog(Shell parent, Connection connection, Student student) {
 		super(parent, SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL);
 		setText("Редактирование студента");
 		this.student = student;
 		transmitter = connection.transmitter;
 	}
-	
-	public static final FocusAdapter SELECT_ALL_TEXT = new FocusAdapter() {
-		@Override
-		public void focusGained(FocusEvent e) {
-			((Text) e.widget).selectAll();
-		}
-	};
-	
-	public static final FocusAdapter CANNOT_BE_EMPTY = new FocusAdapter() {
-		@Override
-		public void focusLost(FocusEvent e) {
-			Text text = (Text) e.widget;
-			if (text.getCharCount() > 0) {
-				text.setBackground(defBgrdColor);
-			} else {
-				text.setBackground(RED);
-			}
-		}		
-	};
-	
-	public static final KeyAdapter TRAVERSE_OR_EXIT = new KeyAdapter() {
-		@Override
-		public void keyPressed(KeyEvent e) {
-			if (SWT.CR == e.character) {
-				((Control) e.widget).traverse(SWT.TRAVERSE_TAB_NEXT);
-			} else if (e.character == SWT.ESC) {
-				((Control) e.widget).getShell().close();
-			}
-		}
-	};
-	
-	static final TraverseListener CHECK_BLANK = new TraverseListener() {
-		public void keyTraversed(TraverseEvent e) {
-			Text text = (Text) e.widget;
-			if (text.getText().isBlank()) {
-				text.setBackground(RED);
-				e.doit = false;
-			} else {
-				text.setBackground(defBgrdColor);
-			}
-		}
-	};
 
 	/**
 	 * Open the dialog.
@@ -180,6 +159,7 @@ public class StudentEditDialog extends Dialog {
 		txtNumber.addFocusListener(SELECT_ALL_TEXT);
 		txtNumber.addTraverseListener(CHECK_BLANK);
 		txtNumber.addKeyListener(TRAVERSE_OR_EXIT);
+		txtNumber.setBackground(DEFAULT_BACKGROUND);
 		txtNumber.setText(student.getNumber());
 		GridData gd_txtNumber = new GridData(SWT.LEFT, SWT.CENTER, false, false, 1, 1);
 		gd_txtNumber.widthHint = 142;
@@ -193,6 +173,7 @@ public class StudentEditDialog extends Dialog {
 		txtSurname.addFocusListener(SELECT_ALL_TEXT);
 		txtSurname.addTraverseListener(CHECK_BLANK);
 		txtSurname.addKeyListener(TRAVERSE_OR_EXIT);
+		txtSurname.setBackground(DEFAULT_BACKGROUND);
 		txtSurname.setText(student.getSurname());
 		txtSurname.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
 		
@@ -204,6 +185,7 @@ public class StudentEditDialog extends Dialog {
 		txtName.addFocusListener(SELECT_ALL_TEXT);
 		txtName.addTraverseListener(CHECK_BLANK);
 		txtName.addKeyListener(TRAVERSE_OR_EXIT);
+		txtName.setBackground(DEFAULT_BACKGROUND);
 		txtName.setText(student.getName());
 		txtName.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
 		
@@ -224,6 +206,7 @@ public class StudentEditDialog extends Dialog {
 				}
 			}
 		});
+		txtPatronymic.setBackground(DEFAULT_BACKGROUND);
 		txtPatronymic.setText(student.getPatronymic());
 		txtPatronymic.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
 
@@ -244,13 +227,19 @@ public class StudentEditDialog extends Dialog {
 		shell.close();
 	}
 	
+	/** 
+	 *  Check if a text field widget contains any text and change its background
+	 * color accordingly.
+	 * @param text Widget to be checked
+	 * @return true if the widget is not empty
+	 */
 	boolean checkText(Text text) {
 		boolean result = !text.getText().isBlank();
 		if (!result) {
 			text.setBackground(RED);
 			text.setFocus();
 		} else {
-			text.setBackground(defBgrdColor);
+			text.setBackground(DEFAULT_BACKGROUND);
 		}
 		return result;
 	}

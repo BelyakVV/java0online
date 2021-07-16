@@ -25,22 +25,34 @@ import org.eclipse.swt.widgets.TableItem;
 
 import m6t3.common.User;
 
+/**
+ * The window for administrators to manage users' accounts.
+ *
+ * @author aabyodj
+ */
 public class UsersWindow extends Dialog {
 
+	/** The transmitting part of the client-side network connection controller */
 	final ClientTransmitter transmitter;
+	
 	final UsersWindow me = this;
 	
 	protected Object result;
 	protected Shell shell;
+	
+	/** A table of users' accounts */
 	private Table table;
+	
 	private TableColumn tblclmnLogin;
 	private TableColumn tblclmnAdmin;
 	private Button btnDelete;
 	private Button btnEdit;
+	
+	/** A queue of accounts to be merged into the table */
 	final Queue<User> inQueue = new LinkedList<>();
 
 	/**
-	 * Create the dialog.
+	 * Create the dialog. This is the default constructor for WindowsBuilder.
 	 * @param parent
 	 * @param style
 	 */
@@ -50,6 +62,11 @@ public class UsersWindow extends Dialog {
 		transmitter = null;
 	}
 
+	/**
+	 * Create the Users window.
+	 * @param parent
+	 * @param connection The client-side network connection controller
+	 */
 	public UsersWindow(Shell parent, Connection connection) {
 		super(parent, SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL);
 		setText("Управление пользователями");
@@ -61,16 +78,22 @@ public class UsersWindow extends Dialog {
 	 * @return the result
 	 */
 	public Object open() {
+		
+		//Get full list of users from server
 		transmitter.send(SYNC_USERS_REQUEST);
+		
 		createContents();
 		shell.open();
 		shell.layout();
 		Display display = getParent().getDisplay();
 		while (!shell.isDisposed()) {
+
+			//Include items from the queue into the table
 			while (!inQueue.isEmpty()) {
 				mergeUser(inQueue.poll());
 			}
 			checkTable();
+			
 			if (!display.readAndDispatch()) {
 				display.sleep();
 			}
@@ -174,12 +197,22 @@ public class UsersWindow extends Dialog {
 		btnEdit.setText("Изменить");
 	}
 	
+	/**
+	 * Include a user account into the table.
+	 * @param srvUser An account to be included
+	 */
 	private void mergeUser(User srvUser) {
+		
+		//First look in the table for an account with the same id
 		for (int i = 0; i < table.getItemCount(); i++) {
 			TableItem item = table.getItem(i);
 			User user = (User) item.getData();
 			if (user.id == srvUser.id) {
+				
+				//Got it. Now decide if it should be updated or deleted
 				if (srvUser.getSerial() < 0) {
+					
+					//Gonna delete it. If it is selected, must move selection away
 					if (table.isSelected(i)) {
 						if (table.getItemCount() > (i + 1)) {
 							table.select(i + 1);
@@ -189,33 +222,47 @@ public class UsersWindow extends Dialog {
 					}
 					table.remove(i);					
 					return;
+					
+				//Update if data received is newer than local
 				} else if (srvUser.getSerial() > user.getSerial()) {
 					fillTableItem(item, srvUser);
 				}
 				return;
 			}
 		}
+		
+		//There is no such user in the table. Now adding it there
 		TableItem item = new TableItem(table, SWT.NONE);
 		fillTableItem(item, srvUser);
 		if (table.getItemCount() == 1) table.select(0);
 	}
 
+	/**
+	 * Check the table contents and enable/disable buttons accordingly.
+	 */
 	private void checkTable() {
 		if (table.getItemCount() > 0) {
 			btnEdit.setEnabled(true);
 			TableItem selectedItem = table.getSelection()[0];
 			User selectedUser = (User) selectedItem.getData();
+			
+			//Cannot delete the last administrator
 			if (selectedUser.isAdmin()) {
 				btnDelete.setEnabled(!noMoreAdmins(selectedUser.id));
 			} else {
 				btnDelete.setEnabled(true);
 			}
 		} else {
+			
+			//The table is empty
 			btnDelete.setEnabled(false);
 			btnEdit.setEnabled(false);
 		}
 	}
 	
+	/**
+	 * Modify the user's account selected in the table.
+	 */
 	private void editUser() {
 		int index = table.getSelectionIndex();
 		if (index < 0) return;
@@ -223,22 +270,38 @@ public class UsersWindow extends Dialog {
 		new UserEditDialog(shell, me, user).open();	
 	}
 
+	/**
+	 * Load a table row with a user's account data.
+	 * @param item A table row
+	 * @param user A user's account
+	 */
 	private static void fillTableItem(TableItem item, User user) {
 		item.setData(user);
 		item.setText(0, user.getLogin());
 		item.setText(1, user.isAdmin() ? "+" : "");
 	}
 
+	/**
+	 * Check if a login name is in use by anyone except the user with given id.
+	 * @param login
+	 * @param excludedId
+	 * @return true if given name is busy
+	 */
 	public boolean loginIsBusy(String login, int excludedId) {
 		for (int i = 0; i < table.getItemCount(); i++) {
 			TableItem item = table.getItem(i);
 			User user = (User) item.getData();
 			if (user.id == excludedId) continue;
-			if (user.getLogin() == login) return true;
+			if (login.equalsIgnoreCase(user.getLogin())) return true;
 		}
 		return false;
 	}
 
+	/**
+	 * Check if there are administrative accounts except the one with given id.
+	 * @param excludedId
+	 * @return true if no administrators found
+	 */
 	public boolean noMoreAdmins(int excludedId) {
 		for (int i = 0; i < table.getItemCount(); i++) {
 			TableItem item = table.getItem(i);

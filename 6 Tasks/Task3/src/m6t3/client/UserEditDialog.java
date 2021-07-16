@@ -1,9 +1,9 @@
 package m6t3.client;
 
+import static m6t3.client.LoginDialog.DEFAULT_BACKGROUND;
 import static m6t3.client.LoginDialog.RED;
-import static m6t3.client.LoginDialog.defBgrdColor;
-import static m6t3.client.StudentEditDialog.SELECT_ALL_TEXT;
-import static m6t3.client.StudentEditDialog.TRAVERSE_OR_EXIT;
+import static m6t3.client.LoginDialog.SELECT_ALL_TEXT;
+import static m6t3.client.LoginDialog.TRAVERSE_OR_EXIT;
 
 import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
@@ -33,24 +33,36 @@ import org.eclipse.swt.widgets.Text;
 
 import m6t3.common.User;
 
+/**
+ *  The User Edit dialog is used by an administrator to modify a user's
+ * account.
+ *
+ * @author aabyodj
+ */
 public class UserEditDialog extends Dialog {
 
+	/** The user's account being edited */
 	private final User user;
+	
+	/** The window showing list of users' accounts */
 	final UsersWindow usersWindow;
+	
+	/** The transmitting part of the client-side network connection controller */
 	final ClientTransmitter transmitter;
 
 	private Object result;
 	private Shell shell;
+	
 	private Text txtLogin;
 	private Text txtPass;
 	private Text txtPassAgain;
-
 	private Button btnAdmin;
+	
 	private boolean loginIsValid;
 	private boolean passHasChanged;
 	
 	/**
-	 * Create the dialog.
+	 * Create the dialog. This is the default constructor for WindowsBuilder
 	 * @param parent
 	 * @param style
 	 */
@@ -61,7 +73,13 @@ public class UserEditDialog extends Dialog {
 		transmitter = null;
 	}
 	
-	public UserEditDialog(Shell parent, UsersWindow usersWindow) {
+	/**
+	 *  Create an instance of the User Edit dialog in order to create a new
+	 * user's account.
+	 * @param parent
+	 * @param usersWindow The window showing the list of users' accounts
+	 */
+	UserEditDialog(Shell parent, UsersWindow usersWindow) {
 		super(parent, SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL);
 		setText("Новый пользователь");
 		user = new User();
@@ -71,7 +89,13 @@ public class UserEditDialog extends Dialog {
 		passHasChanged = true;
 	}
 
-	public UserEditDialog(Shell parent, UsersWindow usersWindow, User user) {
+	/**
+	 * Create an instance of User Edit dialog.
+	 * @param parent
+	 * @param usersWindow The window showing the list of users' accounts
+	 * @param user A user account to be edited
+	 */
+	UserEditDialog(Shell parent, UsersWindow usersWindow, User user) {
 		super(parent, SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL);
 		setText("Изменить пользователя");
 		this.user = user;
@@ -134,13 +158,14 @@ public class UserEditDialog extends Dialog {
 			public void focusLost(FocusEvent e) {
 				loginIsValid = useLogin();
 				if (loginIsValid) {
-					txtLogin.setBackground(defBgrdColor);
+					txtLogin.setBackground(DEFAULT_BACKGROUND);
 				} else {
 					txtLogin.setBackground(RED);
 				}
 			}
 		});
 		txtLogin.addKeyListener(TRAVERSE_OR_EXIT);
+		txtLogin.setBackground(DEFAULT_BACKGROUND);
 		txtLogin.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
 		txtLogin.setText(user.getLogin());
 		
@@ -158,8 +183,8 @@ public class UserEditDialog extends Dialog {
 					return;
 				}
 				if (Arrays.equals(txtPass.getTextChars(), txtPassAgain.getTextChars())) {
-					txtPass.setBackground(defBgrdColor);
-					txtPassAgain.setBackground(defBgrdColor);
+					txtPass.setBackground(DEFAULT_BACKGROUND);
+					txtPassAgain.setBackground(DEFAULT_BACKGROUND);
 				}
 			}
 		});
@@ -169,6 +194,7 @@ public class UserEditDialog extends Dialog {
 				passHasChanged = true;
 			}
 		});
+		txtPass.setBackground(DEFAULT_BACKGROUND);
 		txtPass.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
 		
 		Label lblPassAgain = new Label(composite, SWT.NONE);
@@ -185,8 +211,8 @@ public class UserEditDialog extends Dialog {
 					return;
 				}
 				if (Arrays.equals(txtPass.getTextChars(), txtPassAgain.getTextChars())) {
-					txtPass.setBackground(defBgrdColor);
-					txtPassAgain.setBackground(defBgrdColor);
+					txtPass.setBackground(DEFAULT_BACKGROUND);
+					txtPassAgain.setBackground(DEFAULT_BACKGROUND);
 				} else {
 					txtPassAgain.setBackground(RED);
 				}
@@ -199,8 +225,8 @@ public class UserEditDialog extends Dialog {
 				passHasChanged = true;
 			}
 		});
+		txtPassAgain.setBackground(DEFAULT_BACKGROUND);
 		txtPassAgain.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
-		defBgrdColor = txtPassAgain.getBackground();
 		
 		Label lblAdmin = new Label(composite, SWT.NONE);
 		lblAdmin.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1));
@@ -219,7 +245,7 @@ public class UserEditDialog extends Dialog {
 				} else {
 					user.setAdmin(true);
 				}
-				btnAdmin.setBackground(defBgrdColor);
+				btnAdmin.setBackground(DEFAULT_BACKGROUND);
 			}
 		});
 		btnAdmin.addKeyListener(new KeyAdapter() {
@@ -230,6 +256,7 @@ public class UserEditDialog extends Dialog {
 				}
 			}
 		});
+		btnAdmin.setBackground(DEFAULT_BACKGROUND);
 		btnAdmin.setSelection(user.isAdmin());
 		
 		FormData fd_btnOk = new FormData();
@@ -253,12 +280,19 @@ public class UserEditDialog extends Dialog {
 
 	}
 
+	/**
+	 * Try changing user's login name to the one from txtLogin widget.
+	 * @return true upon success
+	 */
 	private boolean useLogin() {
 		String login = txtLogin.getText();
 		if (usersWindow.loginIsBusy(login, user.id)) return false;
 		return user.setLogin(login);
 	}
 
+	/** 
+	 * Try applying changes and close the dialog upon success. 
+	 */
 	private void submit() {
 		if (!loginIsValid) return;
 		if (passHasChanged) {
@@ -272,6 +306,8 @@ public class UserEditDialog extends Dialog {
 		}
 		if (!btnAdmin.getSelection()) {
 			if (usersWindow.noMoreAdmins(user.id)) {
+				
+				//Cannot demote the last administrator
 				btnAdmin.setBackground(RED);
 				return;
 			}

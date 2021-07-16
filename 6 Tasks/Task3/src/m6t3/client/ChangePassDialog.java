@@ -1,9 +1,9 @@
 package m6t3.client;
 
+import static m6t3.client.LoginDialog.DEFAULT_BACKGROUND;
 import static m6t3.client.LoginDialog.RED;
-import static m6t3.client.LoginDialog.defBgrdColor;
-import static m6t3.client.StudentEditDialog.SELECT_ALL_TEXT;
-import static m6t3.client.StudentEditDialog.TRAVERSE_OR_EXIT;
+import static m6t3.client.LoginDialog.SELECT_ALL_TEXT;
+import static m6t3.client.LoginDialog.TRAVERSE_OR_EXIT;
 
 import java.util.Arrays;
 
@@ -30,7 +30,7 @@ import org.eclipse.swt.widgets.Text;
 
 /**
  *  Change password dialog. Users both with and without administrative rights 
- * can use it. A user can enter his current password, then a new password should
+ * can use it. A user must enter his current password, then a new password must
  * be typed twice.
  * 
  * @author aabyodj *
@@ -115,7 +115,7 @@ public class ChangePassDialog extends Dialog {
 				if (txtOldPass.getCharCount() < 1) {
 					txtOldPass.setBackground(RED);
 				} else {
-					txtOldPass.setBackground(defBgrdColor);
+					txtOldPass.setBackground(DEFAULT_BACKGROUND);
 				}
 			}
 		});
@@ -134,10 +134,10 @@ public class ChangePassDialog extends Dialog {
 				if (txtNewPass.getCharCount() < 1) {
 					txtNewPass.setBackground(RED);
 				} else if (txtNewPassAgain.getCharCount() < 1){
-					txtNewPass.setBackground(defBgrdColor);
+					txtNewPass.setBackground(DEFAULT_BACKGROUND);
 				} else if (Arrays.equals(txtNewPass.getTextChars(), txtNewPassAgain.getTextChars())) {
-					txtNewPass.setBackground(defBgrdColor);
-					txtNewPassAgain.setBackground(defBgrdColor);
+					txtNewPass.setBackground(DEFAULT_BACKGROUND);
+					txtNewPassAgain.setBackground(DEFAULT_BACKGROUND);
 				} else {
 					txtNewPass.setBackground(RED);
 					txtNewPassAgain.setBackground(RED);
@@ -159,10 +159,10 @@ public class ChangePassDialog extends Dialog {
 				if (txtNewPassAgain.getCharCount() < 1) {
 					txtNewPassAgain.setBackground(RED);
 				} else if (txtNewPass.getCharCount() < 1) {
-					txtNewPassAgain.setBackground(defBgrdColor);
+					txtNewPassAgain.setBackground(DEFAULT_BACKGROUND);
 				} else if (Arrays.equals(txtNewPass.getTextChars(), txtNewPassAgain.getTextChars())) {
-					txtNewPass.setBackground(defBgrdColor);
-					txtNewPassAgain.setBackground(defBgrdColor);
+					txtNewPass.setBackground(DEFAULT_BACKGROUND);
+					txtNewPassAgain.setBackground(DEFAULT_BACKGROUND);
 				} else {
 					txtNewPass.setBackground(RED);
 					txtNewPassAgain.setBackground(RED);

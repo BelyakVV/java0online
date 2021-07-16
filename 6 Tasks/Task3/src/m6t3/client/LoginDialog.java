@@ -1,14 +1,14 @@
 package m6t3.client;
 
-import static m6t3.client.StudentEditDialog.CANNOT_BE_EMPTY;
-import static m6t3.client.StudentEditDialog.SELECT_ALL_TEXT;
-import static m6t3.client.StudentEditDialog.TRAVERSE_OR_EXIT;
-
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.FocusAdapter;
+import org.eclipse.swt.events.FocusEvent;
 import org.eclipse.swt.events.KeyAdapter;
 import org.eclipse.swt.events.KeyEvent;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.events.TraverseEvent;
+import org.eclipse.swt.events.TraverseListener;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.layout.FormAttachment;
 import org.eclipse.swt.layout.FormData;
@@ -25,20 +25,70 @@ import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.wb.swt.SWTResourceManager;
 
+/**
+ *  The Login dialog.
+ *
+ * @author aabyodj
+ */
 public class LoginDialog extends Dialog {
 
+	public static final Color RED = SWTResourceManager.getColor(SWT.COLOR_RED);
+	public static final Color DEFAULT_BACKGROUND = SWTResourceManager.getColor(SWT.COLOR_LIST_BACKGROUND);
+
+	
+	public static final FocusAdapter SELECT_ALL_TEXT = new FocusAdapter() {
+		@Override
+		public void focusGained(FocusEvent e) {
+			((Text) e.widget).selectAll();
+		}
+	};
+	
+	public static final FocusAdapter CANNOT_BE_EMPTY = new FocusAdapter() {
+		@Override
+		public void focusLost(FocusEvent e) {
+			Text text = (Text) e.widget;
+			if (text.getCharCount() > 0) {
+				text.setBackground(DEFAULT_BACKGROUND);
+			} else {
+				text.setBackground(RED);
+			}
+		}		
+	};
+	
+	public static final KeyAdapter TRAVERSE_OR_EXIT = new KeyAdapter() {
+		@Override
+		public void keyPressed(KeyEvent e) {
+			if (SWT.CR == e.character) {
+				((Control) e.widget).traverse(SWT.TRAVERSE_TAB_NEXT);
+			} else if (e.character == SWT.ESC) {
+				((Control) e.widget).getShell().close();
+			}
+		}
+	};
+	
+	static final TraverseListener CHECK_BLANK = new TraverseListener() {
+		public void keyTraversed(TraverseEvent e) {
+			Text text = (Text) e.widget;
+			if (text.getText().isBlank()) {
+				text.setBackground(RED);
+				e.doit = false;
+			} else {
+				text.setBackground(DEFAULT_BACKGROUND);
+			}
+		}
+	};
+	
 	protected Object result = false;
 	protected Shell shell;
 	private Text txtLogin;
 	private Text txtPass;
 	
+	/** The client-side connection controller */
 	final Connection connection;
 	
-	public static Color defBgrdColor;
-	public static final Color RED = SWTResourceManager.getColor(SWT.COLOR_RED);
 
 	/**
-	 * Create the dialog.
+	 * Create the dialog. This is the standard constructor for WindowBuilder.
 	 * @param parent
 	 * @param style
 	 */
@@ -47,6 +97,11 @@ public class LoginDialog extends Dialog {
 		connection = null;
 	}
 	
+	/**
+	 * Create the Login dialog.
+	 * @param parent
+	 * @param connection The client-side network connection controller
+	 */
 	LoginDialog(Shell parent, Connection connection) {
 		super(parent, SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL);
 		this.connection = connection; 
@@ -97,7 +152,7 @@ public class LoginDialog extends Dialog {
 		txtLogin.addFocusListener(CANNOT_BE_EMPTY);
 		txtLogin.addFocusListener(SELECT_ALL_TEXT);
 		txtLogin.addKeyListener(TRAVERSE_OR_EXIT);
-		defBgrdColor = txtLogin.getBackground();
+		txtLogin.setBackground(DEFAULT_BACKGROUND);
 		
 		Label lblPass = new Label(group, SWT.NONE);
 		lblPass.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1));
@@ -117,6 +172,7 @@ public class LoginDialog extends Dialog {
 				}
 			}
 		});
+		txtPass.setBackground(DEFAULT_BACKGROUND);
 		
 		Button btnOk = new Button(shell, SWT.NONE);
 		btnOk.addSelectionListener(new SelectionAdapter() {
