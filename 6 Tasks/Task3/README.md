@@ -16,11 +16,14 @@
 * Для реализации сетевого соединения используйте сокеты.
 * Формат хранения данных на сервере – xml-файлы.
 
----
+### Технические параметры
 
-**Java version**: *OpenJDK 15.0.1*
+**Java version**: OpenJDK 11.0.11
 
-**Среда разработки**: *Eclipse IDE 2020-12 (4.18.0)*
+**Среда разработки**: 2021-06 (4.20.0)
 
-**Запускаемый класс (клиентская часть)**: *m6t2.client.ClientMain.class*
+**Запускаемый класс (клиентская часть)**: [m6t3.client.ClientMain](https://github.com/aabyodj/java0online/blob/master/6%20Tasks/Task3/src/m6t3/client/ClientMain.java)
 
+**Запускаемый класс (серверная часть)**: [m6t3.server.ServerMain](https://github.com/aabyodj/java0online/blob/master/6%20Tasks/Task3/src/m6t3/server/ServerMain.java)
+
+При первом запуске серверной части будет предложено создать аккаунт администратора архива.

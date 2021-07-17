@@ -1,5 +1,7 @@
 # m6t2
+
 6_Tasks - Задание 2 
+
 ## Блокнот
 
 Разработать консольное приложение, работающее с **Заметками** в **Блокноте**. 
@@ -19,8 +21,10 @@
 * Особое условие: проверку введенной информации на валидность должен
 осуществлять код, непосредственно добавляющий информацию.
 
-**Java version**: *OpenJDK 15.0.1*
+### Технические параметры
 
-**Среда разработки**: *Eclipse IDE 2020-12 (4.18.0)*
+**Java version**: OpenJDK 15.0.1
 
-**Запускаемый класс**: *aabyodj.epamgrow.java0online.m6t2.Main.class*
+**Среда разработки**: Eclipse IDE 2020-12 (4.18.0)
+
+**Запускаемый класс**: [aabyodj.epamgrow.java0online.m6t2.Main](https://github.com/aabyodj/java0online/blob/master/6%20Tasks/Task2/src/aabyodj/epamgrow/java0online/m6t2/Main.java)
