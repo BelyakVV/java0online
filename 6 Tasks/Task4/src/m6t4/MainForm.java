@@ -4,12 +4,13 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
 /**
- *
+ * The main application form.
+ * 
  * @author aabyodj
  */
 public class MainForm extends javax.swing.JFrame {
     
-    private static MainForm instance;
+//    private static MainForm instance;
 
     static final int WAREHOUSE_CAPACITY = 100;
     
@@ -127,20 +128,26 @@ public class MainForm extends javax.swing.JFrame {
         //</editor-fold>
 
         /* Create and display the form */
-        java.awt.EventQueue.invokeLater(new Runnable() {
-            public void run() {
-                instance = new MainForm();
-                instance.setVisible(true);
-                instance.showLoad();
-                Ship.startTraffic();
-            }
+        java.awt.EventQueue.invokeLater(() -> {
+            MainForm instance = new MainForm();
+            instance.setVisible(true);
+            instance.showLoad();
+            Ship.startTraffic();
         });
     }
 
+    /**
+     * Check if the port warehouse is empty.
+     * @return 
+     */
     boolean isEmpty() {
         return 0 == warehouseLoad;
     }
 
+    /**
+     * Check if the port warehouse is full.
+     * @return 
+     */
     boolean isFull() {
         return WAREHOUSE_CAPACITY == warehouseLoad;
     }
@@ -150,6 +157,10 @@ public class MainForm extends javax.swing.JFrame {
     private java.awt.Label lblPortLoad;
     // End of variables declaration//GEN-END:variables
 
+    /**
+     * Reduce port warehouse load by one.
+     * @return true if successful
+     */
     boolean takeOne() {
         if (isEmpty()) return false;
         warehouseLoad--;
@@ -157,6 +168,10 @@ public class MainForm extends javax.swing.JFrame {
         return true;
     }
 
+    /**
+     * Increase port warehouse load by one.
+     * @return true if successful
+     */
     boolean putOne() {
         if (isFull()) return false;
         warehouseLoad++;
@@ -164,6 +179,9 @@ public class MainForm extends javax.swing.JFrame {
         return true;
     }
 
+    /**
+     * Show port warehouse load on the form.
+     */
     private void showLoad() {
         StringBuilder result = new StringBuilder();
         result.append(warehouseLoad).append('/').append(WAREHOUSE_CAPACITY);

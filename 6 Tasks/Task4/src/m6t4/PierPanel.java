@@ -1,14 +1,19 @@
 package m6t4;
 
 /**
- *
+ * Intended to be part of the main form reflecting one pier state.
+ * 
  * @author aabyodj
  */
 public class PierPanel extends javax.swing.JPanel {
     
-//    private MainForm port;
+    /** Pier worker thread */
     private final Dockman dockman;
+    
+    /** A ship moored to the pier */
     private Ship ship = null;
+    
+    /** Whether the ship is loading */
     private boolean isLoading;
 
     /**
@@ -20,60 +25,77 @@ public class PierPanel extends javax.swing.JPanel {
         dockman.start();
     }
     
+    /**
+     * Check if a ship is moored to the pier.
+     * 
+     * @return true if there is no ship
+     */
     public boolean isFree() {
         return null == ship;
     }
     
+    /**
+     * Accept a ship for mooring.
+     * @param newShip
+     * @return true if the ship successfully moored
+     */
     public boolean acceptShip(Ship newShip) {
         if (!isFree()) return false;
         ship = newShip;        
         MainForm port = (MainForm) getTopLevelAncestor();
-        isLoading = port.isFull();
+        isLoading = port.isFull();  //Do not unload the ship if warehouse is full
         btnUnmoor.setEnabled(true);
         lblShipName.setText(ship.name);
         showLoad();
         return true;
     }
     
-    public Ship getShip() {
-        return ship;
-    }
-    
+    /**
+     * Load or unload one item of cargo if posseble.
+     */
     public void proceed() {
-        if (isFree()) {
-            return;
-        }
+        
+        //If there is no ship
+        if (isFree()) return;
+                
         MainForm port = (MainForm) getTopLevelAncestor();
-        if (isLoading) {
-            if (ship.isFull()) {
-                unmoor();
-            } else {
-                if (port.takeOne()) {
-                    ship.loadOne();
-                } else {
-                    return; //The port warehouse is empty
-                }
-            }
-        } else {
+        if (!isLoading) {
             
-            //Unloading
+            //At first, unload
             if (ship.isEmpty()) {
                 isLoading = true;
                 proceed();
-                return;
-                
-            //The ship is not empty
+                return;                
             } else {
+                
+                //The ship is not empty. Now try to move one item to the warehouse
                 if (port.putOne()) {
                     ship.unloadOne();
                 } else {
                     return; //The port warehouse is full
                 }
             }
+        } else {
+            
+            //Loading the ship with cargo
+            if (ship.isFull()) {
+                unmoor();
+            } else {
+                
+                //There is room on the ship. Now try tp move one item from the warehouse
+                if (port.takeOne()) {
+                    ship.loadOne();
+                } else {
+                    return; //The port warehouse is empty
+                }
+            }
         }
         showLoad();
     }
 
+    /**
+     * Unmoor the ship if any.
+     */
     private void unmoor() {
         if (null == ship) return;
         ship.depart();
@@ -169,10 +191,17 @@ public class PierPanel extends javax.swing.JPanel {
     final java.awt.Label lblShipName = new java.awt.Label();
     // End of variables declaration//GEN-END:variables
 
+    /**
+     * Show current load of the ship moored to the pier.
+     */
     private void showLoad() {
         if (isFree()) {
+            
+            //There is no ship
             lblShipLoad.setText("0/0");
         } else {
+            
+            //There is a ship
             StringBuilder result = new StringBuilder();
             if (isLoading || ship.isEmpty()) {
                 result.append('↑');
@@ -183,8 +212,6 @@ public class PierPanel extends javax.swing.JPanel {
                     .append('/')
                     .append(ship.capacity);
             lblShipLoad.setText(result.toString());
-//            lblShipLoad.paint(this.getGraphics());
-            lblShipLoad.repaint();
         }
     }
 }

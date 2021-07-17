@@ -3,17 +3,27 @@ package m6t4;
 import static m6t4.MainForm.shipQueue;
 
 /**
- *
+ * The working thread of a pier.
+ * 
  * @author aabyodj
  */
 public class Dockman extends Thread {
 
-//    final BlockingQueue<Ship> shipQueue; 
+    /** A pier served by this Dockman */
     final PierPanel pier;
+    
+    /** Time needed to load or unload one item of cargo */
     private long stepDuration;
+
+    /** Default time needed to load or unload one item of cargo */
     public final static long DEFAULT_STEP_DURATION = 500;
 
-    public Dockman(PierPanel pier) {
+    /**
+     * Create a working thread for a pier.
+     * 
+     * @param pier 
+     */
+    Dockman(PierPanel pier) {
         this.pier = pier;
         stepDuration = DEFAULT_STEP_DURATION;
     }
@@ -26,6 +36,7 @@ public class Dockman extends Thread {
                 synchronized (shipQueue) {
                     if (pier.isFree() && !shipQueue.isEmpty()) {
                         pier.acceptShip(shipQueue.take());
+                        continue;
                     }
                 }
                 pier.proceed();
