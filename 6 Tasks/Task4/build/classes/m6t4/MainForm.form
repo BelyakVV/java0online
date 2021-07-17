@@ -32,6 +32,11 @@
                   <Component id="pierPanel2" min="-2" max="-2" attributes="0"/>
                   <Component id="pierPanel3" min="-2" max="-2" attributes="0"/>
                   <Component id="pierPanel4" min="-2" max="-2" attributes="0"/>
+                  <Group type="102" alignment="0" attributes="0">
+                      <Component id="lblLoad" min="-2" max="-2" attributes="0"/>
+                      <EmptySpace max="-2" attributes="0"/>
+                      <Component id="lblPortLoad" max="32767" attributes="0"/>
+                  </Group>
               </Group>
               <EmptySpace max="32767" attributes="0"/>
           </Group>
@@ -48,6 +53,11 @@
               <Component id="pierPanel3" min="-2" max="-2" attributes="0"/>
               <EmptySpace max="-2" attributes="0"/>
               <Component id="pierPanel4" min="-2" max="-2" attributes="0"/>
+              <EmptySpace max="-2" attributes="0"/>
+              <Group type="103" groupAlignment="0" attributes="0">
+                  <Component id="lblLoad" min="-2" max="-2" attributes="0"/>
+                  <Component id="lblPortLoad" min="-2" max="-2" attributes="0"/>
+              </Group>
               <EmptySpace max="32767" attributes="0"/>
           </Group>
       </Group>
@@ -105,6 +115,22 @@
         <AuxValue name="JavaCodeGenerator_VariableLocal" type="java.lang.Boolean" value="true"/>
         <AuxValue name="JavaCodeGenerator_VariableModifier" type="java.lang.Integer" value="0"/>
       </AuxValues>
+    </Component>
+    <Component class="java.awt.Label" name="lblLoad">
+      <Properties>
+        <Property name="font" type="java.awt.Font" editor="org.netbeans.beaninfo.editors.FontEditor">
+          <Font name="Dialog" size="14" style="0"/>
+        </Property>
+        <Property name="text" type="java.lang.String" value="&#x417;&#x430;&#x433;&#x440;&#x443;&#x437;&#x43a;&#x430; &#x43f;&#x43e;&#x440;&#x442;&#x43e;&#x432;&#x44b;&#x445; &#x441;&#x43a;&#x43b;&#x430;&#x434;&#x43e;&#x432;:"/>
+      </Properties>
+    </Component>
+    <Component class="java.awt.Label" name="lblPortLoad">
+      <Properties>
+        <Property name="font" type="java.awt.Font" editor="org.netbeans.beaninfo.editors.FontEditor">
+          <Font name="Dialog" size="14" style="1"/>
+        </Property>
+        <Property name="text" type="java.lang.String" value="0/0"/>
+      </Properties>
     </Component>
   </SubComponents>
 </Form>

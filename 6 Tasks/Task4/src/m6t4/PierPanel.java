@@ -6,15 +6,17 @@ package m6t4;
  */
 public class PierPanel extends javax.swing.JPanel {
     
-    private final Dockman dockman = new Dockman(this);
+//    private MainForm port;
+    private final Dockman dockman;
     private Ship ship = null;
-    private boolean isLoading = false;
+    private boolean isLoading;
 
     /**
      * Creates new form PierPanel
      */
-    public PierPanel() {
+    public PierPanel() {        
         initComponents();
+        dockman = new Dockman(this);
         dockman.start();
     }
     
@@ -24,8 +26,10 @@ public class PierPanel extends javax.swing.JPanel {
     
     public boolean acceptShip(Ship newShip) {
         if (!isFree()) return false;
-        ship = newShip;
-        isLoading = ship.isEmpty();
+        ship = newShip;        
+        MainForm port = (MainForm) getTopLevelAncestor();
+        isLoading = port.isFull();
+        btnUnmoor.setEnabled(true);
         lblShipName.setText(ship.name);
         showLoad();
         return true;
@@ -39,19 +43,43 @@ public class PierPanel extends javax.swing.JPanel {
         if (isFree()) {
             return;
         }
-        if (!isLoading) {
-            if (!ship.unloadOne()) {
-                isLoading = true;
-                ship.loadOne();
-            } 
+        MainForm port = (MainForm) getTopLevelAncestor();
+        if (isLoading) {
+            if (ship.isFull()) {
+                unmoor();
+            } else {
+                if (port.takeOne()) {
+                    ship.loadOne();
+                } else {
+                    return; //The port warehouse is empty
+                }
+            }
         } else {
-            if (!ship.loadOne()) {
-                isLoading = false;
-                ship.sailAway();
-                ship = null;
-                lblShipName.setText("НЕТ");
-            }            
+            
+            //Unloading
+            if (ship.isEmpty()) {
+                isLoading = true;
+                proceed();
+                return;
+                
+            //The ship is not empty
+            } else {
+                if (port.putOne()) {
+                    ship.unloadOne();
+                } else {
+                    return; //The port warehouse is full
+                }
+            }
         }
+        showLoad();
+    }
+
+    private void unmoor() {
+        if (null == ship) return;
+        ship.depart();
+        ship = null;
+        this.btnUnmoor.setEnabled(false);
+        lblShipName.setText("НЕТ");
         showLoad();
     }
     
@@ -64,8 +92,12 @@ public class PierPanel extends javax.swing.JPanel {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
+        button1 = new java.awt.Button();
         java.awt.Label lblShip = new java.awt.Label();
         java.awt.Label lblLoad = new java.awt.Label();
+        btnUnmoor = new java.awt.Button();
+
+        button1.setLabel("Отшвартовать");
 
         setBorder(javax.swing.BorderFactory.createTitledBorder("Причал"));
 
@@ -78,6 +110,14 @@ public class PierPanel extends javax.swing.JPanel {
 
         lblShipLoad.setFont(new java.awt.Font("Dialog", 1, 12)); // NOI18N
         lblShipLoad.setText("0/0");
+
+        btnUnmoor.setEnabled(false);
+        btnUnmoor.setLabel("Отшвартовать");
+        btnUnmoor.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnUnmoorActionPerformed(evt);
+            }
+        });
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
@@ -92,10 +132,12 @@ public class PierPanel extends javax.swing.JPanel {
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(layout.createSequentialGroup()
                         .addComponent(lblShipName, javax.swing.GroupLayout.PREFERRED_SIZE, 252, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                        .addGap(0, 0, Short.MAX_VALUE))
                     .addGroup(layout.createSequentialGroup()
-                        .addComponent(lblShipLoad, javax.swing.GroupLayout.PREFERRED_SIZE, 252, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(0, 0, Short.MAX_VALUE))))
+                        .addComponent(lblShipLoad, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(btnUnmoor, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -103,15 +145,26 @@ public class PierPanel extends javax.swing.JPanel {
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(lblShip, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(lblShipName, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(lblLoad, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(lblShipLoad, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                    .addGroup(layout.createSequentialGroup()
+                        .addGap(14, 14, 14)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(lblLoad, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(lblShipLoad, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                    .addGroup(layout.createSequentialGroup()
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(btnUnmoor, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))))
         );
     }// </editor-fold>//GEN-END:initComponents
 
+    private void btnUnmoorActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnUnmoorActionPerformed
+        unmoor();
+    }//GEN-LAST:event_btnUnmoorActionPerformed
+
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private java.awt.Button btnUnmoor;
+    private java.awt.Button button1;
     final java.awt.Label lblShipLoad = new java.awt.Label();
     final java.awt.Label lblShipName = new java.awt.Label();
     // End of variables declaration//GEN-END:variables
@@ -121,7 +174,7 @@ public class PierPanel extends javax.swing.JPanel {
             lblShipLoad.setText("0/0");
         } else {
             StringBuilder result = new StringBuilder();
-            if (isLoading) {
+            if (isLoading || ship.isEmpty()) {
                 result.append('↑');
             } else {
                 result.append('↓');

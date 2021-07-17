@@ -8,7 +8,8 @@ import static m6t4.MainForm.shipQueue;
  */
 public class Dockman extends Thread {
 
-    private final PierPanel pier;
+//    final BlockingQueue<Ship> shipQueue; 
+    final PierPanel pier;
     private long stepDuration;
     public final static long DEFAULT_STEP_DURATION = 500;
 
@@ -21,12 +22,12 @@ public class Dockman extends Thread {
     public void run() {
         try {
             while (true) {
+                sleep(stepDuration);           
                 synchronized (shipQueue) {
                     if (pier.isFree() && !shipQueue.isEmpty()) {
                         pier.acceptShip(shipQueue.take());
                     }
                 }
-                sleep(stepDuration);
                 pier.proceed();
             }
         } catch (InterruptedException ex) {

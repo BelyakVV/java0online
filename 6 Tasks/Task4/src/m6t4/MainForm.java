@@ -8,8 +8,15 @@ import java.util.concurrent.LinkedBlockingQueue;
  * @author aabyodj
  */
 public class MainForm extends javax.swing.JFrame {
+    
+    private static MainForm instance;
 
-    public static final BlockingQueue<Ship> shipQueue = new LinkedBlockingQueue<>();
+    static final int WAREHOUSE_CAPACITY = 100;
+    
+    volatile int warehouseLoad = 0;
+    
+    static final BlockingQueue<Ship> shipQueue = new LinkedBlockingQueue<>();
+    
     /**
      * Creates new form NewApplication
      */
@@ -30,6 +37,8 @@ public class MainForm extends javax.swing.JFrame {
         m6t4.PierPanel pierPanel2 = new m6t4.PierPanel();
         m6t4.PierPanel pierPanel3 = new m6t4.PierPanel();
         m6t4.PierPanel pierPanel4 = new m6t4.PierPanel();
+        lblLoad = new java.awt.Label();
+        lblPortLoad = new java.awt.Label();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("Порт");
@@ -43,6 +52,12 @@ public class MainForm extends javax.swing.JFrame {
 
         pierPanel4.setBorder(javax.swing.BorderFactory.createTitledBorder("Причал 4"));
 
+        lblLoad.setFont(new java.awt.Font("Dialog", 0, 14)); // NOI18N
+        lblLoad.setText("Загрузка портовых складов:");
+
+        lblPortLoad.setFont(new java.awt.Font("Dialog", 1, 14)); // NOI18N
+        lblPortLoad.setText("0/0");
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
@@ -53,7 +68,11 @@ public class MainForm extends javax.swing.JFrame {
                     .addComponent(pierPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(pierPanel2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(pierPanel3, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(pierPanel4, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(pierPanel4, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(lblLoad, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(lblPortLoad, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
@@ -67,6 +86,10 @@ public class MainForm extends javax.swing.JFrame {
                 .addComponent(pierPanel3, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(pierPanel4, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(lblLoad, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(lblPortLoad, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
 
@@ -82,22 +105,22 @@ public class MainForm extends javax.swing.JFrame {
         /* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.
          * For details see http://download.oracle.com/javase/tutorial/uiswing/lookandfeel/plaf.html 
          */
-        try {
-            for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
-                if ("Nimbus".equals(info.getName())) {
-                    javax.swing.UIManager.setLookAndFeel(info.getClassName());
-                    break;
-                }
-            }
-        } catch (ClassNotFoundException ex) {
-            java.util.logging.Logger.getLogger(MainForm.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (InstantiationException ex) {
-            java.util.logging.Logger.getLogger(MainForm.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (IllegalAccessException ex) {
-            java.util.logging.Logger.getLogger(MainForm.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (javax.swing.UnsupportedLookAndFeelException ex) {
-            java.util.logging.Logger.getLogger(MainForm.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        }
+//        try {
+//            for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
+//                if ("Nimbus".equals(info.getName())) {
+//                    javax.swing.UIManager.setLookAndFeel(info.getClassName());
+//                    break;
+//                }
+//            }
+//        } catch (ClassNotFoundException ex) {
+//            java.util.logging.Logger.getLogger(MainForm.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+//        } catch (InstantiationException ex) {
+//            java.util.logging.Logger.getLogger(MainForm.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+//        } catch (IllegalAccessException ex) {
+//            java.util.logging.Logger.getLogger(MainForm.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+//        } catch (javax.swing.UnsupportedLookAndFeelException ex) {
+//            java.util.logging.Logger.getLogger(MainForm.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+//        }
         //</editor-fold>
         //</editor-fold>
         //</editor-fold>
@@ -106,13 +129,44 @@ public class MainForm extends javax.swing.JFrame {
         /* Create and display the form */
         java.awt.EventQueue.invokeLater(new Runnable() {
             public void run() {
-                new MainForm().setVisible(true);
+                instance = new MainForm();
+                instance.setVisible(true);
+                instance.showLoad();
                 Ship.startTraffic();
             }
         });
     }
+
+    boolean isEmpty() {
+        return 0 == warehouseLoad;
+    }
+
+    boolean isFull() {
+        return WAREHOUSE_CAPACITY == warehouseLoad;
+    }
     
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private java.awt.Label lblLoad;
+    private java.awt.Label lblPortLoad;
     // End of variables declaration//GEN-END:variables
 
+    boolean takeOne() {
+        if (isEmpty()) return false;
+        warehouseLoad--;
+        showLoad();
+        return true;
+    }
+
+    boolean putOne() {
+        if (isFull()) return false;
+        warehouseLoad++;
+        showLoad();
+        return true;
+    }
+
+    private void showLoad() {
+        StringBuilder result = new StringBuilder();
+        result.append(warehouseLoad).append('/').append(WAREHOUSE_CAPACITY);
+        lblPortLoad.setText(result.toString());
+    }
 }
