@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package m6t4;
 
 /**
@@ -10,17 +5,18 @@ package m6t4;
  * @author aabyodj
  */
 public class PierPanel extends javax.swing.JPanel {
+    
+    private final Dockman dockman = new Dockman(this);
+    private Ship ship = null;
+    private boolean isLoading = false;
 
     /**
      * Creates new form PierPanel
      */
     public PierPanel() {
         initComponents();
-        
+        dockman.start();
     }
-    
-    private Ship ship = null;
-    private boolean isLoading = false;
     
     public boolean isFree() {
         return null == ship;
@@ -34,8 +30,14 @@ public class PierPanel extends javax.swing.JPanel {
         return true;
     }
     
+    public Ship getShip() {
+        return ship;
+    }
+    
     public void proceed() {
-        if (isFree()) return;
+        if (isFree()) {
+            return;
+        }
         if (!isLoading) {
             if (!ship.unloadOne()) {
                 isLoading = true;
