@@ -10,7 +10,7 @@ public class Dockman extends Thread {
 
     private final PierPanel pier;
     private long stepDuration;
-    public final static long DEFAULT_STEP_DURATION = 200;
+    public final static long DEFAULT_STEP_DURATION = 500;
 
     public Dockman(PierPanel pier) {
         this.pier = pier;

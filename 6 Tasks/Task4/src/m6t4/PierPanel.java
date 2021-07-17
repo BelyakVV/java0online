@@ -25,6 +25,7 @@ public class PierPanel extends javax.swing.JPanel {
     public boolean acceptShip(Ship newShip) {
         if (!isFree()) return false;
         ship = newShip;
+        isLoading = ship.isEmpty();
         lblShipName.setText(ship.name);
         showLoad();
         return true;
@@ -46,6 +47,7 @@ public class PierPanel extends javax.swing.JPanel {
         } else {
             if (!ship.loadOne()) {
                 isLoading = false;
+                ship.sailAway();
                 ship = null;
                 lblShipName.setText("НЕТ");
             }            
@@ -115,6 +117,21 @@ public class PierPanel extends javax.swing.JPanel {
     // End of variables declaration//GEN-END:variables
 
     private void showLoad() {
-        lblShipLoad.setText(ship.getCurrentLoad() + "/" + ship.capacity);
+        if (isFree()) {
+            lblShipLoad.setText("0/0");
+        } else {
+            StringBuilder result = new StringBuilder();
+            if (isLoading) {
+                result.append('↑');
+            } else {
+                result.append('↓');
+            }
+            result.append(ship.getCurrentLoad())
+                    .append('/')
+                    .append(ship.capacity);
+            lblShipLoad.setText(result.toString());
+//            lblShipLoad.paint(this.getGraphics());
+            lblShipLoad.repaint();
+        }
     }
 }
