@@ -20,6 +20,10 @@ public class ConIO {
 		return Integer.parseInt(readLine(hint));
 	}
 	
+	public static long readLong(String hint) {
+		return Long.parseLong(readLine(hint));
+	}
+	
 	public static String readLine() {
 		if (CONSOLE != null) return CONSOLE.readLine("");
 		try {
