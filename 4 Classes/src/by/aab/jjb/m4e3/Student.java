@@ -1,4 +1,4 @@
-package by.aab.classes.simple.task3;
+package by.aab.jjb.m4e3;
 
 /**
  * Создайте класс с именем Student, содержащий поля: фамилия и инициалы, номер

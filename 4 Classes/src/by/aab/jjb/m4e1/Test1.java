@@ -1,4 +1,4 @@
-package by.aab.classes.simple.task1;
+package by.aab.jjb.m4e1;
 
 /**
  * Создайте класс Test1 двумя переменными. Добавьте метод вывода на экран и

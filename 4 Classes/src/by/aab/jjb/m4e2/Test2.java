@@ -1,4 +1,4 @@
-package by.aab.classes.simple.task2;
+package by.aab.jjb.m4e2;
 
 /**
  * Создйте класс Test2 двумя переменными. Добавьте конструктор с входными

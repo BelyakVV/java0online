@@ -1,4 +1,4 @@
-package by.aab.classes.simple.task4;
+package by.aab.jjb.m4e4;
 
 import static by.aab.console.ConIO.readInt;
 
