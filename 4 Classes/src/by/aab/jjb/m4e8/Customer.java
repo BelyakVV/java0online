@@ -100,12 +100,12 @@ public class Customer {
 		Formatter formatter = new Formatter(result);
 		
 		result.append("id: ").append(id)
-				.append(", ФИО: ").append(surname).append(' ').append(name)
-				.append(' ').append(patronymic).append(", адрес: ").append(address);
+				.append("; ФИО: ").append(surname).append(' ').append(name).append(' ').append(patronymic)
+				.append("; адрес: ").append(address);
 		
-		formatter.format(", номер карты: %016d", cardNumber).close();
+		formatter.format("; номер карты: %016d", cardNumber).close();
 		
-		result.append(", номер счёта: ").append(iban);
+		result.append("; номер счёта: ").append(iban);
 		
 		return result.toString();
 	}	

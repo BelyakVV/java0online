@@ -6,8 +6,6 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.LinkedList;
-import java.util.List;
-import java.util.TreeSet;
 
 /**
  * Создать класс, агрегирующий массив типа Customer, с подходящими
@@ -24,40 +22,36 @@ import java.util.TreeSet;
  */
 public class Aggregator {
 	
+	private static final Customer[] ZERO_ARRAY = new Customer[0];
+
+	private static final String EMPTY = "пусто" + System.lineSeparator();
+	
 	private Customer[] customers;
 	
 	public Aggregator() {
-		customers = new Customer[0];
+		customers = ZERO_ARRAY;
 	}
 	
 	public Aggregator(Customer[] customers) {
 		this.customers = customers;		
 	}
 	
-	public Collection<Customer> selectAll() {
-		return Arrays.asList(customers);
-	}
-	
-	public Collection<Customer> selectByCardRange(long floor, long ceiling) {
+	public Aggregator selectByCardRange(long floor, long ceiling) {
+		if (ceiling < floor || ceiling < 0 || floor > MAX_CARD_NUMBER) {
+			return new Aggregator();
+		}
 		Collection<Customer> result = new LinkedList<>();
-		if (ceiling < floor || ceiling < 0 || floor > MAX_CARD_NUMBER) return result;
 		for (var customer: customers) {
 			if (customer.getCardNumber() >= floor && customer.getCardNumber() <= ceiling) {
 				result.add(customer);
 			}
 		}
-		return result;
+		return new Aggregator(result.toArray(ZERO_ARRAY));
 	}
 	
-	public static Collection<Customer> sort (Collection<Customer> customers, Comparator<Customer> comparator) {
-		if (customers instanceof List) {
-			((List<Customer>) customers).sort(comparator);
-			return customers;
-		} else {
-			Collection<Customer> result = new TreeSet<>(comparator);
-			result.addAll(customers);
-			return result;
-		}
+	public Aggregator sort(Comparator<Customer> comparator) {
+		Arrays.sort(customers, comparator);
+		return this;
 	}
 	
 	public static int compareAlphabetically(Customer c1, Customer c2) {
@@ -67,5 +61,15 @@ public class Aggregator {
 		if (result != 0) return result;
 		result = c1.getPatronymic().compareToIgnoreCase(c2.getPatronymic());
 		return result;
+	}
+	
+	@Override
+	public String toString() {
+		if (customers.length < 1) return EMPTY;
+		StringBuilder result = new StringBuilder();
+		for (var customer: customers) {
+			result.append(customer).append(System.lineSeparator());
+		}
+		return result.toString();
 	}
 }

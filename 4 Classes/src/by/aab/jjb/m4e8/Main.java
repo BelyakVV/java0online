@@ -1,9 +1,6 @@
 package by.aab.jjb.m4e8;
 
 import static by.aab.console.ConIO.readLong;
-import static by.aab.jjb.m4e8.Aggregator.sort;
-
-import java.util.Collection;
 
 public class Main {
 	private static int c = 0;
@@ -23,22 +20,15 @@ public class Main {
 	};
 	
 	public static void main(String[] args) {
-		Aggregator aggregator = new Aggregator(CUSTOMERS_ARRAY);
+		Aggregator customers = new Aggregator(CUSTOMERS_ARRAY);
 		
 		System.out.println("Список покупателей в алфавитном порядке:");
-		printCollection(sort(aggregator.selectAll(), Aggregator::compareAlphabetically));
+		System.out.println(customers.sort(Aggregator::compareAlphabetically));
 		System.out.println();
 		
 		System.out.println("Список покупателей, у которых номер кредитной карточки находится в заданном интервале:");
 		long floor = readLong("Введите нижнюю границу: ");
 		long ceiling = readLong("Введите верхнюю границу: ");
-		printCollection(aggregator.selectByCardRange(floor, ceiling));
-	}
-
-	private static void printCollection(Collection collection) {
-		if (collection.isEmpty()) System.out.println("пусто");
-		for (var elem: collection) {
-			System.out.println(elem);
-		}
+		System.out.println(customers.selectByCardRange(floor, ceiling));
 	}
 }

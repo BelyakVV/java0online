@@ -4,6 +4,11 @@ import static by.aab.console.ConIO.readInt;
 
 import java.time.LocalTime;
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.Comparator;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.TreeSet;
 
 /**
  * Создайте класс Train, содержащий поля: название пункта назначения, номер
@@ -41,9 +46,58 @@ public class Train {
 		this.departure = LocalTime.parse(departure);
 	}	
 	
-	public static Train[] sortByNumber(Train[] trains) {
-		Arrays.sort(trains, (t1, t2) -> Integer.compare(t1.number, t2.number));
-		return trains;
+	@Override
+	public String toString() {
+		StringBuilder result =  new StringBuilder("№ ").append(number)
+				.append(", пункт назначения: ").append(destination)
+				.append(", отправление: ").append(departure);
+		return result.toString();
+	}
+
+	public static void main(String[] args) {
+		System.out.println("Сортировка по номерам:");
+		printCollection(sort(selectAll(), Train::compareByNumber));
+		System.out.println();
+		
+		int myNumber = readInt("Введите номер поезда: ");
+		printCollection(selectByNumber(myNumber));
+		System.out.println();
+
+		System.out.println("Сортировка по пункту назначения и времени отправления:");
+		printCollection(sort(selectAll(), Train::compareByDestThenByDeparture));		
+	}
+
+	public static Collection<Train> selectAll() {
+		return Arrays.asList(TRAINS);
+	}
+	
+	public static Collection<Train> selectByNumber(int number) {
+		Collection<Train> result = new LinkedList<>();
+		for (Train train: TRAINS) {
+			if (train.number == number) result.add(train);
+		}
+		return result;
+	}
+	
+	public static Collection<Train> sort(Collection<Train> trains, Comparator<Train> comparator) {
+		if (trains instanceof List) {
+			((List<Train>) trains).sort(comparator);
+			return trains;
+		} else {
+			Collection<Train> result = new TreeSet<>(comparator);
+			result.addAll(trains);
+			return result;
+		}
+	}
+	
+	private static int compareByNumber(Train tr1, Train tr2) {
+		return Integer.compare(tr1.number, tr2.number);
+	}
+	
+	private static int compareByDestThenByDeparture(Train tr1, Train tr2) {
+		int result = tr1.destination.compareToIgnoreCase(tr2.destination);
+		if (0 == result) result = tr1.departure.compareTo(tr2.departure);
+		return result;
 	}
 	
 	public static Train[] sortByDestThenByDeparture(Train[] trains) {
@@ -55,36 +109,10 @@ public class Train {
 		return trains;
 	}
 	
-	@Override
-	public String toString() {
-		return new StringBuilder("№ ").append(number)
-				.append(", пункт назначения: ").append(destination)
-				.append(", отправление: ").append(departure).toString();
-	}
-
-	public static void main(String[] args) {
-		System.out.println("Сортировка по номерам:");
-		printTrains(sortByNumber(TRAINS));
-		System.out.println();
-		
-		int myNumber = readInt("Введите номер поезда: ");
-		System.out.println(getTrainByNumber(TRAINS, myNumber));
-		System.out.println();
-
-		System.out.println("Сортировка по пункту назначения и времени отправления:");
-		printTrains(sortByDestThenByDeparture(TRAINS));		
-	}
-
-	public static void printTrains(Train[] trains) {
-		for (Train train: trains) {
-			System.out.println(train);
+	public static void printCollection(Collection collection) {
+		if (collection.isEmpty()) System.out.println("пусто");
+		for (var elem: collection) {
+			System.out.println(elem);
 		}
-	}
-
-	public static Train getTrainByNumber(Train[] trains, int number) {
-		for (Train train: trains) {
-			if (train.number == number) return train;
-		}
-		return null;
 	}
 }
