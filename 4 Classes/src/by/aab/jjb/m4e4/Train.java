@@ -100,15 +100,6 @@ public class Train {
 		return result;
 	}
 	
-	public static Train[] sortByDestThenByDeparture(Train[] trains) {
-		Arrays.sort(trains, (t1, t2) -> {
-			int result = t1.destination.compareToIgnoreCase(t2.destination);
-			if (0 == result) result = t1.departure.compareTo(t2.departure);
-			return result;
-		});
-		return trains;
-	}
-	
 	public static void printCollection(Collection collection) {
 		if (collection.isEmpty()) System.out.println("пусто");
 		for (var elem: collection) {
