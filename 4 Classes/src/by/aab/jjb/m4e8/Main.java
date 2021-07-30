@@ -23,12 +23,21 @@ public class Main {
 		Aggregator customers = new Aggregator(CUSTOMERS_ARRAY);
 		
 		System.out.println("Список покупателей в алфавитном порядке:");
-		System.out.println(customers.sort(Aggregator::compareAlphabetically));
+		System.out.println(customers.sort(Main::compareAlphabetically));
 		System.out.println();
 		
 		System.out.println("Список покупателей, у которых номер кредитной карточки находится в заданном интервале:");
 		long floor = readLong("Введите нижнюю границу: ");
 		long ceiling = readLong("Введите верхнюю границу: ");
 		System.out.println(customers.selectByCardRange(floor, ceiling));
+	}
+
+	private static int compareAlphabetically(Customer c1, Customer c2) {
+		int result = c1.getSurname().compareToIgnoreCase(c2.getSurname());
+		if (result != 0) return result;
+		result = c1.getName().compareToIgnoreCase(c2.getName());
+		if (result != 0) return result;
+		result = c1.getPatronymic().compareToIgnoreCase(c2.getPatronymic());
+		return result;
 	}
 }

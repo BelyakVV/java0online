@@ -54,15 +54,6 @@ public class Aggregator {
 		return this;
 	}
 	
-	public static int compareAlphabetically(Customer c1, Customer c2) {
-		int result = c1.getSurname().compareToIgnoreCase(c2.getSurname());
-		if (result != 0) return result;
-		result = c1.getName().compareToIgnoreCase(c2.getName());
-		if (result != 0) return result;
-		result = c1.getPatronymic().compareToIgnoreCase(c2.getPatronymic());
-		return result;
-	}
-	
 	@Override
 	public String toString() {
 		if (customers.length < 1) return EMPTY;
